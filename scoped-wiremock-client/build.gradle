@@ -1,0 +1,21 @@
+description = 'Scoped WireMock Client'
+dependencies {
+    compile project(':scoped-wiremock-common')
+    compile group: 'commons-io', name: 'commons-io', version: '2.5'
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.4'
+    compile group: 'org.hamcrest', name: 'hamcrest-core', version: '1.3'
+    compile group: 'org.mockito', name: 'mockito-core', version: '2.0.31-beta'
+    compileOnly(group: 'com.github.tomakehurst', name: 'wiremock', version: '2.6.0') {
+        exclude(module: 'httpclient')
+        exclude(module: 'asm')
+        /* This dependency was originally in the Maven provided scope, but the project was not of type war.
+        This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
+        Please review and delete this closure when resolved. */
+    }
+    compile(group: 'junit', name: 'junit', version: '4.12') {
+        /* This dependency was originally in the Maven provided scope, but the project was not of type war.
+        This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
+        Please review and delete this closure when resolved. */
+    }
+}

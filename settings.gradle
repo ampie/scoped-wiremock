@@ -1,0 +1,8 @@
+rootProject.name = 'scoped-wiremock-parent'
+include ':scoped-wiremock'
+include ':scoped-wiremock-common'
+include ':scoped-wiremock-client'
+
+project(':scoped-wiremock').projectDir = "$rootDir/scoped-wiremock" as File
+project(':scoped-wiremock-common').projectDir = "$rootDir/scoped-wiremock-common" as File
+project(':scoped-wiremock-client').projectDir = "$rootDir/scoped-wiremock-client" as File
