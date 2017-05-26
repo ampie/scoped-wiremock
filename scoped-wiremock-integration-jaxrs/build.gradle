@@ -1,0 +1,6 @@
+apply plugin: 'groovy'
+dependencies {
+    compileOnly('javax.ws.rs:javax.ws.rs-api:2.0')
+    testCompile('javax.ws.rs:javax.ws.rs-api:2.0')
+    compile(project(":scoped-wiremock-integration-common"))
+}

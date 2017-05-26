@@ -2,6 +2,7 @@ description = 'Scoped WireMock Common'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 dependencies {
+    compile(project(':scoped-wiremock-integration-common'))
     compileOnly(group: 'com.github.tomakehurst', name: 'wiremock', version: '2.6.0') {
         exclude(module: 'httpclient')
         exclude(module: 'asm')

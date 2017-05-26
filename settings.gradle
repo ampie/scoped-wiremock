@@ -2,7 +2,21 @@ rootProject.name = 'scoped-wiremock-parent'
 include ':scoped-wiremock'
 include ':scoped-wiremock-common'
 include ':scoped-wiremock-client'
+include ':scoped-wiremock-integration-jaxws'
+include ':scoped-wiremock-integration-common'
+include ':scoped-wiremock-integration-filter'
+include ':scoped-wiremock-integration-cdi'
+include ':scoped-wiremock-integration-resteasy'
+include ':scoped-wiremock-integration-jaxrs'
+include ':scoped-wiremock-integration-spring'
 
 project(':scoped-wiremock').projectDir = "$rootDir/scoped-wiremock" as File
 project(':scoped-wiremock-common').projectDir = "$rootDir/scoped-wiremock-common" as File
 project(':scoped-wiremock-client').projectDir = "$rootDir/scoped-wiremock-client" as File
+project(':scoped-wiremock-integration-jaxws').projectDir = "$rootDir/scoped-wiremock-integration-jaxws" as File
+project(':scoped-wiremock-integration-common').projectDir = "$rootDir/scoped-wiremock-integration-common" as File
+project(':scoped-wiremock-integration-filter').projectDir = "$rootDir/scoped-wiremock-integration-filter" as File
+project(':scoped-wiremock-integration-cdi').projectDir = "$rootDir/scoped-wiremock-integration-cdi" as File
+project(':scoped-wiremock-integration-resteasy').projectDir = "$rootDir/scoped-wiremock-integration-resteasy" as File
+project(':scoped-wiremock-integration-jaxrs').projectDir = "$rootDir/scoped-wiremock-integration-jaxrs" as File
+project(':scoped-wiremock-integration-spring').projectDir = "$rootDir/scoped-wiremock-integration-spring" as File

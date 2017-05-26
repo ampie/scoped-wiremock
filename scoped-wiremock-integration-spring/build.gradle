@@ -1,0 +1,8 @@
+apply plugin: 'groovy'
+dependencies {
+//    compileOnly('org.springframework.android:spring-android-rest-template:1.0.1.RELEASE')
+    compileOnly('org.springframework:spring-web:3.2.18.RELEASE')
+    testCompile('org.springframework:spring-web:3.2.18.RELEASE')
+//    compileOnly('javax.ws.rs:javax.ws.rs-api:2.0')
+    compile(project(":scoped-wiremock-integration-common"))
+}

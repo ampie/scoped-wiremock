@@ -115,7 +115,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.github.ampie.wiremock.ScopedWireMockServerRunner</mainClass>
+                            <mainClass>com.sbg.bdd.wiremock.scoped.ScopedWireMockServerRunner</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -140,7 +140,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.github.ampie.wiremock.ScopedWireMockServerRunner</mainClass>
+                            <mainClass>com.sbg.bdd.wiremock.scoped.ScopedWireMockServerRunner</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

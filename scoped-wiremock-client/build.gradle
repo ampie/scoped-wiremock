@@ -5,6 +5,7 @@ dependencies {
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.4'
     compile group: 'org.hamcrest', name: 'hamcrest-core', version: '1.3'
+    compile group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
     compile group: 'org.mockito', name: 'mockito-core', version: '2.0.31-beta'
     compileOnly(group: 'com.github.tomakehurst', name: 'wiremock', version: '2.6.0') {
         exclude(module: 'httpclient')
