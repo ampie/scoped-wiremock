@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.admin.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sbg.bdd.wiremock.scoped.common.ExecutionPathExtractor;
+import com.sbg.bdd.wiremock.scoped.common.ParentPath;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -75,9 +75,9 @@ public class RecordedExchange {
 
     }
     @JsonIgnore
-    public String getExecutionScopePath(){
-        String scopePath = this.scopePath;
-        return ExecutionPathExtractor.executionScopePathFrom(scopePath);
+    public String getStepContainerPath(){
+        //Chop of the segment represent the current user
+        return  ParentPath.of(this.scopePath);
 
     }
 

@@ -12,29 +12,22 @@ import javax.naming.InitialContext;
 public class CdiAdaptor implements DependencyInjectorAdaptor {
     @Override
     public WireMockCorrelationState getCurrentCorrelationState() {
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        WireMockCorrelationState pr = null;
-        try {
-            InitialContext initialContext = new InitialContext();
-            BeanManager beanManager = (BeanManager) initialContext.lookup("java:comp/BeanManager");
-            Bean<WireMockCorrelationState> bean = (Bean<WireMockCorrelationState>) beanManager.getBeans(WireMockCorrelationState.class).iterator().next();
-            CreationalContext<WireMockCorrelationState> ctx = beanManager.createCreationalContext(bean);
-            return (WireMockCorrelationState) beanManager.getReference(bean, WireMockCorrelationState.class, ctx);
-        } catch (Exception e) {
-            return null;
-        }
-
+        return resolveBean(WireMockCorrelationState.class);
     }
 
     @Override
     public EndPointRegistry getEndpointRegistry() {
+        return resolveBean(EndPointRegistry.class);
+    }
+
+    private <T> T resolveBean(Class<T> clss) {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         try {
             InitialContext initialContext = new InitialContext();
             BeanManager beanManager = (BeanManager) initialContext.lookup("java:comp/BeanManager");
-            Bean<EndPointRegistry> bean = (Bean<EndPointRegistry>) beanManager.getBeans(EndPointRegistry.class).iterator().next();
-            CreationalContext<EndPointRegistry> ctx = beanManager.createCreationalContext(bean);
-            return (EndPointRegistry) beanManager.getReference(bean, EndPointRegistry.class, ctx);
+            Bean<T> bean = (Bean<T>) beanManager.getBeans(clss).iterator().next();
+            CreationalContext<T> ctx = beanManager.createCreationalContext(bean);
+            return (T) beanManager.getReference(bean, clss, ctx);
         } catch (Exception e) {
             return null;
         }

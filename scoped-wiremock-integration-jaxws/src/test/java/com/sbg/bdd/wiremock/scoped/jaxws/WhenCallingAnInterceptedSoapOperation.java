@@ -94,7 +94,7 @@ public class WhenCallingAnInterceptedSoapOperation {
             }
 
             @Override
-            public Map<String, String> allKnownExternalEndpoints() {
+            public Map<String, URL> allKnownExternalEndpoints() {
                 return null;
             }
         };

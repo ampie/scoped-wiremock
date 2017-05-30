@@ -7,28 +7,22 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class InboundCorrelationPathFilter implements Filter {
     static final Logger LOGGER = Logger.getLogger(InboundCorrelationPathFilter.class.getName());
     private static final String PROPERTY_PATH = "/Property/";
-    public static final java.lang.String SCOPED_WIREMOCK_ENABLED = InboundCorrelationPathFilter.class.getSimpleName() + "scoped_wiremock_enabled";
-
-    private PropertyWriter propertyWriter;
-
-
-    private EndPointRegistry endpointRegistry;
-
+    public static final String SCOPED_WIREMOCK_ENABLED = InboundCorrelationPathFilter.class.getSimpleName() + "scoped_wiremock_enabled";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        endpointRegistry = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
-        propertyWriter = new PropertyWriter(endpointRegistry);
     }
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        CorrelationStateSynchronizer correlationStateSynchronizer = new CorrelationStateSynchronizer(endpointRegistry);
+        CorrelationStateSynchronizer correlationStateSynchronizer = new CorrelationStateSynchronizer();
         correlationStateSynchronizer.clearCorrelationSession();
         HttpServletRequest request = (HttpServletRequest) req;
         try {
@@ -56,12 +50,38 @@ public class InboundCorrelationPathFilter implements Filter {
         if (indexOf > 1) {
             response.setContentType("application/json");
             String propertyName = request.getRequestURI().substring(indexOf + PROPERTY_PATH.length());
-            boolean resolveIp = "true".equals(request.getParameter("resolveIp"));
-            return propertyWriter.maybeWriteOneOrAllProperties(response.getOutputStream(), propertyName, resolveIp);
+            ServletOutputStream outputStream = response.getOutputStream();
+            if (propertyName.equals("all")) {
+                return writeAllEndpointConfigs(outputStream);
+            } else {
+                return writeSingleEndpointConfig(outputStream, propertyName);
+            }
         }
         return false;
     }
 
+    private boolean writeSingleEndpointConfig(ServletOutputStream outputStream, String propertyName) throws IOException {
+        EndpointConfig config = EndpointTypeTracker.getInstance().getEndpointConfig(propertyName);
+        if (config != null) {
+            outputStream.print(config.toJson());
+            return true;
+        }
+        return false;
+    }
+
+    private boolean writeAllEndpointConfigs(ServletOutputStream outputStream) throws IOException {
+        outputStream.print("{\"configs\":[");
+        Set<EndpointConfig> endpointProperties = EndpointTypeTracker.getInstance().getAllEndpointConfigs();
+        Iterator<EndpointConfig> iterator = endpointProperties.iterator();
+        while (iterator.hasNext()) {
+            outputStream.print(iterator.next().toJson());
+            if (iterator.hasNext()) {
+                outputStream.print(",");
+            }
+        }
+        outputStream.print("]}");
+        return true;
+    }
 
     @Override
     public void destroy() {

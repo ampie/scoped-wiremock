@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
-import com.sbg.bdd.wiremock.scoped.filter.KnownEndpointRegistry;
+import com.sbg.bdd.wiremock.scoped.filter.EndpointTypeTracker;
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
 import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
 
@@ -31,9 +31,9 @@ public class DynamicWebServiceEndPointExtension implements Extension {
         for (AnnotatedField<?> annotatedField : pit.getAnnotatedType().getFields()) {
             Field declaredField=annotatedField.getJavaMember();
             if (isPortRef(declaredField)) {
-                KnownEndpointRegistry.getInstance().registerSoapEndpoint(declaredField.getAnnotation(EndPointProperty.class).value());
+                EndpointTypeTracker.getInstance().registerSoapEndpoint(declaredField.getAnnotation(EndPointProperty.class).value());
             } else if (declaredField.isAnnotationPresent(EndPointProperty.class)) {
-                KnownEndpointRegistry.getInstance().registerRestEndpoint(declaredField.getAnnotation(EndPointProperty.class).value());
+                EndpointTypeTracker.getInstance().registerRestEndpoint(declaredField.getAnnotation(EndPointProperty.class).value());
             }
 
         }

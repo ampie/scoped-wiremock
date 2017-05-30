@@ -5,6 +5,7 @@ import com.sbg.bdd.wiremock.scoped.integration.BaseWireMockCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
+import com.sbg.bdd.wiremock.scoped.integration.PropertiesEndpointRegistry
 import spock.lang.Specification
 
 import javax.servlet.FilterChain
@@ -23,14 +24,16 @@ class WhenProxyingUnmappedEndpoints extends Specification{
             }
         }
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseWireMockCorrelationState()
-        KnownEndpointRegistry.getInstance().registerRestEndpoint('endpoint1')
-        KnownEndpointRegistry.getInstance().registerSoapEndpoint('endpoint2')
-        KnownEndpointRegistry.getInstance().registerTransitiveRestEndpoint('endpoint3', 'http://host3.com')
-        KnownEndpointRegistry.getInstance().registerTransitiveSoapEndpoint('endpoint4', 'http://host4.com')
-        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndPointRegistry){
-            endpointUrlFor('endpoint1') >> new URL('http://host1.com')
-            endpointUrlFor('endpoint2') >> new URL('http://host2.com')
-        }
+        EndpointTypeTracker.getInstance().registerRestEndpoint('endpoint1')
+        EndpointTypeTracker.getInstance().registerSoapEndpoint('endpoint2')
+        EndpointTypeTracker.getInstance().registerAdditionalRestEndpoint('endpoint3')
+        EndpointTypeTracker.getInstance().registerAdditionalSoapEndpoint('endpoint4')
+        def endpointProps = new Properties()
+        endpointProps.put('endpoint1','http://host1.com')
+        endpointProps.put('endpoint2','http://host2.com')
+        endpointProps.put('endpoint3','http://host3.com')
+        endpointProps.put('endpoint4','http://host4.com')
+        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=new PropertiesEndpointRegistry(endpointProps)
         def filter = new InboundCorrelationPathFilter()
         filter.init(null)
         def request = Mock(HttpServletRequest){

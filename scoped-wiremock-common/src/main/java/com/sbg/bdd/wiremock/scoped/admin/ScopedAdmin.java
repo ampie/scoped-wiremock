@@ -9,11 +9,17 @@ import java.util.List;
 
 public interface ScopedAdmin {
     CorrelationState startNewCorrelatedScope(String parentScopePath);
+
     CorrelationState joinKnownCorrelatedScope(CorrelationState knownScope);
+
     CorrelationState getCorrelatedScope(String scopePath);
+
     List<String> stopCorrelatedScope(String scopePath);
+
     List<RecordedExchange> findMatchingExchanges(RequestPattern requestPattern);
+
     void syncCorrelatedScope(CorrelationState correlationState);
+
     List<StubMapping> getMappingsInScope(String scopePath);
 
     void startStep(String scopePath, String stepName);

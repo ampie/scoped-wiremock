@@ -1,0 +1,25 @@
+group 'com.sbg.bdd'
+version '0.0.1'
+
+apply plugin: 'groovy'
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile(project(':scoped-wiremock-client'))
+    compile(project(':common-resource-api'))
+    compile 'org.codehaus.groovy:groovy-all:2.4.5'
+    compileOnly(group: 'com.github.tomakehurst', name: 'wiremock', version: '2.6.0') {
+        exclude(module: 'httpclient')
+        exclude(module: 'asm')
+        /* This dependency was originally in the Maven provided scope, but the project was not of type war.
+        This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
+        Please review and delete this closure when resolved. */
+    }
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile 'cglib:cglib-nodep:2.2'
+    testCompile(project(':scoped-wiremock-server'))
+}
