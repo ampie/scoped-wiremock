@@ -11,25 +11,23 @@ import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.sbg.bdd.resource.ReadableResource;
 import com.sbg.bdd.resource.Resource;
+import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.resource.ResourceFilter;
 import com.sbg.bdd.resource.file.ReadableFileResource;
-import com.sbg.bdd.wiremock.scoped.recording.builders.ExtendedMappingBuilder;
-import com.sbg.bdd.wiremock.scoped.recording.builders.ExtendedRequestPatternBuilder;
+import com.sbg.bdd.wiremock.scoped.ScopedWireMockClient;
+import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedRequest;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedResponse;
-import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
-import com.sbg.bdd.wiremock.scoped.ScopedWireMockClient;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
-import org.apache.commons.io.FileUtils;
+import com.sbg.bdd.wiremock.scoped.recording.builders.ExtendedMappingBuilder;
+import com.sbg.bdd.wiremock.scoped.recording.builders.ExtendedRequestPatternBuilder;
+import org.apache.commons.codec.binary.*;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.sbg.bdd.resource.ResourceContainer;
 
 import static com.sbg.bdd.wiremock.scoped.recording.strategies.MimeTypeHelper.calculateExtension;
 
@@ -109,7 +107,7 @@ public class RecordingWireMockClient extends ScopedWireMockClient {
         String extension = calculateExtension(headers);
         String baseFileName = buildBaseFileName(requestedUrl, sequenceNumber, httpMethod);
         String base64Body = recordedResponse.getBase64Body();
-        byte[] body = Base64.getDecoder().decode(base64Body);
+        byte[] body = org.apache.commons.codec.binary.Base64.decodeBase64(base64Body.getBytes());
         dir.resolvePotential(baseFileName + extension).write(body);
         headers = headers.
                 plus(new HttpHeader("requestedUrl", requestedUrl)).
@@ -122,7 +120,7 @@ public class RecordingWireMockClient extends ScopedWireMockClient {
         String[] segments = requestedUrl.split("/");
         String serviceName = segments[segments.length - 2];
         String operation = segments[segments.length - 1];
-        return String.join("_", serviceName, httpMethod, operation, sequenceNumber);
+        return serviceName + "_" + httpMethod + "_" + operation + "_" + sequenceNumber;
     }
 
 

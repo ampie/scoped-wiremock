@@ -3,8 +3,8 @@ package com.sbg.bdd.wiremock.scoped.recording.endpointconfig;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -16,7 +16,7 @@ public class RemoteEndPointConfigRegistry extends BaseHttpClient implements Endp
     private final String baseUrl;
     private static final String PROPERTY_PATH = "/Property/";
 
-    public RemoteEndPointConfigRegistry(CloseableHttpClient httpClient, String baseUrl) {
+    public RemoteEndPointConfigRegistry(OkHttpClient httpClient, String baseUrl) {
         super(httpClient);
         this.baseUrl = baseUrl;
     }
@@ -24,7 +24,7 @@ public class RemoteEndPointConfigRegistry extends BaseHttpClient implements Endp
     @Override
     public EndpointConfig endpointUrlFor(String serviceEndpointPropertyName) {
         try {
-            return toEndpointConfig(execute(new HttpGet(baseUrl + PROPERTY_PATH + serviceEndpointPropertyName)));
+            return toEndpointConfig(execute(new Request.Builder().url(baseUrl + PROPERTY_PATH + serviceEndpointPropertyName).get().build()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -33,7 +33,7 @@ public class RemoteEndPointConfigRegistry extends BaseHttpClient implements Endp
     @Override
     public Set<EndpointConfig> allKnownExternalEndpoints() {
         try {
-            ObjectNode result = execute(new HttpGet(baseUrl + PROPERTY_PATH + "all"));
+            ObjectNode result = execute(new Request.Builder().url(baseUrl + PROPERTY_PATH + "all").get().build());
             ArrayNode array = (ArrayNode) result.get("configs");
 
             Set<EndpointConfig> endPoints=new TreeSet<>();

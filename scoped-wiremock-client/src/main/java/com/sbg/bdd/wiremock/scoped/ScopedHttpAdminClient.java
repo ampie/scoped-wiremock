@@ -1,47 +1,21 @@
 package com.sbg.bdd.wiremock.scoped;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionLikeType;
-import com.sbg.bdd.wiremock.scoped.admin.*;
-import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
-import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
 import com.github.tomakehurst.wiremock.admin.AdminRoutes;
-import com.github.tomakehurst.wiremock.admin.AdminTask;
-import com.github.tomakehurst.wiremock.admin.RequestSpec;
 import com.github.tomakehurst.wiremock.admin.model.PathParams;
-import com.github.tomakehurst.wiremock.admin.tasks.FindNearMissesForRequestPatternTask;
-import com.github.tomakehurst.wiremock.admin.tasks.FindRequestsTask;
-import com.github.tomakehurst.wiremock.admin.tasks.GetRequestCountTask;
 import com.github.tomakehurst.wiremock.admin.tasks.OldRemoveStubMappingTask;
-import com.github.tomakehurst.wiremock.client.HttpAdminClient;
-import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.common.AdminException;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.extension.AdminApiExtension;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
-import com.github.tomakehurst.wiremock.verification.FindNearMissesResult;
-import com.github.tomakehurst.wiremock.verification.FindRequestsResult;
-import com.github.tomakehurst.wiremock.verification.VerificationResult;
-import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
 import com.sbg.bdd.wiremock.scoped.admin.*;
-import org.apache.http.client.methods.*;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.message.BasicHeader;
+import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
+import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
+import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.github.tomakehurst.wiremock.common.Exceptions.throwUnchecked;
-import static com.github.tomakehurst.wiremock.common.HttpClientUtils.getEntityAsStringAndCloseStream;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.sbg.bdd.wiremock.scoped.common.Reflection.getValue;
-import static java.net.HttpURLConnection.HTTP_OK;
-import static org.apache.http.HttpHeaders.HOST;
 
 public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmin, HasBaseUrl {
     private static final String ADMIN_URL_PREFIX = "%s://%s:%d%s/__admin";
@@ -51,11 +25,7 @@ public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmi
     private final int port;
     private final String urlPathPrefix;
     private final String hostHeader;
-    private static CloseableHttpClient httpClientOverride;
 
-    public static void overrideHttpClient(CloseableHttpClient httpClient) {
-        httpClientOverride = httpClient;
-    }
 
     public ScopedHttpAdminClient(String scheme, String host, int port) {
         this(scheme, host, port, "");
@@ -222,68 +192,6 @@ public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmi
         );
     }
 
-    private <B, R> R executeRequest(RequestSpec requestSpec, PathParams pathParams, B requestBody, Class<R> responseType, int expectedStatus) {
-        return (R) executeRequest(requestSpec, pathParams, requestBody, Json.getObjectMapper().getTypeFactory().constructType(responseType), expectedStatus);
-    }
-
-    private <B, R> R executeRequest(RequestSpec requestSpec, PathParams pathParams, B requestBody, JavaType responseType, int expectedStatus) {
-        String url = String.format(ADMIN_URL_PREFIX + requestSpec.path(pathParams), scheme, host, port, urlPathPrefix);
-        RequestBuilder requestBuilder = RequestBuilder
-                .create(requestSpec.method().getName())
-                .setUri(url)
-                .addHeader(new BasicHeader("Content-Type", "application/json"));
-
-        if (requestBody != null) {
-            requestBuilder.setEntity(jsonStringEntity(Json.write(requestBody)));
-        }
-
-        String responseBodyString = safelyExecuteRequest(url, expectedStatus, requestBuilder.build());
-        if (responseType.getRawClass() == Void.class) {
-            return null;
-        }
-        Object result;
-        try {
-                ObjectMapper mapper = Json.getObjectMapper();
-                result = mapper.readValue(responseBodyString, responseType);
-        } catch (IOException ioe) {
-            result = throwUnchecked(ioe, responseType.getRawClass());
-        }
-        return (R) result;
-    }
-
-    private String safelyExecuteRequest(String url, int expectedStatus, HttpUriRequest request) {
-        if (hostHeader != null) {
-            request.addHeader(HOST, hostHeader);
-        }
-
-        try (CloseableHttpResponse response = execute(request)) {
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != expectedStatus) {
-                throw new VerificationException(
-                        "Expected status " + expectedStatus + " for " + url + " but was " + statusCode + " for reason:'" + getEntityAsStringAndCloseStream(response) + "'");
-            }
-
-            return getEntityAsStringAndCloseStream(response);
-        } catch (Exception e) {
-            return throwUnchecked(e, String.class);
-        }
-    }
-
-    private CloseableHttpResponse execute(HttpUriRequest request) throws IOException {
-        if (httpClientOverride != null) {
-            CloseableHttpResponse response = httpClientOverride.execute(request);
-            if (response == null) {
-                String content = "";
-                if (request instanceof HttpEntityEnclosingRequestBase) {
-                    content = ((HttpEntityEnclosingRequestBase) request).getEntity().toString();
-                }
-                throw new IllegalArgumentException("Requested " + request.getMethod() + " to " + request.getURI() + " not mapped. Content: " + content);
-            }
-            return response;
-        } else {
-            return ((CloseableHttpClient) getValue(this, "httpClient")).execute(request);
-        }
-    }
 
     @Override
     public void addStubMapping(StubMapping stubMapping) {
@@ -299,16 +207,6 @@ public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmi
                 Void.class,
                 201
         );
-    }
-
-    private static StringEntity jsonStringEntity(String json) {
-        return new StringEntity(json, ContentType.APPLICATION_JSON);
-    }
-
-    private String urlFor(Class<? extends AdminTask> taskClass) {
-        RequestSpec requestSpec = scopedAdminRoutes.requestSpecForTask(taskClass);
-        checkNotNull(requestSpec, "No admin task URL is registered for " + taskClass.getSimpleName());
-        return String.format(ADMIN_URL_PREFIX + requestSpec.path(), scheme, host, port, urlPathPrefix);
     }
 
 }

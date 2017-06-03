@@ -102,6 +102,10 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
         this.requestPatternBuilder.to(urlInfo);
         return (T) this;
     }
+    public T recordingResponsesTo(String dir){
+        getRecordingSpecification().recordingResponsesTo(dir);
+        return (T)this;
+    }
 
     
     public T will(ResponseStrategy responseStrategy) {

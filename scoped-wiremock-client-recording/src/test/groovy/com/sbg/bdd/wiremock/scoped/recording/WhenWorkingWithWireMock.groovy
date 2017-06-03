@@ -2,6 +2,13 @@ package com.sbg.bdd.wiremock.scoped.recording
 
 import com.sbg.bdd.wiremock.scoped.recording.endpointconfig.RemoteEndPointConfigRegistry
 import groovy.json.JsonOutput
+import okhttp3.Call
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.ResponseBody
 import org.apache.http.ProtocolVersion
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpUriRequest
@@ -17,11 +24,11 @@ abstract class WhenWorkingWithWireMock extends Specification {
     static final int EVERYBODY_PRIORITY_DECREMENT = PRIORITIES_PER_LEVEL / 2;
 
     def initializeWireMockContext() {
-        def httpMock = Mock(CloseableHttpClient) {
-            execute(_) >> { args ->
-                HttpUriRequest request = args[0]
+        def httpMock = Mock(OkHttpClient) {
+            newCall(_) >> { args ->
+                Request request = args[0]
                 def body = null;
-                if (request.getURI().getPath().endsWith('/Property/all')) {
+                if (request.url().toString().endsWith('/Property/all')) {
                     body = JsonOutput.toJson([configs: [
                             [propertyName: 'external.service.a', url: 'http://somehost.com/service/one/endpoint', endpointType: 'REST'],
                             [propertyName: 'external.service.b', url: 'http://somehost.com/service/two/endpoint', endpointType: 'SOAP']
@@ -30,9 +37,10 @@ abstract class WhenWorkingWithWireMock extends Specification {
                 } else {
                     body = JsonOutput.toJson([propertyName: 'x', url: 'http://somehost.com/resolved/endpoint', endpointType: 'SOAP'])
                 }
-                return Mock(CloseableHttpResponse) {
-                    getEntity() >> new StringEntity(body, ContentType.APPLICATION_JSON)
-                    getStatusLine() >> new BasicStatusLine(new ProtocolVersion('http', 2, 0), 200, 'OK')
+                return Mock(Call) {
+                    execute() >>{
+                        new Response.Builder().request(request).body(ResponseBody.create(MediaType.parse("application/json"), body)).code(200).protocol(Protocol.HTTP_2).message("OK").build();
+                    }
                 }
             }
         }

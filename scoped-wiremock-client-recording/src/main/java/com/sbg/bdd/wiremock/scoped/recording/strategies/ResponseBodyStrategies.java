@@ -29,7 +29,7 @@ public class ResponseBodyStrategies {
         return new ResponseStrategy() {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext scope) throws Exception {
                 builder.atPriority(scope.calculatePriority(DefaultMappingPriority.BODY_KNOWN.priority()));
-                return aResponse().withBody(body).withHeader("Content-StepEventType", contentType);
+                return aResponse().withBody(body).withHeader("Content-Type", contentType);
             }
         };
     }
@@ -41,7 +41,7 @@ public class ResponseBodyStrategies {
                 String responseBody = new String(bodyFile.read());
                 String headers = readHeaders(bodyFile);
                 builder.atPriority(scope.calculatePriority(DefaultMappingPriority.BODY_KNOWN.priority()));
-                ExtendedResponseDefinitionBuilder responseBuilder = aResponse().withBody(responseBody).withHeader("Content-StepEventType", MimeTypeHelper.determineContentType(fileName));
+                ExtendedResponseDefinitionBuilder responseBuilder = aResponse().withBody(responseBody).withHeader("Content-Type", MimeTypeHelper.determineContentType(fileName));
                 if (headers != null) {
                     addHeaders(headers, responseBuilder);
                 }
@@ -64,7 +64,7 @@ public class ResponseBodyStrategies {
                 String responseBody = writer.toString();
 
                 builder.atPriority(scope.calculatePriority(DefaultMappingPriority.BODY_KNOWN.priority()));
-                ExtendedResponseDefinitionBuilder responseBuilder = aResponse().withBody(responseBody).withHeader("Content-StepEventType", MimeTypeHelper.determineContentType(templateBuilder.getFileName()));
+                ExtendedResponseDefinitionBuilder responseBuilder = aResponse().withBody(responseBody).withHeader("Content-Type", MimeTypeHelper.determineContentType(templateBuilder.getFileName()));
                 if (headers != null) {
                     addHeaders(headers, responseBuilder);
                 }

@@ -80,7 +80,7 @@ public class DirectoryResource extends FileSystemResource implements ResourceCon
         return (T)previous;
     }
 
-    private static String[] flatten(String[] segments) {
+    public static String[] flatten(String[] segments) {
         List<String> result = new ArrayList<>();
         for (String s : segments) {
             if (s != null) {

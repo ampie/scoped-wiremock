@@ -23,7 +23,7 @@ class WhenBuildingReponseBodies extends WhenWorkingWithWireMock {
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
         mapping['request']['url'] == '/home/path'
-        mapping['response']['headers']['Content-StepEventType'] == 'application/json'
+        mapping['response']['headers']['Content-Type'] == 'application/json'
         mapping['response']['headers']['foo-header'] == 'bar-header-value'
         mapping['response']['body'] == "{\"foo\":\"bar\"}"
         mapping['priority'] == DefaultMappingPriority.BODY_KNOWN.priority()
@@ -41,7 +41,7 @@ class WhenBuildingReponseBodies extends WhenWorkingWithWireMock {
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
         mapping['request']['url'] == '/home/path'
-        mapping['response']['headers']['Content-StepEventType'] == 'text/xml'
+        mapping['response']['headers']['Content-Type'] == 'text/xml'
         mapping['response']['headers']['foo-header'] == 'bar-header-value'
         mapping['response']['body'] == "<root>thisValue</root>"
         mapping['priority'] == DefaultMappingPriority.BODY_KNOWN.priority()
