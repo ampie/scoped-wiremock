@@ -1,7 +1,10 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
+import com.sbg.bdd.wiremock.scoped.filter.EndpointConfig;
+import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
 import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
+import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
 import com.sbg.bdd.wiremock.scoped.jaxws.OutboundCorrelationPathSOAPHandler;
 
 import javax.jws.WebMethod;
@@ -10,17 +13,17 @@ import javax.xml.ws.handler.Handler;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.logging.Logger;
 
 public class DynamicWebServiceReferenceInvocationHandler implements InvocationHandler {
     private static final Logger LOGGER = Logger.getLogger(DynamicWebServiceReferenceInvocationHandler.class.getName());
     private BindingProvider delegate;
-    private final EndPointRegistry endpointRegistry;
     private final EndPointProperty endPointProperty;
-
-    public DynamicWebServiceReferenceInvocationHandler(BindingProvider delegate, EndPointRegistry endpointRegistry, EndPointProperty endPointProperty) {
-        this.endpointRegistry=endpointRegistry;
+    private EndPointRegistry endPointRegistry;
+    public DynamicWebServiceReferenceInvocationHandler(BindingProvider delegate, EndPointProperty endPointProperty) {
         this.endPointProperty=endPointProperty;
         this.delegate=delegate;
         attachInterceptor(delegate);
@@ -49,7 +52,17 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
             if(method.isAnnotationPresent(WebMethod.class) && !isProbablyAlreadyMocked()){
-                delegate.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,endpointRegistry.endpointUrlFor(endPointProperty.value()));
+                URL url= getEndPointRegistry().endpointUrlFor(endPointProperty.value());
+                WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+                if (currentCorrelationState.isSet()) {
+                    try {
+                        url = new URL(currentCorrelationState.getWireMockBaseUrl() + url.getFile() + (url.getQuery() == null ? "" : url.getQuery()));
+                    } catch (MalformedURLException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }
+
+                delegate.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, url.toExternalForm());
             }
             return method.invoke(delegate,args);
         } catch (InvocationTargetException e) {
@@ -57,11 +70,18 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
         }
     }
 
+    public EndPointRegistry getEndPointRegistry() {
+        if(endPointRegistry==null){
+            endPointRegistry= DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
+        }
+        return endPointRegistry;
+    }
+
     private boolean isProbablyAlreadyMocked() {
         //TODO just keep an eye on this
         String endpoint = (String) delegate.getRequestContext().get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY);
         if(endpoint !=null && endpoint.startsWith("http://localhost")){
-            return true;
+//            return true;
         }
         return false;
     }

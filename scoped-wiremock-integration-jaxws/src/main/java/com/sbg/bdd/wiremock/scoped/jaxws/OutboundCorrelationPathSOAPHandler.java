@@ -23,10 +23,12 @@ public class OutboundCorrelationPathSOAPHandler implements SOAPHandler {
     @Override
     public boolean handleMessage(MessageContext context) {
         WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getCurrentCorrelationState();
-        if (currentCorrelationState.isSet() && Boolean.TRUE.equals(context.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY))) {
-            prepareOutgoingCall(context, currentCorrelationState);
-        } else {
-            processIncomingResponse(context, currentCorrelationState);
+        if (currentCorrelationState.isSet()) {
+            if (Boolean.TRUE.equals(context.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY))) {
+                prepareOutgoingCall(context, currentCorrelationState);
+            } else {
+                processIncomingResponse(context, currentCorrelationState);
+            }
         }
         return true;
     }

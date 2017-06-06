@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.matching.*;
 import com.sbg.bdd.wiremock.scoped.recording.endpointconfig.EndpointConfigRegistry;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -101,9 +102,9 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
             path = path + ".*";
         }
         if (path.contains(".*")) {
-            return new UrlPattern(new RegexPattern(path), true);
+            return new UrlPathPattern(new RegexPattern(path), true);
         } else {
-            return new UrlPattern(new EqualToPattern(path), false);
+            return new UrlPathPattern(new EqualToPattern(path), false);
         }
     }
     

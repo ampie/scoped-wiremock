@@ -16,13 +16,12 @@ import java.util.Set;
 
 
 public class DynamicWebServiceEndPointExtension implements Extension {
-    EndPointRegistry endpointRegistry = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
 
     public <X> void processInjectionTarget(@Observes ProcessInjectionTarget<X> pit) {
         registerEndPoints(pit);
         Set<Field> webServiceRefs = extractWebServiceReferences(pit);
         if (webServiceRefs.size() > 0) {
-            pit.setInjectionTarget(new InjectionTargetWrapper<>(endpointRegistry, pit.getInjectionTarget(), webServiceRefs));
+            pit.setInjectionTarget(new InjectionTargetWrapper<>( pit.getInjectionTarget(), webServiceRefs));
         }
     }
 

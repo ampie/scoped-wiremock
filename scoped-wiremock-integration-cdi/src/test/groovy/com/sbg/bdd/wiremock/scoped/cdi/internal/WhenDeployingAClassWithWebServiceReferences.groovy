@@ -48,6 +48,6 @@ class WhenDeployingAClassWithWebServiceReferences extends Specification{
         binding.handlerChain.size() ==1
         binding.handlerChain.get(0) instanceof OutboundCorrelationPathSOAPHandler
         def context = example.theWebService.requestContext
-        context[BindingProvider.ENDPOINT_ADDRESS_PROPERTY].toExternalForm() == 'http://some.host.com'
+        context[BindingProvider.ENDPOINT_ADDRESS_PROPERTY] == 'http://some.host.com'
     }
 }

@@ -3,6 +3,7 @@ package com.sbg.bdd.wiremock.scoped.server.junit;
 
 import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.verification.NearMiss;
 import com.sbg.bdd.wiremock.scoped.ScopedWireMock;
 import com.sbg.bdd.wiremock.scoped.server.ScopedWireMockServer;
@@ -39,7 +40,7 @@ public class ScopedWireMockServerRule extends ScopedWireMock implements TestRule
 
 
     public ScopedWireMockServerRule() {
-        this(WireMockRuleConfiguration.wireMockConfig());
+        this(WireMockRuleConfiguration.wireMockConfig().port(Options.DYNAMIC_PORT));
     }
 
 

@@ -11,6 +11,10 @@ import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
     @Override
     public Response transform(Request request, Response response, FileSource files, Parameters parameters) {
@@ -67,7 +71,14 @@ public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
         }
 
         public void synchronize() {
-            for (String s : invocationCounts.values()) {
+            List<String> invocationCountValues;
+            if(invocationCounts.values().size()==1 && invocationCounts.values().get(0).indexOf(',')>0){
+                //may have been flattened like it seems Apache CXF likes doing
+                invocationCountValues= Arrays.asList(invocationCounts.values().get(0).split("\\,"));
+            }else{
+                invocationCountValues= invocationCounts.values();
+            }
+            for (String s : invocationCountValues) {
                 String[] split = s.split("\\|");
                 correlationState.getServiceInvocationCounts().put(split[0], Integer.valueOf(split[1]));
             }

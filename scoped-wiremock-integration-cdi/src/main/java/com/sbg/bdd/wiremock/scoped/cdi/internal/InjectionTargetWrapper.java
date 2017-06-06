@@ -7,7 +7,11 @@ import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.enterprise.inject.spi.InjectionTarget;
+import javax.jws.WebService;
+import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
+import javax.xml.ws.Service;
+import javax.xml.ws.WebServiceClient;
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
 import java.util.Set;
@@ -18,12 +22,10 @@ class InjectionTargetWrapper<X> implements InjectionTarget<X> {
     private static final Logger LOGGER = Logger.getLogger(InjectionTargetWrapper.class.getName());
     private final InjectionTarget<X> it;
     private final Set<Field> webServiceRefs;
-    private final EndPointRegistry endpointRegistry;
 
-    public InjectionTargetWrapper(EndPointRegistry endpointRegistry, InjectionTarget<X> it, Set<Field> webServiceRefs) {
+    public InjectionTargetWrapper(InjectionTarget<X> it, Set<Field> webServiceRefs) {
         this.it = it;
         this.webServiceRefs = webServiceRefs;
-        this.endpointRegistry = endpointRegistry;
     }
 
     @Override
@@ -32,6 +34,15 @@ class InjectionTargetWrapper<X> implements InjectionTarget<X> {
         for (Field webServiceRef : webServiceRefs) {
             try {
                 Object ref = webServiceRef.get(instance);
+                if (ref == null) {
+                    try {
+                        Class<?> serviceClass = Class.forName(webServiceRef.getType().getName() + "_Service");
+                        Service service = (Service) serviceClass.newInstance();
+                        ref = service.getPort(webServiceRef.getType());
+                    } catch (ReflectiveOperationException e) {
+                        LOGGER.log(Level.WARNING, "Could not create service:", e);
+                    }
+                }
                 if (ref instanceof BindingProvider) {
                     BindingProvider bp = (BindingProvider) ref;
                     wrapReference(instance, webServiceRef, bp);
@@ -46,7 +57,7 @@ class InjectionTargetWrapper<X> implements InjectionTarget<X> {
     private void wrapReference(X instance, Field webServiceRef, BindingProvider bp) throws IllegalAccessException {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         EndPointProperty epp = webServiceRef.getAnnotation(EndPointProperty.class);
-        DynamicWebServiceReferenceInvocationHandler ih = new DynamicWebServiceReferenceInvocationHandler(bp, endpointRegistry, epp);
+        DynamicWebServiceReferenceInvocationHandler ih = new DynamicWebServiceReferenceInvocationHandler(bp, epp);
         webServiceRef.set(instance, Proxy.newProxyInstance(cl, getInterfaces(webServiceRef), ih));
     }
 

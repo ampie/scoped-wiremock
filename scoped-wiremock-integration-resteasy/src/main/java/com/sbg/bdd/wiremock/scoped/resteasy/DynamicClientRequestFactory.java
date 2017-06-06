@@ -4,11 +4,15 @@ package com.sbg.bdd.wiremock.scoped.resteasy;
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
 import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
+import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
 import org.jboss.resteasy.client.ClientExecutor;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientRequestFactory;
 
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
+import java.util.logging.Level;
 
 public class DynamicClientRequestFactory extends ClientRequestFactory {
     private final EndPointRegistry endpointRegistry;
@@ -23,7 +27,16 @@ public class DynamicClientRequestFactory extends ClientRequestFactory {
 
     @Override
     public ClientRequest createRelativeRequest(String uriTemplate) {
-        return this.createRequest(endpointRegistry.endpointUrlFor(endPointProperty.value()) + uriTemplate);
+        URL url = endpointRegistry.endpointUrlFor(endPointProperty.value());
+        WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+        if (currentCorrelationState.isSet()) {
+            try {
+                url = new URL(currentCorrelationState.getWireMockBaseUrl() + url.getFile() + (url.getQuery() == null ? "" : url.getQuery()));
+            } catch (MalformedURLException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+        return this.createRequest(url + uriTemplate);
     }
 
     @Override

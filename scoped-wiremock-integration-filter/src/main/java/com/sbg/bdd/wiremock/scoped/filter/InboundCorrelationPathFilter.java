@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 public class InboundCorrelationPathFilter implements Filter {
     static final Logger LOGGER = Logger.getLogger(InboundCorrelationPathFilter.class.getName());
     private static final String PROPERTY_PATH = "/Property/";
-    public static final String SCOPED_WIREMOCK_ENABLED = InboundCorrelationPathFilter.class.getSimpleName() + "scoped_wiremock_enabled";
+    public static final String SCOPED_WIREMOCK_ENABLED = InboundCorrelationPathFilter.class.getSimpleName() + ".scoped_wiremock_enabled";
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
