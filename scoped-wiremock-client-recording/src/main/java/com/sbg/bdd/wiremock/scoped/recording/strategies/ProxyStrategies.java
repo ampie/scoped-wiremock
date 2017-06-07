@@ -7,6 +7,7 @@ import com.sbg.bdd.wiremock.scoped.recording.builders.ExtendedResponseDefinition
 import com.sbg.bdd.wiremock.scoped.recording.builders.ResponseStrategy;
 
 import static com.sbg.bdd.wiremock.scoped.recording.strategies.ResponseBodyStrategies.aResponse;
+import static java.lang.String.format;
 
 
 public abstract class ProxyStrategies {
@@ -25,6 +26,10 @@ public abstract class ProxyStrategies {
                 builder.atPriority(context.calculatePriority(5));
                 return aResponse().proxiedFrom(baseUrl);
             }
+            @Override
+            public String getDescription() {
+                return format("proxy to \"%s\"",baseUrl);
+            }
         };
     }
 
@@ -36,6 +41,11 @@ public abstract class ProxyStrategies {
                 builder.getRequestPatternBuilder().changeUrlToPattern();
                 return aResponse().interceptedFromSource();
             }
+            @Override
+            public String getDescription() {
+                return format("be intercepted");
+            }
+
         };
 
     }
@@ -59,6 +69,11 @@ public abstract class ProxyStrategies {
                         .withTransformerParameter("action", action)
                         .withTransformerParameter("which", which);
             }
+            @Override
+            public String getDescription() {
+                return format("proxy to \"%s\"",baseUrl);
+            }
+
         };
     }
 

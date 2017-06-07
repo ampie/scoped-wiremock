@@ -21,7 +21,7 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         def mappings = wireMockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['urlPattern'] == '/home/path.*'
+        mapping['request']['urlPathPattern'] == '/home/path.*'
         mapping['response']['proxyBaseUrl'] == "http://some.host.com/base"
         mapping['priority'] == DefaultMappingPriority.FALLBACK_PROXY.priority()
     }
@@ -37,7 +37,7 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         def mappings = wireMockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['urlPattern'] == '/resolved/endpoint.*'
+        mapping['request']['urlPathPattern'] == '/resolved/endpoint.*'
         mapping['response']['proxyBaseUrl'] == "http://somehost.com"
         mapping['priority'] == DefaultMappingPriority.FALLBACK_PROXY.priority()
     }
@@ -56,7 +56,7 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         def mappings = wireMockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['urlPattern'] == '/resolved/endpoint.*'
+        mapping['request']['urlPathPattern'] == '/resolved/endpoint.*'
         mapping['response']['proxyBaseUrl'] == 'http://service.com/under/test'
         mapping['response']['transformers'][0] == 'ProxyUrlTransformer'
         mapping['response']['transformerParameters']['action'] == 'use'
@@ -80,7 +80,7 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         def mappings = wireMockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['urlPattern'] == '/resolved/endpoint.*'
+        mapping['request']['urlPathPattern'] == '/resolved/endpoint.*'
         mapping['response']['proxyBaseUrl'] == 'http://target.com/base'
         mapping['response']['transformers'][0] == 'ProxyUrlTransformer'
         mapping['response']['transformerParameters']['action'] == 'ignore'

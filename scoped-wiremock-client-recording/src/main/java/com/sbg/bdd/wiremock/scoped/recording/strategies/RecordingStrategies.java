@@ -6,6 +6,8 @@ import com.sbg.bdd.wiremock.scoped.recording.builders.ExtendedMappingBuilder;
 import com.sbg.bdd.wiremock.scoped.recording.builders.ExtendedResponseDefinitionBuilder;
 import com.sbg.bdd.wiremock.scoped.recording.builders.ResponseStrategy;
 
+import static java.lang.String.format;
+
 public abstract class RecordingStrategies {
     public static ResponseStrategy mapToJournalDirectory(final String journalDirectoryOverride) {
         return new ResponseStrategy() {
@@ -14,6 +16,11 @@ public abstract class RecordingStrategies {
                 builder.getRequestPatternBuilder().changeUrlToPattern();
                 builder.atPriority(scope.calculatePriority(1));
                 return null;
+            }
+
+            @Override
+            public String getDescription() {
+                return format("map to journal directory \"%s\"",journalDirectoryOverride);
             }
         };
     }
@@ -26,6 +33,11 @@ public abstract class RecordingStrategies {
                 builder.atPriority(scope.calculatePriority(1));
                 return null;
             }
+            @Override
+            public String getDescription() {
+                return format("map to global journal directory");
+            }
+
         };
     }
 
@@ -38,6 +50,11 @@ public abstract class RecordingStrategies {
                 builder.atPriority(scope.calculatePriority(2));
                 return null;
             }
+
+            @Override
+            public String getDescription() {
+                return format("playback responses from  \"%s\"",recordingDirectory);
+            }
         };
     }
 
@@ -48,6 +65,10 @@ public abstract class RecordingStrategies {
                 builder.getRecordingSpecification().playbackResponses();
                 builder.atPriority(scope.calculatePriority(2));
                 return null;
+            }
+            @Override
+            public String getDescription() {
+                return format("playback responses from the current resource directory");
             }
         };
     }
@@ -60,6 +81,10 @@ public abstract class RecordingStrategies {
                 builder.atPriority(scope.calculatePriority(2));
                 return null;
             }
+            @Override
+            public String getDescription() {
+                return format("record responses to \"%s\"",recordingDirectory);
+            }
         };
     }
 
@@ -70,6 +95,10 @@ public abstract class RecordingStrategies {
                 builder.getRecordingSpecification().recordingResponses();
                 builder.atPriority(scope.calculatePriority(2));
                 return null;
+            }
+            @Override
+            public String getDescription() {
+                return format("record responses to the current resource directory");
             }
         };
     }

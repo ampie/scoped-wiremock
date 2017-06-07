@@ -21,7 +21,7 @@ class WhenBuildingRequestPatterns extends WhenWorkingWithWireMock {
         def mappings = wiremockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['url'] == '/home/path'
+        mapping['request']['urlPath'] == '/home/path'
         mapping['response']['headers']['Content-Type'] == 'text/plain'
         mapping['response']['body'] == 'blah'
     }
@@ -37,7 +37,7 @@ class WhenBuildingRequestPatterns extends WhenWorkingWithWireMock {
         def mappings = wiremockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['url'] == '/resolved/endpoint'
+        mapping['request']['urlPath'] == '/resolved/endpoint'
         mapping['response']['headers']['Content-Type'] == 'text/plain'
         mapping['response']['body'] == 'blah'
     }
@@ -55,9 +55,9 @@ class WhenBuildingRequestPatterns extends WhenWorkingWithWireMock {
         mappings.size() == 2
         println Json.write(mappings)
         def mapping0 = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping0['request']['urlPattern'] == '/service/one/endpoint.*'
+        mapping0['request']['urlPathPattern'] == '/service/one/endpoint.*'
         def mapping1 = new JsonSlurper().parseText(Json.write(mappings[1]))
-        mapping1['request']['urlPattern'] == '/service/two/endpoint.*'
+        mapping1['request']['urlPathPattern'] == '/service/two/endpoint.*'
         mapping1['response']['headers']['Content-Type'] == 'text/plain'
         mapping1['response']['body'] == 'blah'
     }

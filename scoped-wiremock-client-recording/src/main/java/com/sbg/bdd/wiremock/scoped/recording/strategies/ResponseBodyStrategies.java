@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
+import static java.lang.String.format;
 
 
 public class ResponseBodyStrategies {
@@ -30,6 +31,10 @@ public class ResponseBodyStrategies {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext scope) throws Exception {
                 builder.atPriority(scope.calculatePriority(DefaultMappingPriority.BODY_KNOWN.priority()));
                 return aResponse().withBody(body).withHeader("Content-Type", contentType);
+            }
+            @Override
+            public String getDescription() {
+                return format("return the body \"%s\"",body);
             }
         };
     }
@@ -47,6 +52,11 @@ public class ResponseBodyStrategies {
                 }
                 return responseBuilder;
             }
+            @Override
+            public String getDescription() {
+                return format("return the file \"%s\"",fileName);
+            }
+
         };
     }
 
@@ -69,6 +79,10 @@ public class ResponseBodyStrategies {
                     addHeaders(headers, responseBuilder);
                 }
                 return responseBuilder;
+            }
+            @Override
+            public String getDescription() {
+                return format("merge the template \"%s\"",templateBuilder.getFileName());
             }
         };
     }

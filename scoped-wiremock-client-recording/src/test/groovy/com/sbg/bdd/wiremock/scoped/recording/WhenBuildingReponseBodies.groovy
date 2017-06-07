@@ -22,7 +22,7 @@ class WhenBuildingReponseBodies extends WhenWorkingWithWireMock {
         def mappings = wireMockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['url'] == '/home/path'
+        mapping['request']['urlPath'] == '/home/path'
         mapping['response']['headers']['Content-Type'] == 'application/json'
         mapping['response']['headers']['foo-header'] == 'bar-header-value'
         mapping['response']['body'] == "{\"foo\":\"bar\"}"
@@ -40,7 +40,7 @@ class WhenBuildingReponseBodies extends WhenWorkingWithWireMock {
         def mappings =wiremockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['url'] == '/home/path'
+        mapping['request']['urlPath'] == '/home/path'
         mapping['response']['headers']['Content-Type'] == 'text/xml'
         mapping['response']['headers']['foo-header'] == 'bar-header-value'
         mapping['response']['body'] == "<root>thisValue</root>"

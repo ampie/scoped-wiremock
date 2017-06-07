@@ -43,16 +43,12 @@ public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
     }
 
     private class CorrelationStateSynchronizer {
-        private ScopedAdmin admin;
-        private HttpHeaders headers;
         private HttpHeader correlationKey;
         private HttpHeader invocationCounts;
         private CorrelationState correlationState;
         private boolean canProcess;
 
         public CorrelationStateSynchronizer(ScopedAdmin admin, HttpHeaders headers) {
-            this.admin = admin;
-            this.headers = headers;
             canProcess = false;
             correlationKey = headers.getHeader(HeaderName.ofTheCorrelationKey());
             if (correlationKey != null && correlationKey.isPresent()) {
