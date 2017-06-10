@@ -23,7 +23,7 @@ class WhenRequestingEndpointConfigs extends Specification{
         }
         def filter = new InboundCorrelationPathFilter()
         filter.init(null)
-        EndpointTypeTracker.instance.registerAdditionalRestEndpoint('some.url.prop.name')
+        EndpointTypeTracker.instance.registerAdditionalRestEndpoint('some.url.prop.name','category1')
         def request = Mock(HttpServletRequest){
             getRequestURI() >> 'blablab/Property/some.url.prop.name'
             getHeader(HeaderName.ofTheCorrelationKey()) >> 'localhost/8080/scopepath'
@@ -42,7 +42,7 @@ class WhenRequestingEndpointConfigs extends Specification{
         filter.doFilter(request,response,Mock(FilterChain))
 
         then:
-        output.toString() == '{"propertyName":"some.url.prop.name","url":"http://some.host.com","endpointType":"REST"}'
+        output.toString() == '{"propertyName":"some.url.prop.name","url":"http://some.host.com","endpointType":"REST","category":"category1"}'
 
 
     }
@@ -50,10 +50,10 @@ class WhenRequestingEndpointConfigs extends Specification{
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseWireMockCorrelationState()
-        EndpointTypeTracker.getInstance().registerRestEndpoint('endpoint1')
-        EndpointTypeTracker.getInstance().registerSoapEndpoint('endpoint2')
-        EndpointTypeTracker.getInstance().registerAdditionalRestEndpoint('endpoint3')
-        EndpointTypeTracker.getInstance().registerAdditionalSoapEndpoint('endpoint4')
+        EndpointTypeTracker.getInstance().registerRestEndpoint('endpoint1','category1')
+        EndpointTypeTracker.getInstance().registerSoapEndpoint('endpoint2','category1')
+        EndpointTypeTracker.getInstance().registerAdditionalRestEndpoint('endpoint3','category2')
+        EndpointTypeTracker.getInstance().registerAdditionalSoapEndpoint('endpoint4','category2')
         BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndPointRegistry){
             endpointUrlFor('endpoint1') >> new URL('http://host1.com')
             endpointUrlFor('endpoint2') >> new URL('http://host2.com')
@@ -81,10 +81,10 @@ class WhenRequestingEndpointConfigs extends Specification{
 
         then:
         output.toString() == '{"configs":[' +
-                '{"propertyName":"endpoint1","url":"http://host1.com","endpointType":"REST"},' +
-                '{"propertyName":"endpoint2","url":"http://host2.com","endpointType":"SOAP"},' +
-                '{"propertyName":"endpoint3","url":"http://host3.com","endpointType":"REST"},' +
-                '{"propertyName":"endpoint4","url":"http://host4.com","endpointType":"SOAP"}' +
+                '{"propertyName":"endpoint1","url":"http://host1.com","endpointType":"REST","category":"category1"},' +
+                '{"propertyName":"endpoint2","url":"http://host2.com","endpointType":"SOAP","category":"category1"},' +
+                '{"propertyName":"endpoint3","url":"http://host3.com","endpointType":"REST","category":"category2"},' +
+                '{"propertyName":"endpoint4","url":"http://host4.com","endpointType":"SOAP","category":"category2"}' +
                 ']}'
 
     }

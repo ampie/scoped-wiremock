@@ -1,5 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
 import com.sbg.bdd.wiremock.scoped.filter.EndpointConfig;
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
@@ -22,12 +23,16 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
     private static final Logger LOGGER = Logger.getLogger(DynamicWebServiceReferenceInvocationHandler.class.getName());
     private BindingProvider delegate;
     private final EndPointProperty endPointProperty;
+    private final EndPointCategory endPointCategory;
     private EndPointRegistry endPointRegistry;
-    public DynamicWebServiceReferenceInvocationHandler(BindingProvider delegate, EndPointProperty endPointProperty) {
-        this.endPointProperty=endPointProperty;
-        this.delegate=delegate;
+
+    public DynamicWebServiceReferenceInvocationHandler(BindingProvider delegate, EndPointProperty endPointProperty, EndPointCategory endPointCategory) {
+        this.endPointProperty = endPointProperty;
+        this.endPointCategory = endPointCategory;
+        this.delegate = delegate;
         attachInterceptor(delegate);
     }
+
     private boolean isInterceptorAdded(List<Handler> handlerChain) {
         boolean found = false;
         for (Handler handler : handlerChain) {
@@ -51,11 +56,15 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
-            if(method.isAnnotationPresent(WebMethod.class) && !isProbablyAlreadyMocked()){
-                URL url= getEndPointRegistry().endpointUrlFor(endPointProperty.value());
+            if (method.isAnnotationPresent(WebMethod.class) && !isProbablyAlreadyMocked()) {
+                URL url = getEndPointRegistry().endpointUrlFor(endPointProperty.value());
                 WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
                 if (currentCorrelationState.isSet()) {
                     try {
+                        delegate.getRequestContext().put("originalAddress", url.toExternalForm());
+                        if (endPointCategory != null) {
+                            delegate.getRequestContext().put("endpointCategory", endPointCategory.value());
+                        }
                         url = new URL(currentCorrelationState.getWireMockBaseUrl() + url.getFile() + (url.getQuery() == null ? "" : url.getQuery()));
                     } catch (MalformedURLException e) {
                         throw new IllegalStateException(e);
@@ -64,15 +73,15 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
 
                 delegate.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, url.toExternalForm());
             }
-            return method.invoke(delegate,args);
+            return method.invoke(delegate, args);
         } catch (InvocationTargetException e) {
             throw e.getTargetException();
         }
     }
 
     public EndPointRegistry getEndPointRegistry() {
-        if(endPointRegistry==null){
-            endPointRegistry= DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
+        if (endPointRegistry == null) {
+            endPointRegistry = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
         }
         return endPointRegistry;
     }
@@ -80,7 +89,7 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
     private boolean isProbablyAlreadyMocked() {
         //TODO just keep an eye on this
         String endpoint = (String) delegate.getRequestContext().get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY);
-        if(endpoint !=null && endpoint.startsWith("http://localhost")){
+        if (endpoint != null && endpoint.startsWith("http://localhost")) {
 //            return true;
         }
         return false;

@@ -21,7 +21,7 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         state.initSequenceNumberFor('endpoint2',8)
         def interceptor = new OutboundCorrelationPathRestInterceptor()
 
-        def request = new ClientRequest('http://somewhere.com/');
+        def request = new ClientRequest('http://somewhere.com/base')
         def response = new BaseClientResponse(null);
         def ctx = new ClientExecutionContextImpl(null,null,request){
             @Override

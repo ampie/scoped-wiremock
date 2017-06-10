@@ -23,6 +23,7 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         def headers  = new MultivaluedHashMap()
         def request = Mock(ClientRequestContext){
             getHeaders() >> headers
+            getUri() >> URI.create("http://somehost:9090/basepath")
         }
         when:
         filter.filter(request)

@@ -1,6 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.recording
 
 import com.github.tomakehurst.wiremock.common.Json
+import com.sbg.bdd.wiremock.scoped.integration.HeaderName
 import com.sbg.bdd.wiremock.scoped.recording.strategies.ProxyStrategies
 import groovy.json.JsonSlurper
 
@@ -38,6 +39,22 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
         mapping['request']['urlPathPattern'] == '/resolved/endpoint.*'
+        mapping['response']['proxyBaseUrl'] == "http://somehost.com"
+        mapping['priority'] == DefaultMappingPriority.FALLBACK_PROXY.priority()
+    }
+    def 'should create an proxy mapping that intercepts all calls to endpoints of a certain category'() throws Exception {
+        given:
+        def wireMockContext = initializeWireMockContext()
+
+        when:
+        a(PUT).toAnyKnownExternalService().ofCategory('category1').to(beIntercepted()).applyTo(wireMockContext)
+
+        then:
+        def mappings = wireMockContext.mappings
+        mappings.size() == 2
+        def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
+        mapping['request']['headers'][HeaderName.ofTheEndpointCategory()].equalTo == 'category1'
+        mapping['request']['urlPathPattern'] == '/service/one/endpoint.*'
         mapping['response']['proxyBaseUrl'] == "http://somehost.com"
         mapping['priority'] == DefaultMappingPriority.FALLBACK_PROXY.priority()
     }

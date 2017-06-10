@@ -30,6 +30,7 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
             }
             get(MessageContext.MESSAGE_OUTBOUND_PROPERTY) >> Boolean.TRUE
             get(SOAPMessageContext.WSDL_OPERATION) >> endpointIdentifier
+            get('endpointCategory') >> 'category1'
         }
 
         when:
@@ -41,6 +42,7 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
         headers[HeaderName.ofTheServiceInvocationCount()][0] == endpoint1 + '|8'
         headers[HeaderName.ofTheServiceInvocationCount()][1] == endpoint2 + '|12'
         headers[HeaderName.toProxyUnmappedEndpoints()][0] == 'true'
+        headers[HeaderName.ofTheEndpointCategory()][0] == 'category1'
     }
 
     def 'the service invocation counts header of the incoming response should be reflected in the current correlation state'() {

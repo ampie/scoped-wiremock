@@ -1,6 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.resteasy;
 
 
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -22,13 +23,14 @@ public class DynamicClientRequestFactoryProducer {
     @Produces
     @EndPointProperty("")
     public ClientRequestFactory getClientRequestFactory(InjectionPoint ip){
-        EndPointProperty ep = ip.getAnnotated().getAnnotation(EndPointProperty.class);
-        return getClientRequestFactory(ep);
+        EndPointProperty epp = ip.getAnnotated().getAnnotation(EndPointProperty.class);
+        EndPointCategory epc = ip.getAnnotated().getAnnotation(EndPointCategory.class);
+        return getClientRequestFactory(epp,epc);
     }
 
-    public ClientRequestFactory getClientRequestFactory(EndPointProperty ep) {
+    public ClientRequestFactory getClientRequestFactory(EndPointProperty ep, EndPointCategory epc) {
         CloseableHttpClient httpClient = HttpClients.createSystem();
         ApacheHttpClient4Executor clientExecutor = new ApacheHttpClient4Executor(httpClient);
-        return new DynamicClientRequestFactory(clientExecutor, ep);
+        return new DynamicClientRequestFactory(clientExecutor, ep,epc);
     }
 }

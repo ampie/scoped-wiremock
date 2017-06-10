@@ -43,8 +43,12 @@ public class ExchangeJournal  {
     }
 
     public void responseReceived(RecordedExchange exchange, Response response) {
-        RecordedExchange activeExchange = exchangesInProgress.get(contextKey(exchange.getStepContainerPath(), exchange.getStep()));
+        String key = contextKey(exchange.getStepContainerPath(), exchange.getStep());
+        RecordedExchange activeExchange = exchangesInProgress.get(key);
         activeExchange.getInnerMostActiveExchange().recordResponse(recordResponse(response));
+        if(activeExchange.getResponse()!=null){
+            exchangesInProgress.remove(key);
+        }
     }
 
     public List<RecordedExchange> findMatchingExchanges(RequestPattern pattern) {

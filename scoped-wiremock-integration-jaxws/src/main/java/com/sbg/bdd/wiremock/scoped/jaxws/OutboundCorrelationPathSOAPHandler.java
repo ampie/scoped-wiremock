@@ -55,6 +55,10 @@ public class OutboundCorrelationPathSOAPHandler implements SOAPHandler {
             headers.put(HeaderName.ofTheCorrelationKey(), Arrays.asList(currentCorrelationState.getCorrelationPath()));
             String key = context.get(SOAPMessageContext.WSDL_OPERATION).toString();
             headers.put(HeaderName.ofTheSequenceNumber(), Arrays.asList(currentCorrelationState.getNextSequenceNumberFor(key).toString()));
+            String category= (String) context.get("endpointCategory");
+            if(category!=null){
+                headers.put(HeaderName.ofTheEndpointCategory(),Arrays.asList(category));
+            }
             List<String> sequenceNumbers = new ArrayList<>();
             for (Map.Entry<String, Integer> entry : currentCorrelationState.getSequenceNumbers().entrySet()) {
                 sequenceNumbers.add(entry.getKey() + "|" + entry.getValue());

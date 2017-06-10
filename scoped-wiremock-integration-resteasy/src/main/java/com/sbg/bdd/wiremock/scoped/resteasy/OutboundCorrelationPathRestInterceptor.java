@@ -9,6 +9,8 @@ import org.jboss.resteasy.spi.interception.ClientExecutionContext;
 import org.jboss.resteasy.spi.interception.ClientExecutionInterceptor;
 
 import javax.ws.rs.core.MultivaluedMap;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
@@ -22,7 +24,8 @@ class OutboundCorrelationPathRestInterceptor implements ClientExecutionIntercept
         WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
         if (currentCorrelationState.isSet()) {
             ctx.getRequest().getHeadersAsObjects().add(HeaderName.ofTheCorrelationKey(), currentCorrelationState.getCorrelationPath());
-            String key = ctx.getRequest().getUri() + ctx.getRequest().getHttpMethod();
+            URL url = new URL(ctx.getRequest().getUri());
+            String key = url.getProtocol() +"://" +  url.getAuthority() + url.getPath() + ctx.getRequest().getHttpMethod();
             ctx.getRequest().getHeadersAsObjects().add(HeaderName.ofTheSequenceNumber(), currentCorrelationState.getNextSequenceNumberFor(key).toString());
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 ctx.getRequest().getHeadersAsObjects().add(HeaderName.toProxyUnmappedEndpoints(), "true");
@@ -46,5 +49,9 @@ class OutboundCorrelationPathRestInterceptor implements ClientExecutionIntercept
             LOGGER.log(Level.WARNING,"Could not process response", e);
         }
         return response;
+    }
+
+    public static void main(String[] args) throws MalformedURLException {
+        System.out.println(new URL("http://asdf:wer@sadfasdf:90/asdf/fsda?sadf=123").getPath());
     }
 }

@@ -1,9 +1,11 @@
 package com.sbg.bdd.wiremock.scoped.resteasy;
 
 
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
 import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
+import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
 import org.jboss.resteasy.client.ClientExecutor;
 import org.jboss.resteasy.client.ClientRequest;
@@ -17,9 +19,11 @@ import java.util.logging.Level;
 public class DynamicClientRequestFactory extends ClientRequestFactory {
     private final EndPointRegistry endpointRegistry;
     private final EndPointProperty endPointProperty;
+    private final EndPointCategory endPointCategory;
 
-    public DynamicClientRequestFactory(ClientExecutor executor, EndPointProperty endPointProperty) {
+    public DynamicClientRequestFactory(ClientExecutor executor, EndPointProperty endPointProperty,EndPointCategory endPointCategory) {
         super(executor, (URI) null);
+        this.endPointCategory = endPointCategory;
         this.endpointRegistry = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
         this.endPointProperty = endPointProperty;
         super.getPrefixInterceptors().registerInterceptor(new OutboundCorrelationPathRestInterceptor());
@@ -36,7 +40,12 @@ public class DynamicClientRequestFactory extends ClientRequestFactory {
                 throw new IllegalStateException(e);
             }
         }
-        return this.createRequest(url + uriTemplate);
+
+        ClientRequest request = this.createRequest(url + uriTemplate);
+        if(endPointCategory==null){
+            return request;
+        }
+        return request.header(HeaderName.ofTheEndpointCategory(),endPointCategory.value());
     }
 
     @Override

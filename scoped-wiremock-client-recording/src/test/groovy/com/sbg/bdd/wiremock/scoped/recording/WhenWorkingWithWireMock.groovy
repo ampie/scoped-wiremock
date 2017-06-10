@@ -30,12 +30,12 @@ abstract class WhenWorkingWithWireMock extends Specification {
                 def body = null;
                 if (request.url().toString().endsWith('/Property/all')) {
                     body = JsonOutput.toJson([configs: [
-                            [propertyName: 'external.service.a', url: 'http://somehost.com/service/one/endpoint', endpointType: 'REST'],
-                            [propertyName: 'external.service.b', url: 'http://somehost.com/service/two/endpoint', endpointType: 'SOAP']
+                            [propertyName: 'external.service.a', url: 'http://somehost.com/service/one/endpoint', endpointType: 'REST', category: 'category1'],
+                            [propertyName: 'external.service.b', url: 'http://somehost.com/service/two/endpoint', endpointType: 'SOAP', category: 'category1']
 
                     ]])
                 } else {
-                    body = JsonOutput.toJson([propertyName: 'x', url: 'http://somehost.com/resolved/endpoint', endpointType: 'SOAP'])
+                    body = JsonOutput.toJson([propertyName: 'x', url: 'http://somehost.com/resolved/endpoint', endpointType: 'SOAP', category: 'category1'])
                 }
                 return Mock(Call) {
                     execute() >>{

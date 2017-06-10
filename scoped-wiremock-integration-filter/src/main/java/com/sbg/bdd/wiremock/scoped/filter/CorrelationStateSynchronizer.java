@@ -53,15 +53,19 @@ public class CorrelationStateSynchronizer {
 
     public void readCorrelationSessionFrom(HttpServletRequest request) {
         String correlationKey = request.getHeader(HeaderName.ofTheCorrelationKey());
-        boolean proxyUnMappedEndpoints = "true".equals(request.getHeader(HeaderName.toProxyUnmappedEndpoints()));
-        this.wireMockCorrelationState.set(correlationKey, proxyUnMappedEndpoints);
-        if (proxyUnMappedEndpoints && shouldRegisterDefaultEndpointMappings()) {
-            registerDefaultEndpointMappings();
-        }
-        Enumeration<String> headers = request.getHeaders(HeaderName.ofTheServiceInvocationCount());
-        while (headers.hasMoreElements()) {
-            String[] split = headers.nextElement().split("\\|");
-            this.wireMockCorrelationState.initSequenceNumberFor(split[0], Integer.valueOf(split[1]));
+        if (correlationKey != null && correlationKey.length() > 0) {
+            boolean proxyUnMappedEndpoints = "true".equals(request.getHeader(HeaderName.toProxyUnmappedEndpoints()));
+            this.wireMockCorrelationState.set(correlationKey, proxyUnMappedEndpoints);
+            if (proxyUnMappedEndpoints && shouldRegisterDefaultEndpointMappings()) {
+                registerDefaultEndpointMappings();
+            }
+            Enumeration<String> headers = request.getHeaders(HeaderName.ofTheServiceInvocationCount());
+            while (headers.hasMoreElements()) {
+                String[] split = headers.nextElement().split("\\|");
+                this.wireMockCorrelationState.initSequenceNumberFor(split[0], Integer.valueOf(split[1]));
+            }
+        } else {
+            clearCorrelationSession();
         }
     }
 

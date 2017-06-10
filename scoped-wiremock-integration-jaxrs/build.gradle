@@ -1,6 +1,9 @@
 apply plugin: 'groovy'
 dependencies {
+    compile(project(':scoped-wiremock-integration-cdi'))
+    compileOnly('javax.enterprise:cdi-api:1.2')
     compileOnly('javax.ws.rs:javax.ws.rs-api:2.0')
     testCompile('javax.ws.rs:javax.ws.rs-api:2.0')
-    compile(project(":scoped-wiremock-integration-common"))
+    testCompile('org.jboss.resteasy:resteasy-client:3.0.3.Final')
+    testCompile('javax.enterprise:cdi-api:1.2')
 }

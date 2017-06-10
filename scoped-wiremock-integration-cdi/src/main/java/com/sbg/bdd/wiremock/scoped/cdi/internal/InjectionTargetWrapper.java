@@ -1,6 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
 
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
 import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
 
@@ -57,7 +58,8 @@ class InjectionTargetWrapper<X> implements InjectionTarget<X> {
     private void wrapReference(X instance, Field webServiceRef, BindingProvider bp) throws IllegalAccessException {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         EndPointProperty epp = webServiceRef.getAnnotation(EndPointProperty.class);
-        DynamicWebServiceReferenceInvocationHandler ih = new DynamicWebServiceReferenceInvocationHandler(bp, epp);
+        EndPointCategory epc = webServiceRef.getAnnotation(EndPointCategory.class);
+        DynamicWebServiceReferenceInvocationHandler ih = new DynamicWebServiceReferenceInvocationHandler(bp, epp, epc);
         webServiceRef.set(instance, Proxy.newProxyInstance(cl, getInterfaces(webServiceRef), ih));
     }
 

@@ -19,7 +19,7 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
     private ExtendedResponseDefinitionBuilder responseDefinitionBuilder;
     private RecordingSpecification recordingSpecification;
     private String name;
-    private UUID id;
+    private UUID id = UUID.randomUUID();
     private Integer priority;
     private List<ExtendedMappingBuilder> children = new ArrayList<>();
     private Boolean persistent;
@@ -102,9 +102,10 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
         this.requestPatternBuilder.to(urlInfo);
         return (T) this;
     }
-    public T recordingResponsesTo(String dir){
+
+    public T recordingResponsesTo(String dir) {
         getRecordingSpecification().recordingResponsesTo(dir);
-        return (T)this;
+        return (T) this;
     }
 
     
@@ -123,19 +124,20 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
         if (requestPatternBuilder.isToAllKnownExternalServices()) {
             Set<EndpointConfig> allEndpoints = verificationContext.allKnownExternalEndpoints();
             for (EndpointConfig entry : allEndpoints) {
-                URL url = entry.getUrl();
-                ExtendedMappingBuilder newBuilder = new ExtendedMappingBuilder(requestPatternBuilder, responseDefinitionBuilder, recordingSpecification);
-                //TODO distinguish between REST (matching) and SOAP (equalTo) ONLY when this is proxying.
-                newBuilder.to(url.getPath() + ".*");
-                if (responseDefinitionBuilder != null && responseDefinitionBuilder.interceptFromSource()) {
-                    String proxiedBaseUrl = url.getProtocol() + "://" + url.getAuthority();
-                    newBuilder.getResponseDefinitionBuilder().proxiedFrom(proxiedBaseUrl);
+                if (requestPatternBuilder.getEndpointCategory() == null || entry.getCategory().equals(requestPatternBuilder.getEndpointCategory())) {
+                    URL url = entry.getUrl();
+                    ExtendedMappingBuilder newBuilder = new ExtendedMappingBuilder(requestPatternBuilder, responseDefinitionBuilder, recordingSpecification);
+                    //TODO distinguish between REST (matching) and SOAP (equalTo) ONLY when this is proxying.
+                    newBuilder.to(url.getPath() + ".*");
+                    if (responseDefinitionBuilder != null && responseDefinitionBuilder.interceptFromSource()) {
+                        String proxiedBaseUrl = url.getProtocol() + "://" + url.getAuthority();
+                        newBuilder.getResponseDefinitionBuilder().proxiedFrom(proxiedBaseUrl);
+                    }
+                    newBuilder.atPriority(getPriority());
+                    newBuilder.getRequestPatternBuilder().toAnyKnownExternalService(false);
+                    newBuilder.getRequestPatternBuilder().prepareForBuild(verificationContext);
+                    addChildBuilder(newBuilder);
                 }
-                newBuilder.atPriority(getPriority());
-                newBuilder.getRequestPatternBuilder().toAnyKnownExternalService(false);
-                newBuilder.getRequestPatternBuilder().prepareForBuild(verificationContext);
-                addChildBuilder(newBuilder);
-
 
             }
         } else if (responseDefinitionBuilder != null && responseDefinitionBuilder.interceptFromSource()) {
@@ -171,7 +173,7 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
     }
 
     public void addChildBuilder(ExtendedMappingBuilder newBuilder) {
-        this.children.add( newBuilder);
+        this.children.add(newBuilder);
     }
 
     public T willReturn(ResponseDefinitionBuilder responseDefBuilder) {

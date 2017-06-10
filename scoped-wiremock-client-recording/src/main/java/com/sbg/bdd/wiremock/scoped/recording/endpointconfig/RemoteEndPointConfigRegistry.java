@@ -53,6 +53,10 @@ public class RemoteEndPointConfigRegistry extends BaseHttpClient implements Endp
     }
 
     private EndpointConfig toEndpointConfig(ObjectNode object) throws MalformedURLException {
-        return new EndpointConfig(object.get("propertyName").asText(), new URL(object.get("url").asText()), EndpointConfig.EndpointType.valueOf(object.get("endpointType").asText()));
+        String propertyName = object.get("propertyName").asText();
+        URL url = new URL(object.get("url").asText());
+        EndpointConfig.EndpointType endpointType = EndpointConfig.EndpointType.valueOf(object.get("endpointType").asText());
+        String category=object.get("category").asText();;
+        return new EndpointConfig(propertyName, url, endpointType,category);
     }
 }

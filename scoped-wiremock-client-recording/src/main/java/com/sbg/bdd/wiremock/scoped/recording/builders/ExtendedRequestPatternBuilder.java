@@ -1,5 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.recording.builders;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
 import com.github.tomakehurst.wiremock.matching.*;
 import com.sbg.bdd.wiremock.scoped.recording.endpointconfig.EndpointConfigRegistry;
@@ -21,6 +22,7 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
     private boolean urlIsPattern = false;
     private boolean toAllKnownExternalServices = false;
     private UrlPattern urlPattern;
+    private String endpointCategory;
 
 
     public ExtendedRequestPatternBuilder(ExtendedRequestPatternBuilder builder) {
@@ -51,15 +53,15 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
     }
 
 
-    public ExtendedRequestPatternBuilder toAnyKnownExternalService() {
+    public T toAnyKnownExternalService() {
         toAllKnownExternalServices = true;
         urlInfo = ".*";
-        return this;
+        return (T)this;
     }
 
     @Override
-    public ExtendedRequestPatternBuilder withRequestBody(StringValuePattern valuePattern) {
-        return (ExtendedRequestPatternBuilder) super.withRequestBody(valuePattern);
+    public T withRequestBody(StringValuePattern valuePattern) {
+        return (T) super.withRequestBody(valuePattern);
     }
 
     public boolean isToAllKnownExternalServices() {
@@ -170,5 +172,15 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
     @Override
     public T withHeader(String key, StringValuePattern valuePattern) {
         return (T) super.withHeader(key, valuePattern);
+    }
+
+    public T ofCategory(String p) {
+        this.endpointCategory=p;
+        withHeader(HeaderName.ofTheEndpointCategory(), WireMock.equalTo(p));
+        return (T)this;
+    }
+
+    public String getEndpointCategory() {
+        return endpointCategory;
     }
 }

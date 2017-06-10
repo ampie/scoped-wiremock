@@ -24,10 +24,10 @@ class WhenProxyingUnmappedEndpoints extends Specification{
             }
         }
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseWireMockCorrelationState()
-        EndpointTypeTracker.getInstance().registerRestEndpoint('endpoint1')
-        EndpointTypeTracker.getInstance().registerSoapEndpoint('endpoint2')
-        EndpointTypeTracker.getInstance().registerAdditionalRestEndpoint('endpoint3')
-        EndpointTypeTracker.getInstance().registerAdditionalSoapEndpoint('endpoint4')
+        EndpointTypeTracker.getInstance().registerRestEndpoint('endpoint1','category1')
+        EndpointTypeTracker.getInstance().registerSoapEndpoint('endpoint2','category1')
+        EndpointTypeTracker.getInstance().registerAdditionalRestEndpoint('endpoint3','category2')
+        EndpointTypeTracker.getInstance().registerAdditionalSoapEndpoint('endpoint4','category2')
         def endpointProps = new Properties()
         endpointProps.put('endpoint1','http://host1.com')
         endpointProps.put('endpoint2','http://host2.com')

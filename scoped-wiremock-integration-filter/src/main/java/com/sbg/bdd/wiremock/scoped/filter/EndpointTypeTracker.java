@@ -3,9 +3,10 @@ package com.sbg.bdd.wiremock.scoped.filter;
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
 
 import java.net.URL;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
@@ -21,24 +22,24 @@ import java.util.concurrent.ConcurrentSkipListSet;
  */
 public class EndpointTypeTracker {
     private static EndpointTypeTracker INSTANCE = new EndpointTypeTracker();
-    private Set<String> soapEndpointPropertyNames = new ConcurrentSkipListSet<>();
+    private Map<String,String> soapEndpointPropertyNames = new ConcurrentHashMap<>();
     private Set<String> wireMockBaseUrls = new ConcurrentSkipListSet<>();
-    private Set<String> restEndpointPropertyNames = new ConcurrentSkipListSet<>();
+    private Map<String,String> restEndpointPropertyNames = new ConcurrentHashMap<>();
 
-    public void registerSoapEndpoint(String name) {
-        soapEndpointPropertyNames.add(name);
+    public void registerSoapEndpoint(String name, String category) {
+        soapEndpointPropertyNames.put(name,category);
     }
 
-    public void registerRestEndpoint(String name) {
-        restEndpointPropertyNames.add(name);
+    public void registerRestEndpoint(String name, String category) {
+        restEndpointPropertyNames.put(name,category);
     }
 
-    public void registerAdditionalSoapEndpoint(String name) {
-        soapEndpointPropertyNames.add(name);
+    public void registerAdditionalSoapEndpoint(String name, String category) {
+        soapEndpointPropertyNames.put(name,category);
     }
 
-    public void registerAdditionalRestEndpoint(String name) {
-        restEndpointPropertyNames.add(name);
+    public void registerAdditionalRestEndpoint(String name, String category) {
+        restEndpointPropertyNames.put(name,category);
     }
 
     public Set<EndpointConfig> getAllEndpointConfigs() {
@@ -48,11 +49,12 @@ public class EndpointTypeTracker {
         return result;
     }
 
-    private void addEndpointConfigs(Set<String> endpointProperties, Set<EndpointConfig> result) {
-        for (String endpointProperty : endpointProperties) {
-            URL url = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry().endpointUrlFor(endpointProperty);
+    private void addEndpointConfigs(Map<String,String> endpointProperties, Set<EndpointConfig> result) {
+        for (String propertyName : endpointProperties.keySet()) {
+            URL url = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry().endpointUrlFor(propertyName);
             if (url != null) {
-                result.add(new EndpointConfig(endpointProperty, url, getEndpointTypeOf(endpointProperty)));
+                Map.Entry<EndpointConfig.EndpointType, String> typeAndCategory = getEndpointTypeAndCategoryOf(propertyName);
+                result.add(new EndpointConfig(propertyName, url, typeAndCategory.getKey(),typeAndCategory.getValue()));
             }
         }
     }
@@ -73,19 +75,43 @@ public class EndpointTypeTracker {
         return !wireMockBaseUrls.contains(baseUrl.toExternalForm());
     }
 
-    public EndpointConfig.EndpointType getEndpointTypeOf(String propertyName) {
-        if (restEndpointPropertyNames.contains(propertyName)) {
-            return EndpointConfig.EndpointType.REST;
-        } else if (soapEndpointPropertyNames.contains(propertyName)) {
-            return EndpointConfig.EndpointType.SOAP;
+    private Map.Entry<EndpointConfig.EndpointType,String> getEndpointTypeAndCategoryOf(String propertyName) {
+        final EndpointConfig.EndpointType type;
+        final String category;
+        if (restEndpointPropertyNames.containsKey(propertyName)) {
+            type= EndpointConfig.EndpointType.REST;
+            category=restEndpointPropertyNames.get(propertyName);
+        } else if (soapEndpointPropertyNames.containsKey(propertyName)) {
+            type= EndpointConfig.EndpointType.SOAP;
+            category=soapEndpointPropertyNames.get(propertyName);
+        }else{
+            type= EndpointConfig.EndpointType.UNKOWN;
+            category = EndpointConfig.NO_CATEGORY;
         }
-        return EndpointConfig.EndpointType.UNKOWN;
+        return new Map.Entry<EndpointConfig.EndpointType,String>(){
+
+            @Override
+            public EndpointConfig.EndpointType getKey() {
+                return type;
+            }
+
+            @Override
+            public String getValue() {
+                return category;
+            }
+
+            @Override
+            public String setValue(String value) {
+                return null;
+            }
+        };
     }
 
     public EndpointConfig getEndpointConfig(String endpointProperty) {
         URL url = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry().endpointUrlFor(endpointProperty);
         if (url != null) {
-            return new EndpointConfig(endpointProperty, url, getEndpointTypeOf(endpointProperty));
+            Map.Entry<EndpointConfig.EndpointType, String> typeAndCategory = getEndpointTypeAndCategoryOf(endpointProperty);
+            return new EndpointConfig(endpointProperty, url, typeAndCategory.getKey(),typeAndCategory.getValue());
         }
         return null;
     }
