@@ -1,16 +1,19 @@
 package com.sbg.bdd.wiremock.scoped.admin.model;
 
+import com.github.tomakehurst.wiremock.common.Json;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(
         name = "CorrelationState",
-        propOrder = {"correlationPath", "serviceInvocationCounts","currentStep"}
+        propOrder = {"correlationPath", "serviceInvocationCounts","currentStep","payload"}
 )
 public class CorrelationState {
     @XmlElement(
@@ -25,6 +28,10 @@ public class CorrelationState {
             nillable = true
     )
     private String currentStep;
+    @XmlElement(
+            nillable = true
+    )
+    private Map<String, Object> payload= new HashMap<>();
 
     public CorrelationState() {
     }
@@ -36,6 +43,21 @@ public class CorrelationState {
         this.correlationPath = correlationPath;
         this.currentStep = currentStep;
     }
+
+    public CorrelationState(String correlationPath, Map<String, Object> map) {
+        this(correlationPath);
+        payload=map;
+    }
+
+    public CorrelationState(String scopePath, String stepName, Map<String, Object> payload) {
+        this(scopePath,stepName);
+        this.payload=payload;
+    }
+
+    public Map<String, Object> getPayload() {
+        return payload;
+    }
+
     public String getCorrelationPath() {
         return correlationPath;
     }
@@ -55,4 +77,5 @@ public class CorrelationState {
     public void setCurrentStep(String currentStep) {
         this.currentStep = currentStep;
     }
+
 }

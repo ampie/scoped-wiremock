@@ -14,7 +14,7 @@ public interface ScopedAdmin {
 
     CorrelationState getCorrelatedScope(String scopePath);
 
-    List<String> stopCorrelatedScope(String scopePath);
+    List<String> stopCorrelatedScope(CorrelationState state);
 
     List<RecordedExchange> findMatchingExchanges(RequestPattern requestPattern);
 
@@ -22,9 +22,9 @@ public interface ScopedAdmin {
 
     List<StubMapping> getMappingsInScope(String scopePath);
 
-    void startStep(String scopePath, String stepName);
+    void startStep(CorrelationState state);
 
-    void stopStep(String scopePath, String stepName);
+    void stopStep(CorrelationState state);
 
     List<RecordedExchange> findExchangesAgainstStep(String scopePath, String stepName);
 }

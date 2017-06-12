@@ -28,9 +28,10 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
             put(_, _) >> { args ->
                 headers = args[1]
             }
+            get(HeaderName.ofTheOriginalUrl()) >> new URL('http://endpoint.com/context/service/operation')
             get(MessageContext.MESSAGE_OUTBOUND_PROPERTY) >> Boolean.TRUE
             get(SOAPMessageContext.WSDL_OPERATION) >> endpointIdentifier
-            get('endpointCategory') >> 'category1'
+            get(HeaderName.ofTheEndpointCategory()) >> 'category1'
         }
 
         when:
@@ -39,8 +40,10 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
         then:
         headers[HeaderName.ofTheCorrelationKey()][0] == 'localhost/8080/myscope'
         headers[HeaderName.ofTheSequenceNumber()][0] == '5'
+        headers[HeaderName.ofTheOriginalUrl()][0] == 'http://endpoint.com/context/service/operation'
         headers[HeaderName.ofTheServiceInvocationCount()][0] == endpoint1 + '|8'
         headers[HeaderName.ofTheServiceInvocationCount()][1] == endpoint2 + '|12'
+        headers[HeaderName.ofTheServiceInvocationCount()][2] == 'http://endpoint.com/context/service/operation|5'
         headers[HeaderName.toProxyUnmappedEndpoints()][0] == 'true'
         headers[HeaderName.ofTheEndpointCategory()][0] == 'category1'
     }

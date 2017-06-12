@@ -2,6 +2,7 @@ package com.sbg.bdd.wiremock.scoped.jaxws;
 
 
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
+import com.sbg.bdd.wiremock.scoped.integration.URLHelper;
 import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
 
@@ -9,6 +10,7 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
+import java.net.URL;
 import java.util.*;
 
 
@@ -51,11 +53,14 @@ public class OutboundCorrelationPathSOAPHandler implements SOAPHandler {
             context.put(SOAPMessageContext.HTTP_REQUEST_HEADERS, headers);
         }
         if (headers.get(HeaderName.ofTheCorrelationKey()) == null) {
-            //TODO check if this check is perhaps superfluous?
+            URL originalUrl= (URL) context.get(HeaderName.ofTheOriginalUrl());
+            String endpointIdentifier = URLHelper.identifier(originalUrl);
+            String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(endpointIdentifier).toString();
+
             headers.put(HeaderName.ofTheCorrelationKey(), Arrays.asList(currentCorrelationState.getCorrelationPath()));
-            String key = context.get(SOAPMessageContext.WSDL_OPERATION).toString();
-            headers.put(HeaderName.ofTheSequenceNumber(), Arrays.asList(currentCorrelationState.getNextSequenceNumberFor(key).toString()));
-            String category= (String) context.get("endpointCategory");
+            headers.put(HeaderName.ofTheOriginalUrl(), Arrays.asList(originalUrl.toExternalForm()));
+            headers.put(HeaderName.ofTheSequenceNumber(), Arrays.asList(sequenceNumber));
+            String category= (String) context.get(HeaderName.ofTheEndpointCategory());
             if(category!=null){
                 headers.put(HeaderName.ofTheEndpointCategory(),Arrays.asList(category));
             }
@@ -64,7 +69,6 @@ public class OutboundCorrelationPathSOAPHandler implements SOAPHandler {
                 sequenceNumbers.add(entry.getKey() + "|" + entry.getValue());
             }
             headers.put(HeaderName.ofTheServiceInvocationCount(), sequenceNumbers);
-            //TODO deserialize the service invocation counts
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 headers.put(HeaderName.toProxyUnmappedEndpoints(), Arrays.asList("true"));
             }

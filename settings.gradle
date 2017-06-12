@@ -24,4 +24,5 @@ project(':scoped-wiremock-integration-resteasy').projectDir = "$rootDir/scoped-w
 project(':scoped-wiremock-integration-jaxrs').projectDir = "$rootDir/scoped-wiremock-integration-jaxrs" as File
 project(':scoped-wiremock-integration-spring').projectDir = "$rootDir/scoped-wiremock-integration-spring" as File
 project(':common-resource-api').projectDir = "$rootDir/common-resource-api" as File
+include 'scoped-wiremock-integration-cucumber'
 

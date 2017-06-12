@@ -75,6 +75,7 @@ public class CorrelationStateSynchronizer {
     }
 
     public void maybeWriteCorrelationSessionTo(HttpServletResponse response) {
+        response.setHeader(HeaderName.ofTheCorrelationKey(), this.wireMockCorrelationState.getCorrelationPath());
         for (Map.Entry<String, Integer> entry : this.wireMockCorrelationState.getSequenceNumbers().entrySet()) {
             response.addHeader(HeaderName.ofTheServiceInvocationCount(), entry.getKey() + "|" + entry.getValue());
         }

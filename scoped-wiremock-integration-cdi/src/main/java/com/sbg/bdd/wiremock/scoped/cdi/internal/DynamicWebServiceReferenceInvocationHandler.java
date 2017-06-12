@@ -2,10 +2,7 @@ package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
-import com.sbg.bdd.wiremock.scoped.filter.EndpointConfig;
-import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
-import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
-import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
+import com.sbg.bdd.wiremock.scoped.integration.*;
 import com.sbg.bdd.wiremock.scoped.jaxws.OutboundCorrelationPathSOAPHandler;
 
 import javax.jws.WebMethod;
@@ -57,21 +54,13 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
             if (method.isAnnotationPresent(WebMethod.class) && !isProbablyAlreadyMocked()) {
-                URL url = getEndPointRegistry().endpointUrlFor(endPointProperty.value());
-                WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
-                if (currentCorrelationState.isSet()) {
-                    try {
-                        delegate.getRequestContext().put("originalAddress", url.toExternalForm());
-                        if (endPointCategory != null) {
-                            delegate.getRequestContext().put("endpointCategory", endPointCategory.value());
-                        }
-                        url = new URL(currentCorrelationState.getWireMockBaseUrl() + url.getFile() + (url.getQuery() == null ? "" : url.getQuery()));
-                    } catch (MalformedURLException e) {
-                        throw new IllegalStateException(e);
-                    }
+                URL originalUrl = getEndPointRegistry().endpointUrlFor(endPointProperty.value());
+                URL urlToUse = getUrlToUse(originalUrl);
+                if (endPointCategory != null) {
+                    delegate.getRequestContext().put(HeaderName.ofTheEndpointCategory(), endPointCategory.value());
                 }
-
-                delegate.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, url.toExternalForm());
+                delegate.getRequestContext().put(HeaderName.ofTheOriginalUrl(), originalUrl);
+                delegate.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, urlToUse.toExternalForm());
             }
             return method.invoke(delegate, args);
         } catch (InvocationTargetException e) {
@@ -79,7 +68,15 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
         }
     }
 
-    public EndPointRegistry getEndPointRegistry() {
+    private URL getUrlToUse(URL originalUrl) throws MalformedURLException {
+        WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+        if (currentCorrelationState.isSet()) {
+            return URLHelper.replaceBaseUrl(originalUrl, currentCorrelationState.getWireMockBaseUrl());
+        }
+        return originalUrl;
+    }
+
+    private EndPointRegistry getEndPointRegistry() {
         if (endPointRegistry == null) {
             endPointRegistry = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
         }

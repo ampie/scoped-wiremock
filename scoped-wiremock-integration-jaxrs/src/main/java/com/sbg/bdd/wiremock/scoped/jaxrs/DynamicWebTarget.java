@@ -2,10 +2,7 @@ package com.sbg.bdd.wiremock.scoped.jaxrs;
 
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
-import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
-import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
-import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
-import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
+import com.sbg.bdd.wiremock.scoped.integration.*;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
@@ -24,6 +21,7 @@ public class DynamicWebTarget implements WebTarget {
     private final EndPointProperty endPointProperty;
     private final EndPointCategory endPointCategory;
     private Client client;
+    private URL originalUrl;
 
     public DynamicWebTarget(Client client, EndPointProperty endPointProperty, EndPointCategory endPointCategory) {
         this.client = client;
@@ -35,12 +33,12 @@ public class DynamicWebTarget implements WebTarget {
     private WebTarget getDelegate() {
         if (delegate == null) {
             try {
-                URL url = endpointRegistry.endpointUrlFor(endPointProperty.value());
+                originalUrl = endpointRegistry.endpointUrlFor(endPointProperty.value());
                 if (currentCorrelationState.isSet()) {
-                    url = new URL(currentCorrelationState.getWireMockBaseUrl() + url.getFile() + (url.getQuery() == null ? "" : url.getQuery()));
+                    URL url = URLHelper.replaceBaseUrl(originalUrl, currentCorrelationState.getWireMockBaseUrl());
                     delegate = client.target(url.toURI());
                 } else {
-                    delegate = client.target(url.toURI());
+                    delegate = client.target(originalUrl.toURI());
                 }
                 delegate.register(InboundResponseCorrelationKeyFilter.class);
                 delegate.register(OutboundRequestCorrelationKeyFilter.class);
@@ -54,12 +52,16 @@ public class DynamicWebTarget implements WebTarget {
     @Override
     public Invocation.Builder request() {
         try {
+            Invocation.Builder request = getDelegate().request();
+            //This is still wrong, but the filter will fix it
+            request=request.header(HeaderName.ofTheOriginalUrl(), URLHelper.hostOnly(originalUrl).toExternalForm());
             if (endPointCategory != null && currentCorrelationState.isSet() ) {
-                return getDelegate().request().header(HeaderName.ofTheEndpointCategory(), endPointCategory.value());
+                request=request.header(HeaderName.ofTheEndpointCategory(), endPointCategory.value());
             }
-            return getDelegate().request();
+            return request;
         } finally {
             delegate=null;
+            originalUrl=null;
         }
     }
     @Override

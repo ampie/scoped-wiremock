@@ -18,7 +18,7 @@ import java.util.List;
 
 
 public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin, HasBaseUrl, CanStartAndStop {
-    private static Deque<ScopedWireMockServer> locallyRunningServers=new ArrayDeque<>();
+    private static Deque<ScopedWireMockServer> locallyRunningServers = new ArrayDeque<>();
 
     private final Options options;
     private CorrelatedScopeAdmin scopeAdmin;
@@ -26,9 +26,11 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     public static boolean isRunningLocally() {
         return !locallyRunningServers.isEmpty();
     }
+
     public static ScopedWireMockServer getCurrentLocalServer() {
         return locallyRunningServers.peek();
     }
+
     public ScopedWireMockServer(Integer port) {
         this(new WireMockConfiguration().port(port));
     }
@@ -46,17 +48,18 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
         super(withExtensions(options));
         scopeAdmin = (CorrelatedScopeAdmin) ScopeExtensions.getCurrentAdmin();
         scopeAdmin.hackIntoWireMockInternals(this);
-        this.options=options;
+        scopeAdmin.setScopeListeners(options.extensionsOfType(ScopeListener.class));
+        this.options = options;
     }
 
 
     private static Options withExtensions(Options options) {
-        if(options instanceof WireMockConfiguration) {
-            ((WireMockConfiguration)options).extensions(ProxyUrlTransformer.class);
-            ((WireMockConfiguration)options).extensions(ScopeExtensions.class);
-            ((WireMockConfiguration)options).extensions(InvalidHeadersLoggingTransformer.class);
-            ((WireMockConfiguration)options).extensions(ScopeUpdatingResponseTransformer.class);
-        }else{
+        if (options instanceof WireMockConfiguration) {
+            ((WireMockConfiguration) options).extensions(ProxyUrlTransformer.class);
+            ((WireMockConfiguration) options).extensions(ScopeExtensions.class);
+            ((WireMockConfiguration) options).extensions(InvalidHeadersLoggingTransformer.class);
+            ((WireMockConfiguration) options).extensions(ScopeUpdatingResponseTransformer.class);
+        } else {
             //TODO Clone it into a WireMockConfiguration
 
         }
@@ -80,6 +83,11 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     }
 
     @Override
+    public List<String> stopCorrelatedScope(CorrelationState state) {
+        return scopeAdmin.stopCorrelatedScope(state);
+    }
+
+    @Override
     public void syncCorrelatedScope(CorrelationState knownScope) {
         scopeAdmin.syncCorrelatedScope(knownScope);
     }
@@ -87,16 +95,6 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     @Override
     public List<StubMapping> getMappingsInScope(String scopePath) {
         return scopeAdmin.getMappingsInScope(scopePath);
-    }
-
-    @Override
-    public void startStep(String scopePath, String stepName) {
-        scopeAdmin.startStep(scopePath, stepName);
-    }
-
-    @Override
-    public void stopStep(String scopePath, String stepName) {
-        scopeAdmin.stopStep(scopePath, stepName);
     }
 
     @Override
@@ -109,10 +107,14 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
         return scopeAdmin.getCorrelatedScope(correlationPath);
     }
 
+    @Override
+    public void startStep(CorrelationState state) {
+        scopeAdmin.startStep(state);
+    }
 
     @Override
-    public List<String> stopCorrelatedScope(String scopePath) {
-        return scopeAdmin.stopCorrelatedScope(scopePath);
+    public void stopStep(CorrelationState state) {
+        scopeAdmin.stopStep(state);
     }
 
     @Override
@@ -131,12 +133,14 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
         locallyRunningServers.push(this);
     }
 
+
     @Override
     public String host() {
-        return options.bindAddress().equals("0.0.0.0")?"localhost":options.bindAddress();
+        return options.bindAddress().equals("0.0.0.0") ? "localhost" : options.bindAddress();
     }
+
     @Override
-    public String baseUrl(){
+    public String baseUrl() {
         return "http://" + host() + ":" + port();
     }
 }

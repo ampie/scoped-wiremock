@@ -3,6 +3,7 @@ package com.sbg.bdd.wiremock.scoped.resteasy;
 
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
+import com.sbg.bdd.wiremock.scoped.integration.URLHelper;
 import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
 import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.spi.interception.ClientExecutionContext;
@@ -11,7 +12,6 @@ import org.jboss.resteasy.spi.interception.ClientExecutionInterceptor;
 import javax.ws.rs.core.MultivaluedMap;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,12 +23,18 @@ class OutboundCorrelationPathRestInterceptor implements ClientExecutionIntercept
     public ClientResponse execute(ClientExecutionContext ctx) throws Exception {
         WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
         if (currentCorrelationState.isSet()) {
-            ctx.getRequest().getHeadersAsObjects().add(HeaderName.ofTheCorrelationKey(), currentCorrelationState.getCorrelationPath());
-            URL url = new URL(ctx.getRequest().getUri());
-            String key = url.getProtocol() +"://" +  url.getAuthority() + url.getPath() + ctx.getRequest().getHttpMethod();
-            ctx.getRequest().getHeadersAsObjects().add(HeaderName.ofTheSequenceNumber(), currentCorrelationState.getNextSequenceNumberFor(key).toString());
+            MultivaluedMap<String, Object> headers = ctx.getRequest().getHeadersAsObjects();
+            URL originalHost=(URL) headers.getFirst(HeaderName.ofTheOriginalUrl());
+            headers.remove(HeaderName.ofTheOriginalUrl());
+            URL originalUrl = URLHelper.calculateOriginalUrl(new URL(ctx.getRequest().getUri()),originalHost);
+            String key = URLHelper.identifier(originalUrl,ctx.getRequest().getHttpMethod());
+            String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(key).toString();
+
+            headers.add(HeaderName.ofTheCorrelationKey(), currentCorrelationState.getCorrelationPath());
+            headers.add(HeaderName.ofTheOriginalUrl(), originalUrl.toExternalForm());
+            headers.add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
-                ctx.getRequest().getHeadersAsObjects().add(HeaderName.toProxyUnmappedEndpoints(), "true");
+                headers.add(HeaderName.toProxyUnmappedEndpoints(), "true");
             }
             for (Map.Entry<String, Integer> entry : currentCorrelationState.getSequenceNumbers().entrySet()) {
                 ctx.getRequest().header(HeaderName.ofTheServiceInvocationCount(), entry.getKey() + "|" + entry.getValue());

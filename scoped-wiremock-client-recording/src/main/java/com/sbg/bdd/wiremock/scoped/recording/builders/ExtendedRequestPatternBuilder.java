@@ -58,6 +58,12 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
         urlInfo = ".*";
         return (T)this;
     }
+    public T toAny(String category) {
+        return (T)toAnyKnownExternalService().ofCategory(category);
+    }
+    public T service() {
+        return (T)this;
+    }
 
     @Override
     public T withRequestBody(StringValuePattern valuePattern) {

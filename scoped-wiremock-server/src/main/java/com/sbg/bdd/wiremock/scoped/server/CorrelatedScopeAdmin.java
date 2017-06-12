@@ -32,6 +32,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     private ExchangeJournal exchangeJournal = new ExchangeJournal();
     private Map<String, CorrelationState> correlatedScopes = new HashMap<>();
     private ResponseRenderer stubResponseRenderer;
+    private ScopeListeners scopeListeners=new ScopeListeners(Collections.<String, ScopeListener>emptyMap());
 
     public CorrelatedScopeAdmin() {
     }
@@ -47,7 +48,9 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
 
     @Override
     public CorrelationState joinKnownCorrelatedScope(CorrelationState knownScope) {
-        return findOrCreateCorrelatedScope(knownScope.getCorrelationPath());
+        CorrelationState state = findOrCreateCorrelatedScope(knownScope.getCorrelationPath());
+        scopeListeners.fireScopeStarted(knownScope);
+        return state;
     }
 
     @Override
@@ -62,13 +65,15 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     }
 
     @Override
-    public void startStep(String scopePath, String stepName) {
-        correlatedScopes.get(scopePath).setCurrentStep(stepName);
+    public void startStep(CorrelationState state) {
+        correlatedScopes.get(state.getCorrelationPath()).setCurrentStep(state.getCurrentStep());
+        scopeListeners.fireStepStarted(state);
     }
 
     @Override
-    public void stopStep(String scopePath, String stepPath) {
-        correlatedScopes.get(scopePath).setCurrentStep(ParentPath.of(stepPath));
+    public void stopStep(CorrelationState state) {
+        correlatedScopes.get(state.getCorrelationPath()).setCurrentStep(ParentPath.of(state.getCurrentStep()));
+        scopeListeners.fireStepCompleted(state);
     }
 
     @Override
@@ -88,13 +93,14 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
         return result;
     }
 
-    public List<String> stopCorrelatedScope(String scopePath) {
-        this.stubMappingsMappings.removeMappingsForScope(scopePath);
-        Pattern pattern = Pattern.compile(scopePath + ".*");
+    public List<String> stopCorrelatedScope(CorrelationState state) {
+        this.stubMappingsMappings.removeMappingsForScope(state.getCorrelationPath());
+        Pattern pattern = Pattern.compile(state.getCorrelationPath()+ ".*");
         this.requestJournalServedStubs.removeServedStubsForScope(pattern);
         this.exchangeJournal.clearScope(pattern);
         Set<String> removedCorrelationPaths = extractAffectededScopePaths(pattern);
         removeScopeAndChildren(pattern);
+        scopeListeners.fireScopeStopped(state);
         return new ArrayList<>(removedCorrelationPaths);
     }
 
@@ -185,5 +191,9 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
         this.correlatedScopes.clear();
         this.requestJournalServedStubs.clear();
         this.highestCorrelationSession = 0;
+    }
+
+    public void setScopeListeners(Map<String, ScopeListener> scopeListeners) {
+        this.scopeListeners = new ScopeListeners(scopeListeners);
     }
 }

@@ -27,6 +27,8 @@ public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
 
             if(synchronizer.canProcess()){
                 synchronizer.synchronize();
+                response=synchronizer.synchronize(response);
+
             }
         }
         return response;
@@ -67,6 +69,24 @@ public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
         }
 
         public void synchronize() {
+            List<String> invocationCountValues = extractAndFlattenInvocationCounts();
+            for (String s : invocationCountValues) {
+                String[] split = s.split("\\|");
+                correlationState.getServiceInvocationCounts().put(split[0], Integer.valueOf(split[1]));
+            }
+        }
+
+        public Response synchronize(Response response) {
+            List<String> invocationCountValues = extractAndFlattenInvocationCounts();
+            HttpHeaders headers = response.getHeaders();
+            if(!headers.getHeader(HeaderName.ofTheCorrelationKey()).isPresent()){
+                headers = headers.plus(correlationKey);
+            }
+            headers = headers.plus(new HttpHeader(HeaderName.ofTheServiceInvocationCount(),invocationCountValues));
+            return Response.Builder.like(response).headers(headers).build();
+        }
+
+        public List<String> extractAndFlattenInvocationCounts() {
             List<String> invocationCountValues;
             if(invocationCounts.values().size()==1 && invocationCounts.values().get(0).indexOf(',')>0){
                 //may have been flattened like it seems Apache CXF likes doing
@@ -74,10 +94,7 @@ public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
             }else{
                 invocationCountValues= invocationCounts.values();
             }
-            for (String s : invocationCountValues) {
-                String[] split = s.split("\\|");
-                correlationState.getServiceInvocationCounts().put(split[0], Integer.valueOf(split[1]));
-            }
+            return invocationCountValues;
         }
     }
 }

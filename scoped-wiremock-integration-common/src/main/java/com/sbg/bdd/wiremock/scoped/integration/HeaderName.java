@@ -10,6 +10,9 @@ public class HeaderName {
     public static String ofTheEndpointCategory() {
         return System.getProperty("scoped.wiremock.endpoiont.category", "x-endpoint-category");
     }
+    public static String ofTheOriginalUrl() {
+        return System.getProperty("scoped.wiremock.original.url", "x-original-url");
+    }
     public static String ofTheResponseCode() {
         return System.getProperty("scoped.wiremock.response.code.header", "HTTP-Response-Code");
     }

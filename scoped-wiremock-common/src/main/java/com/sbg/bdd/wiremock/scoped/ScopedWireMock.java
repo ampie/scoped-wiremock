@@ -14,8 +14,10 @@ import com.sbg.bdd.wiremock.scoped.common.CanStartAndStop;
 import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.sbg.bdd.wiremock.scoped.common.Reflection.setValue;
 
@@ -53,7 +55,10 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
 
     //Scope management
     public CorrelationState joinCorrelatedScope(String knownScopePath) {
-        return admin.joinKnownCorrelatedScope(new CorrelationState(knownScopePath));
+        return joinCorrelatedScope(knownScopePath, Collections.<String, Object>emptyMap());
+    }
+    public CorrelationState joinCorrelatedScope(String knownScopePath,Map<String,Object> payload) {
+        return admin.joinKnownCorrelatedScope(new CorrelationState(knownScopePath,payload));
     }
 
     public CorrelationState startNewCorrelatedScope(String knownScopePath) {
@@ -61,7 +66,11 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
     }
 
     public List<String> stopCorrelatedScope(String knownScopePath) {
-        return admin.stopCorrelatedScope(knownScopePath);
+        return stopCorrelatedScope(knownScopePath, Collections.<String,Object>emptyMap());
+    }
+
+    private List<String> stopCorrelatedScope(String knownScopePath, Map<String, Object> map) {
+        return admin.stopCorrelatedScope(new CorrelationState(knownScopePath,map));
     }
 
     public CorrelationState getCorrelatedScope(String scopePath) {
@@ -74,7 +83,10 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
 
     //Step management
     public void startStep(String scopePath, String stepName) {
-        admin.startStep(scopePath, stepName);
+        startStep(scopePath, stepName, Collections.<String, Object>emptyMap());
+    }
+    public void startStep(String scopePath, String stepName, Map<String,Object> payload) {
+        admin.startStep(new CorrelationState(scopePath,stepName,payload));
     }
 
     public List<RecordedExchange> findExchangesAgainstStep(String scopePath, String stepName) {
@@ -82,7 +94,11 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
     }
 
     public void stopStep(String scopePath, String stepName) {
-        admin.stopStep(scopePath, stepName);
+        stopStep(scopePath, stepName, Collections.<String, Object>emptyMap());
+
+    }
+    public void stopStep(String scopePath, String stepName, Map<String,Object> payload) {
+        admin.stopStep(new CorrelationState(scopePath,stepName,payload));
 
     }
 

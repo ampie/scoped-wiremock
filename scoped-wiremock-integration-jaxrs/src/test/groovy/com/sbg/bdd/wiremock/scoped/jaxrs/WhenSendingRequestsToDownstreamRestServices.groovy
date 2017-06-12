@@ -10,6 +10,7 @@ import spock.lang.Specification
 import javax.ws.rs.client.ClientRequestContext
 import javax.ws.rs.client.ClientResponseContext
 import javax.ws.rs.core.MultivaluedHashMap
+import javax.ws.rs.core.MultivaluedMap
 
 class WhenSendingRequestsToDownstreamRestServices extends Specification{
     def 'it should serialize all the correct outgoing headers'(){
@@ -21,19 +22,24 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         state.initSequenceNumberFor('endpoint2',8)
         def filter = new OutboundRequestCorrelationKeyFilter()
         def headers  = new MultivaluedHashMap()
+        headers.add(HeaderName.ofTheOriginalUrl(), 'http://somewhere.com/')
         def request = Mock(ClientRequestContext){
             getHeaders() >> headers
-            getUri() >> URI.create("http://somehost:9090/basepath")
+            getUri() >> URI.create("http://localhost:8080/base")
+            getMethod() >> 'GET'
         }
         when:
         filter.filter(request)
 
+
         then:
-        request.getHeaders().get(HeaderName.ofTheCorrelationKey())[0] == 'localhost/8080/somepath'
-        request.getHeaders().get(HeaderName.ofTheSequenceNumber())[0] == '1'
-        request.getHeaders().get(HeaderName.toProxyUnmappedEndpoints())[0] == 'true'
-        request.getHeaders().get(HeaderName.ofTheServiceInvocationCount())[0] == 'endpoint1|6'
-        request.getHeaders().get(HeaderName.ofTheServiceInvocationCount())[1] == 'endpoint2|8'
+        headers.get(HeaderName.ofTheCorrelationKey())[0] == 'localhost/8080/somepath'
+        headers.get(HeaderName.ofTheOriginalUrl())[0] == 'http://somewhere.com/base'
+        headers.get(HeaderName.ofTheSequenceNumber())[0] == '1'
+        headers.get(HeaderName.toProxyUnmappedEndpoints())[0] == 'true'
+        headers.get(HeaderName.ofTheServiceInvocationCount())[0] == 'endpoint1|6'
+        headers.get(HeaderName.ofTheServiceInvocationCount())[1] == 'endpoint2|8'
+        headers.get(HeaderName.ofTheServiceInvocationCount())[2] == 'http:GET://somewhere.com/base|1'
     }
     def 'it should extract all the correct incoming headers'(){
         given:

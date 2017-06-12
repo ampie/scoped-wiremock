@@ -11,6 +11,8 @@ import org.jboss.resteasy.core.interception.ClientExecutionContextImpl
 import org.jboss.resteasy.specimpl.MultivaluedMapImpl
 import spock.lang.Specification
 
+import javax.ws.rs.core.MultivaluedMap
+
 class WhenSendingRequestsToDownstreamRestServices extends Specification{
     def 'it should serialize all the correct outgoing headers'(){
         given:
@@ -21,7 +23,7 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         state.initSequenceNumberFor('endpoint2',8)
         def interceptor = new OutboundCorrelationPathRestInterceptor()
 
-        def request = new ClientRequest('http://somewhere.com/base')
+        def request = new ClientRequest('http://localhost:8080/base').header(HeaderName.ofTheOriginalUrl(), new URL('http://somewhere.com/'))
         def response = new BaseClientResponse(null);
         def ctx = new ClientExecutionContextImpl(null,null,request){
             @Override
@@ -33,12 +35,16 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         when:
         interceptor.execute(ctx)
 
+
+        def headers = request.getHeadersAsObjects()
         then:
-        request.getHeadersAsObjects().get(HeaderName.ofTheCorrelationKey())[0] == 'localhost/8080/somepath'
-        request.getHeadersAsObjects().get(HeaderName.ofTheSequenceNumber())[0] == '1'
-        request.getHeadersAsObjects().get(HeaderName.toProxyUnmappedEndpoints())[0] == 'true'
-        request.getHeadersAsObjects().get(HeaderName.ofTheServiceInvocationCount())[0] == 'endpoint1|6'
-        request.getHeadersAsObjects().get(HeaderName.ofTheServiceInvocationCount())[1] == 'endpoint2|8'
+        headers.get(HeaderName.ofTheCorrelationKey())[0] == 'localhost/8080/somepath'
+        headers.get(HeaderName.ofTheOriginalUrl())[0] == 'http://somewhere.com/base'
+        headers.get(HeaderName.ofTheSequenceNumber())[0] == '1'
+        headers.get(HeaderName.toProxyUnmappedEndpoints())[0] == 'true'
+        headers.get(HeaderName.ofTheServiceInvocationCount())[0] == 'endpoint1|6'
+        headers.get(HeaderName.ofTheServiceInvocationCount())[1] == 'endpoint2|8'
+        headers.get(HeaderName.ofTheServiceInvocationCount())[2] == 'http:null://somewhere.com/base|1'//null because we can't fake a method with sending a request
     }
     def 'it should extract all the correct incoming headers'(){
         given:
@@ -49,7 +55,7 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         state.initSequenceNumberFor('endpoint2',8)
         def interceptor = new OutboundCorrelationPathRestInterceptor()
 
-        def request = new ClientRequest('http://somewhere.com/');
+        def request = new ClientRequest('http://somewhere.com/').header(HeaderName.ofTheOriginalUrl(), new URL('http://somewhere.com/'));
         def response = new BaseClientResponse(null);
         response.setHeaders(new MultivaluedMapImpl<String, String>());
         response.getHeaders().add(HeaderName.ofTheCorrelationKey(),'localhost/8080/somepath')

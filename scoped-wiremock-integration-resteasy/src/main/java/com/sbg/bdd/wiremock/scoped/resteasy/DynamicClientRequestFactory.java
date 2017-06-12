@@ -3,10 +3,7 @@ package com.sbg.bdd.wiremock.scoped.resteasy;
 
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
-import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
-import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
-import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
-import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
+import com.sbg.bdd.wiremock.scoped.integration.*;
 import org.jboss.resteasy.client.ClientExecutor;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientRequestFactory;
@@ -31,21 +28,19 @@ public class DynamicClientRequestFactory extends ClientRequestFactory {
 
     @Override
     public ClientRequest createRelativeRequest(String uriTemplate) {
-        URL url = endpointRegistry.endpointUrlFor(endPointProperty.value());
+        URL originalUrl = endpointRegistry.endpointUrlFor(endPointProperty.value());
         WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+        URL url=originalUrl;
         if (currentCorrelationState.isSet()) {
-            try {
-                url = new URL(currentCorrelationState.getWireMockBaseUrl() + url.getFile() + (url.getQuery() == null ? "" : url.getQuery()));
-            } catch (MalformedURLException e) {
-                throw new IllegalStateException(e);
-            }
+            url= URLHelper.replaceBaseUrl(originalUrl,currentCorrelationState.getWireMockBaseUrl());
         }
-
         ClientRequest request = this.createRequest(url + uriTemplate);
-        if(endPointCategory==null){
-            return request;
+        if(endPointCategory!=null){
+            request=request.header(HeaderName.ofTheEndpointCategory(),endPointCategory.value());
         }
-        return request.header(HeaderName.ofTheEndpointCategory(),endPointCategory.value());
+        //This is still wrong, but the interceptor will fix it
+        request=request.header(HeaderName.ofTheOriginalUrl(),URLHelper.hostOnly(originalUrl));
+        return request;
     }
 
     @Override

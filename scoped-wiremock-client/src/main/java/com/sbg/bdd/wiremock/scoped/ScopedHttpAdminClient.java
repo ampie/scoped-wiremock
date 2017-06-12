@@ -102,11 +102,11 @@ public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmi
     }
 
     @Override
-    public List<String> stopCorrelatedScope(String scopePath) {
+    public List<String> stopCorrelatedScope(CorrelationState state) {
         List list = executeRequest(
                 scopedAdminRoutes.requestSpecForTask(StopCorrelatedScopeTask.class),
                 PathParams.empty(),
-                new CorrelationState(scopePath),
+                state,
                 List.class,
                 200
         );
@@ -149,22 +149,22 @@ public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmi
     }
 
     @Override
-    public void startStep(String scopePath, String stepName) {
+    public void startStep(CorrelationState state) {
         executeRequest(
                 scopedAdminRoutes.requestSpecForTask(StartStepTask.class),
                 PathParams.empty(),
-                new CorrelationState(scopePath, stepName),
+                state,
                 Void.class,
                 200
         );
     }
 
     @Override
-    public void stopStep(String scopePath, String stepName) {
+    public void stopStep(CorrelationState state) {
         executeRequest(
                 scopedAdminRoutes.requestSpecForTask(StopStepTask.class),
                 PathParams.empty(),
-                new CorrelationState(scopePath, stepName),
+                state,
                 Void.class,
                 200
         );

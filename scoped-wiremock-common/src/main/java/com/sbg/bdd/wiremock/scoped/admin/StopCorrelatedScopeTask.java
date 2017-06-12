@@ -20,7 +20,7 @@ public class StopCorrelatedScopeTask extends ScopeAdminTask{
     @Override
     public ResponseDefinition execute(Admin a, Request request, PathParams pathParams) {
         CorrelationState correlationState = Json.read(request.getBodyAsString(), CorrelationState.class);
-        List<String> removedScopePaths= admin.stopCorrelatedScope(correlationState.getCorrelationPath());
+        List<String> removedScopePaths= admin.stopCorrelatedScope(correlationState);
         return responseDefinition()
                 .withStatus(HTTP_OK)
                 .withBody(Json.write(removedScopePaths))

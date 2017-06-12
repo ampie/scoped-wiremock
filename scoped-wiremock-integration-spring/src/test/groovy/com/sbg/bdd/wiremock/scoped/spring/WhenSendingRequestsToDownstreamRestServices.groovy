@@ -5,6 +5,7 @@ import com.sbg.bdd.wiremock.scoped.integration.BaseWireMockCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpRequest
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpResponse
@@ -20,9 +21,11 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         state.initSequenceNumberFor('endpoint2',8)
         def interceptor = new OutboundCorrelationKeyInterceptor()
         def headers = new HttpHeaders()
+        headers.add(HeaderName.ofTheOriginalUrl(),'http://somehost.com')
         def request = Mock(HttpRequest){
             getHeaders() >> headers
-            getURI() >> URI.create("http://somehost.com/")
+            getURI() >> URI.create("http://localhost:8080/base")
+            getMethod()>>HttpMethod.GET
         }
         def response = Mock(ClientHttpResponse){
             getHeaders() >> new HttpHeaders()
@@ -36,10 +39,12 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
 
         then:
         request.getHeaders().get(HeaderName.ofTheCorrelationKey())[0] == 'localhost/8080/somepath'
+        request.getHeaders().get(HeaderName.ofTheOriginalUrl())[0] == 'http://somehost.com/base'
         request.getHeaders().get(HeaderName.ofTheSequenceNumber())[0] == '1'
         request.getHeaders().get(HeaderName.toProxyUnmappedEndpoints())[0] == 'true'
         request.getHeaders().get(HeaderName.ofTheServiceInvocationCount())[0] == 'endpoint1|6'
         request.getHeaders().get(HeaderName.ofTheServiceInvocationCount())[1] == 'endpoint2|8'
+        request.getHeaders().get(HeaderName.ofTheServiceInvocationCount())[2] == 'http:GET://somehost.com/base|1'
     }
     def 'it should extract all the correct incoming headers'(){
         given:
@@ -53,6 +58,7 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         def request = Mock(HttpRequest){
             getHeaders() >> new HttpHeaders()
             getURI() >> URI.create("http://somehost.com/")
+            getMethod()>>HttpMethod.GET
         }
         def headers = new HttpHeaders()
         def response = Mock(ClientHttpResponse){

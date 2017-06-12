@@ -18,7 +18,7 @@ public class StopStepTask extends  ScopeAdminTask{
     @Override
     public ResponseDefinition execute(Admin a, Request request, PathParams pathParams) {
         CorrelationState correlationState = Json.read(request.getBodyAsString(), CorrelationState.class);
-        admin.stopStep(correlationState.getCorrelationPath(),correlationState.getCurrentStep());
+        admin.stopStep(correlationState);
         return responseDefinition()
                 .withStatus(HTTP_OK)
                 .withBody("{}")

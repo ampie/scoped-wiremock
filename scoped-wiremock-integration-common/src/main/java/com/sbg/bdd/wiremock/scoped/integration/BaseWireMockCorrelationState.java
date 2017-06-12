@@ -58,6 +58,8 @@ public class BaseWireMockCorrelationState implements WireMockCorrelationState {
     public void clear() {
         wireMockPort = null;
         correlationPath = null;
+        sequenceNumbers.clear();
+        proxyUnmappedEndpoints=false;
     }
 
     public boolean isSet() {
