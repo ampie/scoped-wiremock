@@ -1,6 +1,8 @@
 package com.sbg.bdd.wiremock.scoped.recording.builders;
 
 
+import com.sbg.bdd.wiremock.scoped.admin.model.JournalMode;
+
 public class RecordingSpecification {
     private boolean recordToCurrentResourceDir = false;
     private boolean enforceJournalModeInScope = false;

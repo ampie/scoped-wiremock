@@ -6,6 +6,7 @@ buildscript {
     }
     dependencies {
         classpath "no.nils:wsdl2java:0.10"
+        classpath 'org.hibernate.build.gradle:gradle-maven-publish-auth:2.0.1'
     }
 }
 allprojects {
@@ -19,6 +20,7 @@ allprojects {
 subprojects {
     apply plugin: "no.nils.wsdl2java"
     apply plugin: 'java'
+    apply plugin: 'maven-publish-auth'
     dependencies{
         testCompile 'org.codehaus.groovy:groovy-all:2.4.5'
         testCompile('org.spockframework:spock-core:0.7-groovy-2.0') {
@@ -61,6 +63,12 @@ subprojects {
         archives sourcesJar, javadocJar
     }
     publishing {
+        repositories {
+            maven {
+                name 'releases'
+                url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/releases/'
+            }
+        }
         publications {
             mavenJava(MavenPublication) {
 

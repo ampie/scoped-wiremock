@@ -1,6 +1,5 @@
 package com.sbg.bdd.resource.file
 
-import com.sbg.bdd.resource.Resource
 import com.sbg.bdd.resource.ResourceContainer
 import com.sbg.bdd.resource.ResourceFilter
 import spock.lang.Specification
@@ -11,7 +10,7 @@ class WhenTraversingAnExistingDirectoryTree extends Specification {
         given:
         def markerResource = Thread.currentThread().contextClassLoader.getResource("common-resource-api-marker.txt")
         def rootDir = new File(markerResource.file).getParentFile()
-        def root = new RootDirectoryResource(rootDir);
+        def root = new DirectoryResourceRoot('root', rootDir)
 
         when:
         def childDir1 = root.resolveExisting('childdir1')
@@ -25,7 +24,7 @@ class WhenTraversingAnExistingDirectoryTree extends Specification {
         given:
         def markerResource = Thread.currentThread().contextClassLoader.getResource("common-resource-api-marker.txt")
         def rootDir = new File(markerResource.file).getParentFile()
-        def root = new RootDirectoryResource(rootDir);
+        def root = new DirectoryResourceRoot('root', rootDir)
 
         when:
         def grandChildFile = root.resolveExisting('childdir1', 'file1_1.txt')
@@ -39,7 +38,7 @@ class WhenTraversingAnExistingDirectoryTree extends Specification {
         given:
         def markerResource = Thread.currentThread().contextClassLoader.getResource("common-resource-api-marker.txt")
         def rootDir = new File(markerResource.file).getParentFile()
-        def root = new RootDirectoryResource(rootDir);
+        def root = new DirectoryResourceRoot('root', rootDir)
         def childDir = root.resolveExisting('childdir1')
 
         when:
@@ -59,7 +58,7 @@ class WhenTraversingAnExistingDirectoryTree extends Specification {
         given:
         def markerResource = Thread.currentThread().contextClassLoader.getResource("common-resource-api-marker.txt")
         def rootDir = new File(markerResource.file).getParentFile()
-        def root = new RootDirectoryResource(rootDir);
+        def root = new DirectoryResourceRoot('root', rootDir)
 
         when:
         def grandChildFile = root.resolveExisting('childdir1/childdir1_1', 'file1_1_1.txt')
@@ -73,7 +72,7 @@ class WhenTraversingAnExistingDirectoryTree extends Specification {
         given:
         def markerResource = Thread.currentThread().contextClassLoader.getResource("common-resource-api-marker.txt")
         def rootDir = new File(markerResource.file).getParentFile()
-        def root = new RootDirectoryResource(rootDir);
+        def root = new DirectoryResourceRoot('root', rootDir)
 
         when:
         def grandChildFile = root.resolveExisting('childdir1', null, 'childdir1_1', '', 'file1_1_1.txt')

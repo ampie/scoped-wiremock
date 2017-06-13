@@ -1,6 +1,8 @@
 package com.sbg.bdd.wiremock.scoped.server;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.core.Admin;
 import com.github.tomakehurst.wiremock.core.WireMockApp;
 import com.github.tomakehurst.wiremock.http.*;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
@@ -9,13 +11,15 @@ import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.SortedConcurrentMappingSet;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.verification.InMemoryRequestJournal;
+import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
+import com.sbg.bdd.wiremock.scoped.common.ExchangeRecorder;
 import com.sbg.bdd.wiremock.scoped.common.ParentPath;
+import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 import com.sbg.bdd.wiremock.scoped.server.extended.ServeEventsQueueDecorator;
 import com.sbg.bdd.wiremock.scoped.server.extended.SortedConcurrentMappingSetDecorator;
-import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -32,9 +36,32 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     private ExchangeJournal exchangeJournal = new ExchangeJournal();
     private Map<String, CorrelationState> correlatedScopes = new HashMap<>();
     private ResponseRenderer stubResponseRenderer;
-    private ScopeListeners scopeListeners=new ScopeListeners(Collections.<String, ScopeListener>emptyMap());
+    private ScopeListeners scopeListeners = new ScopeListeners(Collections.<String, ScopeListener>emptyMap());
+    private Map<String, ResourceContainer> resourceRoots = new HashMap<>();
+    private Admin admin;
 
     public CorrelatedScopeAdmin() {
+    }
+
+
+    @Override
+    public void registerResourceRoot(String name, ResourceContainer root) {
+        this.resourceRoots.put(name, root);
+    }
+
+    @Override
+    public ResourceContainer getResourceRoot(String resourceRoot) {
+        return resourceRoots.get(resourceRoot);
+    }
+
+    @Override
+    public void saveRecordingsForRequestPattern(RequestPattern pattern, ResourceContainer recordingDirectory) {
+        new ExchangeRecorder(this,admin).saveRecordingsForRequestPattern(pattern, recordingDirectory);
+    }
+
+    @Override
+    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
+        new ExchangeRecorder(this,admin).serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
     }
 
     @Override
@@ -95,7 +122,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
 
     public List<String> stopCorrelatedScope(CorrelationState state) {
         this.stubMappingsMappings.removeMappingsForScope(state.getCorrelationPath());
-        Pattern pattern = Pattern.compile(state.getCorrelationPath()+ ".*");
+        Pattern pattern = Pattern.compile(state.getCorrelationPath() + ".*");
         this.requestJournalServedStubs.removeServedStubsForScope(pattern);
         this.exchangeJournal.clearScope(pattern);
         Set<String> removedCorrelationPaths = extractAffectededScopePaths(pattern);
@@ -127,11 +154,6 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
         return exchangeJournal.findMatchingExchanges(pattern);
     }
 
-    public Set<String> getActiveCorrelationPaths() {
-        return correlatedScopes.keySet();
-    }
-
-
     private int internalNextPossibleCorrelationNumber() {
         highestCorrelationSession = highestCorrelationSession == MAX_CORRELATION_NUMBER_OFFSET ? 0 : highestCorrelationSession + 1;
         return highestCorrelationSession;
@@ -140,9 +162,11 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     /**
      * A lot of hacks to ensure that all in scope mappings and request journal entries are removed when a scope
      * is completed
+     *
      * @param server
      */
     public void hackIntoWireMockInternals(WireMockServer server) {
+        admin=server;
         WireMockApp wireMockApp = getValue(server, "wireMockApp");
         InMemoryStubMappings stubMappings = getValue(wireMockApp, "stubMappings");
 //TODO we could probably move this hack up into a subclass of InMemoryStubMappings, but it would still be a hack

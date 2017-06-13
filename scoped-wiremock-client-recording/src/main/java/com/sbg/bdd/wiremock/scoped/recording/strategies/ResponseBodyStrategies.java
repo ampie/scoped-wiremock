@@ -9,6 +9,7 @@ import com.github.jknack.handlebars.Template;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.sbg.bdd.resource.ReadableResource;
 import com.sbg.bdd.resource.ResourceContainer;
+import com.sbg.bdd.wiremock.scoped.common.MimeTypeHelper;
 import com.sbg.bdd.wiremock.scoped.recording.DefaultMappingPriority;
 import com.sbg.bdd.wiremock.scoped.recording.WireMockContext;
 import com.sbg.bdd.wiremock.scoped.recording.builders.ExtendedMappingBuilder;

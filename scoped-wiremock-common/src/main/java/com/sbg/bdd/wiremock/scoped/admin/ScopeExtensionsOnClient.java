@@ -37,6 +37,7 @@ public class ScopeExtensionsOnClient implements AdminApiExtension{
         //Others
         router.add(POST, "/scopes/mappings/find",new GetMappingsInScopeTask(currentAdmin));
         router.add(POST, "/scopes/exchanges/find",new  FindExchangesInScopeTask(currentAdmin));
+        router.add(POST, "/scopes/exchanges/journal",new JournalTask(currentAdmin));
     }
 
 

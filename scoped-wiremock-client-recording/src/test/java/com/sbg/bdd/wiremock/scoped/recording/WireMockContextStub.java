@@ -2,12 +2,10 @@ package com.sbg.bdd.wiremock.scoped.recording;
 
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.sbg.bdd.resource.ReadableResource;
-import com.sbg.bdd.resource.file.DirectoryResource;
 import com.sbg.bdd.resource.file.ReadableFileResource;
-import com.sbg.bdd.resource.file.RootDirectoryResource;
+import com.sbg.bdd.resource.file.DirectoryResourceRoot;
 import com.sbg.bdd.wiremock.scoped.recording.builders.ExtendedMappingBuilder;
 import com.sbg.bdd.wiremock.scoped.recording.builders.ExtendedRequestPatternBuilder;
-import com.sbg.bdd.wiremock.scoped.recording.builders.JournalMode;
 import com.sbg.bdd.wiremock.scoped.recording.endpointconfig.EndpointConfig;
 import com.sbg.bdd.wiremock.scoped.recording.endpointconfig.RemoteEndPointConfigRegistry;
 
@@ -18,16 +16,16 @@ import java.util.List;
 import java.util.Set;
 
 public class WireMockContextStub implements WireMockContext {
-    static RootDirectoryResource srcTestResources;
+    static DirectoryResourceRoot srcTestResources;
 
     static {
         URL resource = WireMockContextStub.class.getClassLoader().getResource("scoped-wiremock-client-recording.markerfile");
         if (resource.getProtocol().equals("file")) {
-            srcTestResources = new RootDirectoryResource(new File(resource.getFile()).getParentFile());
+            srcTestResources = new DirectoryResourceRoot("resourceRoot", new File(resource.getFile()).getParentFile());
         }
         }
 
-    public static RootDirectoryResource getSrcTestResources() {
+    public static DirectoryResourceRoot getSrcTestResources() {
         return srcTestResources;
     }
 
@@ -46,7 +44,7 @@ public class WireMockContextStub implements WireMockContext {
     public ReadableResource resolveInputResource(String fileName) {
         if(!getSrcTestResources().fallsWithin(fileName)){
             File file = new File(fileName);
-            return new ReadableFileResource(new RootDirectoryResource(file.getParentFile()), file);
+            return new ReadableFileResource(new DirectoryResourceRoot("resourceRoot", file.getParentFile()), file);
         }
         return (ReadableResource)getSrcTestResources().resolveExisting(fileName);
     }

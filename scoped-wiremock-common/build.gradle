@@ -3,6 +3,8 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 dependencies {
     compile(project(':scoped-wiremock-integration-common'))
+    compile(project(':common-resource-api'))
+    compile('commons-codec:commons-codec:1.9')
     compileOnly(group: 'com.github.tomakehurst', name: 'wiremock', version: '2.6.0') {
         exclude(module: 'httpclient')
         exclude(module: 'asm')

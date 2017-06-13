@@ -5,6 +5,8 @@ import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.verification.NearMiss;
+import com.sbg.bdd.resource.ResourceRoot;
+import com.sbg.bdd.resource.file.DirectoryResourceRoot;
 import com.sbg.bdd.wiremock.scoped.ScopedWireMock;
 import com.sbg.bdd.wiremock.scoped.server.ScopedWireMockServer;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
@@ -106,4 +108,8 @@ public class ScopedWireMockServerRule extends ScopedWireMock implements TestRule
         // NOOP
     }
 
+    public void registerResourceRoot(String root, ResourceRoot resourceRoot) {
+        admin.registerResourceRoot(root, resourceRoot);
+
+    }
 }

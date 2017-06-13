@@ -5,12 +5,15 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.Admin;
 import com.github.tomakehurst.wiremock.matching.MultiValuePattern;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
 import com.sbg.bdd.wiremock.scoped.common.CanStartAndStop;
+import com.sbg.bdd.wiremock.scoped.common.ExchangeRecorder;
 import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 
@@ -68,7 +71,10 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
     public List<String> stopCorrelatedScope(String knownScopePath) {
         return stopCorrelatedScope(knownScopePath, Collections.<String,Object>emptyMap());
     }
-
+    public int count(RequestPatternBuilder requestPatternBuilder) {
+        Admin admin = (Admin) this.admin;
+        return admin.countRequestsMatching(requestPatternBuilder.build()).getCount();
+    }
     private List<String> stopCorrelatedScope(String knownScopePath, Map<String, Object> map) {
         return admin.stopCorrelatedScope(new CorrelationState(knownScopePath,map));
     }
@@ -130,10 +136,18 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
         ((Admin) admin).addStubMapping(mapping);
     }
 
-    private void addScopePathHeader(StringValuePattern scopePath, RequestPattern pattern) {
+    protected void addScopePathHeader(StringValuePattern scopePath, RequestPattern pattern) {
         if (pattern.getHeaders() == null) {
             setValue(pattern, "headers", new HashMap<>());
         }
         pattern.getHeaders().put(HeaderName.ofTheCorrelationKey(), new MultiValuePattern(scopePath));
+    }
+    public void saveRecordingsForRequestPattern(StringValuePattern scopePath, RequestPattern pattern, ResourceContainer recordingDirectory) {
+        addScopePathHeader(scopePath, pattern);
+        admin.saveRecordingsForRequestPattern(pattern, recordingDirectory);
+    }
+
+    public void  serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
+        admin.serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
     }
 }

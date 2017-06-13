@@ -2,10 +2,12 @@ package com.sbg.bdd.wiremock.scoped.server;
 
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.common.CanStartAndStop;
@@ -73,6 +75,21 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     }
 
     @Override
+    public void registerResourceRoot(String name, ResourceContainer root) {
+        scopeAdmin.registerResourceRoot(name, root);
+    }
+
+    @Override
+    public void saveRecordingsForRequestPattern(RequestPattern pattern, ResourceContainer recordingDirectory) {
+        scopeAdmin.saveRecordingsForRequestPattern(pattern, recordingDirectory);
+    }
+
+    @Override
+    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
+        scopeAdmin.serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
+    }
+
+    @Override
     public CorrelationState startNewCorrelatedScope(String parentScopePath) {
         return scopeAdmin.startNewCorrelatedScope(parentScopePath);
     }
@@ -100,6 +117,11 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     @Override
     public List<RecordedExchange> findExchangesAgainstStep(String scopePath, String stepName) {
         return scopeAdmin.findExchangesAgainstStep(scopePath, stepName);
+    }
+
+    @Override
+    public ResourceContainer getResourceRoot(String resourceRoot) {
+        return scopeAdmin.getResourceRoot(resourceRoot);
     }
 
     @Override

@@ -1,9 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.recording
 
-import com.sbg.bdd.wiremock.scoped.recording.builders.JournalMode
-import com.sbg.bdd.wiremock.scoped.recording.strategies.RecordingStrategies
-
-import java.nio.file.Paths
+import com.sbg.bdd.wiremock.scoped.admin.model.JournalMode
 
 import static com.github.tomakehurst.wiremock.http.RequestMethod.PUT
 import static com.sbg.bdd.wiremock.scoped.recording.strategies.RecordingStrategies.mapToJournalDirectory

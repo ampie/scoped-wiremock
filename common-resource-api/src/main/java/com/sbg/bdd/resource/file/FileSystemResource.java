@@ -29,7 +29,7 @@ public abstract class FileSystemResource implements Resource {
     }
 
     @Override
-    public DirectoryResource getRoot() {
+    public DirectoryResourceRoot getRoot() {
         return getParent().getRoot();
     }
 

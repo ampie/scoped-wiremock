@@ -8,7 +8,7 @@ class WhenWorkingWithPotentialFiles extends Specification {
     def 'should resolve an potential grandchild file'() {
 
         given:
-        RootDirectoryResource root = getRoot()
+        DirectoryResourceRoot root = getRoot()
         deletePotentialChildren(root)
         when:
         def writableResource = root.resolvePotential('newchilddir','newchildfile.txt')
@@ -19,7 +19,7 @@ class WhenWorkingWithPotentialFiles extends Specification {
     def 'should write a file and keep the parent resource in sync'() {
 
         given:
-        RootDirectoryResource root = getRoot()
+        DirectoryResourceRoot root = getRoot()
         WritableResource writableResource = deletePotentialChildren(root)
         def data = [1, 2, 3, 4, 5] as byte[]
 
@@ -34,7 +34,7 @@ class WhenWorkingWithPotentialFiles extends Specification {
     def 'should not be able to read from a non-existing a file'() {
 
         given:
-        RootDirectoryResource root = getRoot()
+        DirectoryResourceRoot root = getRoot()
 
         when:
         WritableResource writableResource = deletePotentialChildren(root)
@@ -49,7 +49,7 @@ class WhenWorkingWithPotentialFiles extends Specification {
     }
 
 
-    private WritableResource deletePotentialChildren(RootDirectoryResource root) {
+    private WritableResource deletePotentialChildren(DirectoryResourceRoot root) {
         def writableResource = root.resolvePotential('newchilddir', 'newchildfile.txt')
         if (writableResource.getFile().exists()) {
             writableResource.getFile().delete();
@@ -63,10 +63,10 @@ class WhenWorkingWithPotentialFiles extends Specification {
         writableResource
     }
 
-    private RootDirectoryResource getRoot() {
+    private DirectoryResourceRoot getRoot() {
         def markerResource = Thread.currentThread().contextClassLoader.getResource("common-resource-api-marker.txt")
         def rootDir = new File(markerResource.file).getParentFile()
-        def root = new RootDirectoryResource(rootDir);
+        def root = new DirectoryResourceRoot('root', rootDir);
         root
     }
 

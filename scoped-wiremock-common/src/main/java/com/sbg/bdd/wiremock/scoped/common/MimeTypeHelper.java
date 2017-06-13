@@ -1,4 +1,4 @@
-package com.sbg.bdd.wiremock.scoped.recording.strategies;
+package com.sbg.bdd.wiremock.scoped.common;
 
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import org.apache.commons.lang3.StringUtils;

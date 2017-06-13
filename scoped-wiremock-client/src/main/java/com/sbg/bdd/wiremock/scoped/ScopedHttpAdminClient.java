@@ -4,18 +4,24 @@ import com.fasterxml.jackson.databind.type.CollectionLikeType;
 import com.github.tomakehurst.wiremock.admin.AdminRoutes;
 import com.github.tomakehurst.wiremock.admin.model.PathParams;
 import com.github.tomakehurst.wiremock.admin.tasks.OldRemoveStubMappingTask;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.common.AdminException;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.extension.AdminApiExtension;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.*;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
+import com.sbg.bdd.wiremock.scoped.admin.model.ExchangeJournalRequest;
+import com.sbg.bdd.wiremock.scoped.admin.model.JournalMode;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
 import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmin, HasBaseUrl {
     private static final String ADMIN_URL_PREFIX = "%s://%s:%d%s/__admin";
@@ -25,6 +31,7 @@ public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmi
     private final int port;
     private final String urlPathPrefix;
     private final String hostHeader;
+    private Map<String, ResourceContainer> resourceRoots = new HashMap<>();
 
 
     public ScopedHttpAdminClient(String scheme, String host, int port) {
@@ -54,6 +61,40 @@ public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmi
         this(host, port, "");
     }
 
+    @Override
+    public void registerResourceRoot(String name, ResourceContainer root) {
+        this.resourceRoots.put(name, root);
+    }
+
+    @Override
+    public void saveRecordingsForRequestPattern(RequestPattern pattern, ResourceContainer recordingDirectory) {
+        executeRequest(
+                scopedAdminRoutes.requestSpecForTask(JournalTask.class),
+                PathParams.empty(),
+                new ExchangeJournalRequest(JournalMode.RECORD,recordingDirectory.getRoot().getRootName(),recordingDirectory.getPath(),pattern),
+                Void.class,
+                204
+        );
+
+
+    }
+
+    @Override
+    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
+        executeRequest(
+                scopedAdminRoutes.requestSpecForTask(JournalTask.class),
+                PathParams.empty(),
+                new ExchangeJournalRequest(JournalMode.PLAYBACK,directoryRecordedTo.getRoot().getRootName(),directoryRecordedTo.getPath(),requestPattern,priority),
+                Void.class,
+                204
+        );
+    }
+
+    @Override
+    public ResourceContainer getResourceRoot(String resourceRoot) {
+        return resourceRoots.get(resourceRoot);
+    }
+
     public int port() {
         return port;
     }
@@ -64,7 +105,7 @@ public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmi
     }
 
     @Override
-    public String baseUrl(){
+    public String baseUrl() {
         return "http://" + host() + ":" + port();
     }
 
@@ -191,7 +232,6 @@ public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmi
                 200
         );
     }
-
 
     @Override
     public void addStubMapping(StubMapping stubMapping) {
