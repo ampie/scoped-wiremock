@@ -8,6 +8,4 @@ public interface EndPointRegistry {
     URL endpointUrlFor(String serviceEndpointPropertyName);
 
 
-    Map<String, URL> allKnownExternalEndpoints();
-
 }

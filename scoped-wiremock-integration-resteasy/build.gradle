@@ -1,5 +1,5 @@
-apply plugin:'groovy'
 dependencies {
+    compile(project(":scoped-wiremock-integration-common"))
     compile(project(":scoped-wiremock-integration-cdi"))
     compileOnly('javax.enterprise:cdi-api:1.2')
     compile('org.jboss.resteasy:resteasy-jaxrs:2.3.10.Final')

@@ -39,18 +39,4 @@ public class PropertiesEndpointRegistry implements EndPointRegistry {
         }
     }
 
-    @Override
-    public Map<String, URL> allKnownExternalEndpoints() {
-        Map<String, URL> result = new HashMap<>();
-        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-            try {
-                URL url = new URL(entry.getValue().toString());
-                if (url.getProtocol().startsWith("http")) {
-                    result.put(entry.getKey().toString(), url);
-                }
-            } catch (MalformedURLException e) {
-            }
-        }
-        return result;
-    }
 }

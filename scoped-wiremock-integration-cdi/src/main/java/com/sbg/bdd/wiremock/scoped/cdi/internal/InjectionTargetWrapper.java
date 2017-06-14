@@ -36,6 +36,8 @@ class InjectionTargetWrapper<X> implements InjectionTarget<X> {
             try {
                 Object ref = webServiceRef.get(instance);
                 if (ref == null) {
+                    //Fallback - should generally not happen.
+                    // Leave it here because when it fails it provides some useful diagnostic information
                     try {
                         Class<?> serviceClass = Class.forName(webServiceRef.getType().getName() + "_Service");
                         Service service = (Service) serviceClass.newInstance();

@@ -87,17 +87,6 @@ public class WhenCallingAnInterceptedSoapOperation {
         state.set("localhost/9999/myscope", false);
         state.initSequenceNumberFor("som-arb-service", 5);
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor());
-        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY = new EndPointRegistry() {
-            @Override
-            public URL endpointUrlFor(String serviceEndpointPropertyName) {
-                return null;
-            }
-
-            @Override
-            public Map<String, URL> allKnownExternalEndpoints() {
-                return null;
-            }
-        };
         assertThat(consumer.callHello(), is(equalTo("matched!")));
         assertThat(state.getSequenceNumbers().get("{http://www.examples.com/wsdl/HelloService.wsdl}sayHello"), is(1));
         assertThat(state.getSequenceNumbers().get("som-arb-service"), is(12));

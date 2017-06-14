@@ -12,6 +12,7 @@ buildscript {
 allprojects {
     apply plugin: 'maven'
     apply plugin: 'maven-publish'
+    apply plugin: 'maven-publish-auth'
 
     group = 'com.sbg.bdd'
     version = '0.0.1'
@@ -20,16 +21,22 @@ allprojects {
 subprojects {
     apply plugin: "no.nils.wsdl2java"
     apply plugin: 'java'
-    apply plugin: 'maven-publish-auth'
+    apply plugin: 'groovy'
     dependencies{
+        testCompile 'org.slf4j:slf4j-api:1.7.21'
+        testCompile 'org.slf4j:slf4j-jdk14:1.7.12'
+        testCompile 'junit:junit:4.12'
         testCompile 'org.codehaus.groovy:groovy-all:2.4.5'
         testCompile('org.spockframework:spock-core:0.7-groovy-2.0') {
             exclude module: 'groovy-all'
+            exclude module: 'junit'
         }
         testCompile('com.github.goldin:spock-extensions:0.1.4') {
+            exclude module: 'groovy-all'
             exclude module: 'spock-core'
             exclude module: 'slf4j-api'
         }
+
     }
     sourceCompatibility = 1.7
     targetCompatibility = 1.7

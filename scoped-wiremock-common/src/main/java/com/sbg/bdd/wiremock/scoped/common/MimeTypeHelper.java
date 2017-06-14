@@ -40,7 +40,7 @@ public class MimeTypeHelper {
         }
     }
 
-    public static enum ContentType {
+    public enum ContentType {
 
         ANY("*/*"),
         TEXT("text/plain"),

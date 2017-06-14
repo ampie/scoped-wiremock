@@ -7,8 +7,13 @@ import java.util.Properties;
  */
 public class BaseDependencyInjectorAdaptor implements DependencyInjectorAdaptor {
     public static final Properties PROPERTIES = new Properties();
-    public static EndPointRegistry ENDPOINT_REGISTRY=new PropertiesEndpointRegistry(PROPERTIES);
-    public static WireMockCorrelationState CURRENT_CORRELATION_STATE=new BaseWireMockCorrelationState();
+    public static EndPointRegistry ENDPOINT_REGISTRY = new PropertiesEndpointRegistry(PROPERTIES);
+    public static WireMockCorrelationState CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState();
+
+    public BaseDependencyInjectorAdaptor() {
+        ENDPOINT_REGISTRY = new PropertiesEndpointRegistry(PROPERTIES);
+        CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState();
+    }
 
     @Override
     public WireMockCorrelationState getCurrentCorrelationState() {

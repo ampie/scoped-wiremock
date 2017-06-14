@@ -12,7 +12,7 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.sbg.bdd.wiremock.scoped.HttpAdminClient.getEntityAsStringAndCloseStream;
+import static com.sbg.bdd.wiremock.scoped.OkHttpAdminClient.getEntityAsStringAndCloseStream;
 
 
 public abstract class BaseHttpClient {

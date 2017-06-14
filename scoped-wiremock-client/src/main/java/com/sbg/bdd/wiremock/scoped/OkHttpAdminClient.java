@@ -30,11 +30,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
 import static java.net.HttpURLConnection.HTTP_OK;
 
-public class HttpAdminClient implements Admin {
+public class OkHttpAdminClient implements Admin {
     public static final MediaType JSON
             = MediaType.parse("application/json; charset=utf-8");
     private static final String ADMIN_URL_PREFIX = "%s://%s:%d%s/__admin";
-    private static OkHttpClient httpClientOverride;
 
     private final String scheme;
     private final String host;
@@ -45,29 +44,25 @@ public class HttpAdminClient implements Admin {
     private final AdminRoutes adminRoutes;
     protected OkHttpClient client = new OkHttpClient();
 
-    public static void overrideHttpClient(OkHttpClient httpClient) {
-        httpClientOverride = httpClient;
-    }
-
-    public HttpAdminClient(String scheme, String host, int port) {
+    public OkHttpAdminClient(String scheme, String host, int port) {
         this(scheme, host, port, "");
     }
 
-    public HttpAdminClient(String host, int port, String urlPathPrefix) {
+    public OkHttpAdminClient(String host, int port, String urlPathPrefix) {
         this("http", host, port, urlPathPrefix);
     }
 
-    public HttpAdminClient(String scheme, String host, int port, String urlPathPrefix) {
+    public OkHttpAdminClient(String scheme, String host, int port, String urlPathPrefix) {
         this(scheme, host, port, urlPathPrefix, null, null, 0);
     }
 
-    public HttpAdminClient(String scheme,
-                           String host,
-                           int port,
-                           String urlPathPrefix,
-                           String hostHeader,
-                           String proxyHost,
-                           int proxyPort) {
+    public OkHttpAdminClient(String scheme,
+                             String host,
+                             int port,
+                             String urlPathPrefix,
+                             String hostHeader,
+                             String proxyHost,
+                             int proxyPort) {
         this.scheme = scheme;
         this.host = host;
         this.port = port;
@@ -78,7 +73,7 @@ public class HttpAdminClient implements Admin {
 
     }
 
-    public HttpAdminClient(String host, int port) {
+    public OkHttpAdminClient(String host, int port) {
         this(host, port, "");
     }
 
@@ -352,21 +347,7 @@ public class HttpAdminClient implements Admin {
     }
 
     private Response execute(Request request) throws IOException {
-        if (httpClientOverride != null) {
-            Response response = httpClientOverride.newCall(request).execute();
-            if (response == null) {
-                String content = "";
-                if (request.body() != null) {
-                    Buffer sink = new Buffer();
-                    request.body().writeTo(sink);
-                    content = sink.readString(Charset.forName("UTF-8"));
-                }
-                throw new IllegalArgumentException("Requested " + request.method() + " to " + request.url() + " not mapped. Content: " + content);
-            }
-            return response;
-        } else {
-            return client.newCall(request).execute();
-        }
+        return client.newCall(request).execute();
     }
 
 }

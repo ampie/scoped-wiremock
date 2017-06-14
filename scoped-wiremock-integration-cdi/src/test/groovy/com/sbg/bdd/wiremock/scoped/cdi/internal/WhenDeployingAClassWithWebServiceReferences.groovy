@@ -35,7 +35,6 @@ class WhenDeployingAClassWithWebServiceReferences extends Specification{
             setInjectionTarget(_) >> {args->
                 args[0].inject(example,null)
             }
-
         }
 
         when:

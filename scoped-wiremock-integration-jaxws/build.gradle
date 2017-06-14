@@ -1,7 +1,4 @@
 description = 'Scoped WireMock JAX-WS integration'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
-apply plugin: 'groovy'
 sourceSets {
     test {
         java {
@@ -13,7 +10,6 @@ sourceSets {
 ext.libraryVersions = [
         javaee                  : '7.0',
         wildfly                 : '1.1.0.Alpha1',
-        junit                   : '4.12',
         arquillian              : '1.1.10.Final',
         shrinkWrapResolverGradle: '2.2.0'
 ]

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.type.CollectionLikeType;
 import com.github.tomakehurst.wiremock.admin.AdminRoutes;
 import com.github.tomakehurst.wiremock.admin.model.PathParams;
 import com.github.tomakehurst.wiremock.admin.tasks.OldRemoveStubMappingTask;
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.common.AdminException;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.extension.AdminApiExtension;
@@ -23,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmin, HasBaseUrl {
+public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAdmin, HasBaseUrl {
     private static final String ADMIN_URL_PREFIX = "%s://%s:%d%s/__admin";
     private final AdminRoutes scopedAdminRoutes;
     private final String scheme;
@@ -211,15 +210,6 @@ public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmi
         );
     }
 
-    @Override
-    public void removeStubMapping(StubMapping stubbMapping) {
-        executeRequest(
-                scopedAdminRoutes.requestSpecForTask(OldRemoveStubMappingTask.class),
-                PathParams.empty(),
-                stubbMapping,
-                Void.class,
-                200);
-    }
 
     @Override
     public List<RecordedExchange> findExchangesAgainstStep(String scopePath, String stepName) {
@@ -233,20 +223,5 @@ public class ScopedHttpAdminClient extends HttpAdminClient implements ScopedAdmi
         );
     }
 
-    @Override
-    public void addStubMapping(StubMapping stubMapping) {
-        if (stubMapping.getRequest().hasCustomMatcher()) {
-            throw new AdminException("Custom matchers can't be used when administering a remote WireMock server. " +
-                    "Use WireMockRule.stubFor() or WireMockServer.stubFor() to administer the local instance.");
-        }
-
-        this.executeRequest(
-                this.scopedAdminRoutes.requestSpecForTask(CreateStubMappingTask.class),
-                PathParams.empty(),
-                stubMapping,
-                Void.class,
-                201
-        );
-    }
 
 }
