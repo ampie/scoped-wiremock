@@ -25,4 +25,5 @@ project(':scoped-wiremock-integration-jaxrs').projectDir = "$rootDir/scoped-wire
 project(':scoped-wiremock-integration-spring').projectDir = "$rootDir/scoped-wiremock-integration-spring" as File
 project(':common-resource-api').projectDir = "$rootDir/common-resource-api" as File
 include 'scoped-wiremock-integration-cucumber'
+include 'cucumber-common'
 

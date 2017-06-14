@@ -36,7 +36,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     private ExchangeJournal exchangeJournal = new ExchangeJournal();
     private Map<String, CorrelationState> correlatedScopes = new HashMap<>();
     private ResponseRenderer stubResponseRenderer;
-    private ScopeListeners scopeListeners = new ScopeListeners(Collections.<String, ScopeListener>emptyMap());
+    private ScopeListeners scopeListeners = new ScopeListeners(this, Collections.<String, ScopeListener>emptyMap());
     private Map<String, ResourceContainer> resourceRoots = new HashMap<>();
     private Admin admin;
 
@@ -218,6 +218,6 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     }
 
     public void setScopeListeners(Map<String, ScopeListener> scopeListeners) {
-        this.scopeListeners = new ScopeListeners(scopeListeners);
+        this.scopeListeners = new ScopeListeners(this, scopeListeners);
     }
 }

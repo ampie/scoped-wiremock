@@ -1,8 +1,8 @@
 package com.sbg.bdd.wiremock.scoped.integration.cucumber;
 
 import com.github.tomakehurst.wiremock.common.Json;
-import com.sbg.bdd.cucumber.screenplay.core.formatter.ScreenPlayFormatter;
-import com.sbg.bdd.cucumber.screenplay.scoped.plugin.MapParser;
+import com.sbg.bdd.cucumber.common.MapParser;
+import com.sbg.bdd.cucumber.common.ScreenPlayFormatter;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
@@ -31,8 +31,9 @@ public class CucumberFormattingScopeListener implements ScopeListener {
 
     }
 
-    public void setAdmin(ScopedAdmin admin) {
-        this.admin = admin;
+    @Override
+    public void setScopedAdmin(ScopedAdmin admin) {
+            this.admin = admin;
     }
 
     @Override
