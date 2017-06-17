@@ -1,9 +1,6 @@
 package com.sbg.bdd.resource.file;
 
-import com.sbg.bdd.resource.Resource;
-import com.sbg.bdd.resource.ResourceContainer;
-import com.sbg.bdd.resource.ResourceFilter;
-import com.sbg.bdd.resource.WritableResource;
+import com.sbg.bdd.resource.*;
 
 import java.io.File;
 import java.util.*;
@@ -51,48 +48,13 @@ public class DirectoryResource extends FileSystemResource implements ResourceCon
 
     @Override
     public Resource[] list(ResourceFilter filter) {
-        return list(filter, getChildren(), this);
-    }
-
-    public static Resource[] list(ResourceFilter filter, Map<String, ? extends Resource> children, ResourceContainer container) {
-        List<Resource> result = new ArrayList<>();
-        for (Map.Entry<String, ? extends Resource> entry : children.entrySet()) {
-            if (filter.accept(container, entry.getKey())) {
-                result.add(entry.getValue());
-            }
-        }
-        return result.toArray(new Resource[result.size()]);
+        return ResourceSupport.list(filter, getChildren(), this);
     }
 
     @Override
     public Resource resolveExisting(String... segments) {
         FileSystemResource previous = this;
-        return resolveExisting(previous, segments);
-    }
-
-    public static <T extends Resource> T resolveExisting(Resource previous, String[] segments) {
-        for (String segment : flatten(segments)) {
-            if (previous instanceof ResourceContainer) {
-                ResourceContainer previousDir = (ResourceContainer) previous;
-                previous = previousDir.getChild(segment);
-            }
-        }
-        return (T)previous;
-    }
-
-    public static String[] flatten(String[] segments) {
-        List<String> result = new ArrayList<>();
-        for (String s : segments) {
-            if (s != null) {
-                String[] split = s.split("\\/");
-                for (String atomicSegment : split) {
-                    if (atomicSegment.trim().length() > 0) {
-                        result.add(atomicSegment);
-                    }
-                }
-            }
-        }
-        return result.toArray(new String[result.size()]);
+        return ResourceSupport.resolveExisting(previous, segments);
     }
 
     @Override
@@ -102,7 +64,7 @@ public class DirectoryResource extends FileSystemResource implements ResourceCon
 
     @Override
     public ResourceContainer resolvePotentialContainer(String... segments) {
-        String[] flattened = flatten(segments);
+        String[] flattened = ResourceSupport.flatten(segments);
         FileSystemResource previous = resolvePotential(flattened, flattened.length);
         if (previous instanceof ResourceContainer) {
             return (ResourceContainer) previous;
@@ -113,7 +75,7 @@ public class DirectoryResource extends FileSystemResource implements ResourceCon
 
     @Override
     public WritableResource resolvePotential(String... segments) {
-        String[] flattened = flatten(segments);
+        String[] flattened = ResourceSupport.flatten(segments);
         FileSystemResource previous = resolvePotential(flattened, flattened.length - 1);
         if (previous instanceof WritableResource) {
             return (WritableResource) previous;

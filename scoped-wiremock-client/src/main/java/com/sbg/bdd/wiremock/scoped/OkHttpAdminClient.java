@@ -77,6 +77,13 @@ public class OkHttpAdminClient implements Admin {
         this(host, port, "");
     }
 
+    public OkHttpClient getClient() {
+        return client;
+    }
+
+    public void setClient(OkHttpClient client) {
+        this.client = client;
+    }
 
     @Override
     public void addStubMapping(StubMapping stubMapping) {

@@ -1,7 +1,9 @@
 package com.sbg.bdd.wiremock.scoped.recording.builders;
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
+import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.matching.*;
 import com.sbg.bdd.wiremock.scoped.recording.endpointconfig.EndpointConfigRegistry;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
@@ -162,6 +164,11 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
 
     public ExtendedMappingBuilder to(ResponseStrategy responseStrategy) {
         return will(responseStrategy);
+    }
+    public ExtendedMappingBuilder toReturn(ResponseDefinitionBuilder response) {
+        ExtendedMappingBuilder ruleBuilder = new ExtendedMappingBuilder(this);
+        ruleBuilder.willReturn(response);
+        return ruleBuilder;
     }
 
     public void toAnyKnownExternalService(boolean b) {

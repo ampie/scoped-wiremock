@@ -56,12 +56,12 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
 
     @Override
     public void saveRecordingsForRequestPattern(RequestPattern pattern, ResourceContainer recordingDirectory) {
-        new ExchangeRecorder(this,admin).saveRecordingsForRequestPattern(pattern, recordingDirectory);
+        new ExchangeRecorder(this, admin).saveRecordingsForRequestPattern(pattern, recordingDirectory);
     }
 
     @Override
     public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
-        new ExchangeRecorder(this,admin).serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
+        new ExchangeRecorder(this, admin).serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
     }
 
     @Override
@@ -70,7 +70,9 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
         do {
             correlationPathToUse = parentScopePath + "/" + internalNextPossibleCorrelationNumber();
         } while (correlatedScopes.containsKey(correlationPathToUse));
-        return findOrCreateCorrelatedScope(correlationPathToUse);
+        CorrelationState result = findOrCreateCorrelatedScope(correlationPathToUse);
+        scopeListeners.fireScopeStarted(result);
+        return result;
     }
 
     @Override
@@ -166,7 +168,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
      * @param server
      */
     public void hackIntoWireMockInternals(WireMockServer server) {
-        admin=server;
+        admin = server;
         WireMockApp wireMockApp = getValue(server, "wireMockApp");
         InMemoryStubMappings stubMappings = getValue(wireMockApp, "stubMappings");
 //TODO we could probably move this hack up into a subclass of InMemoryStubMappings, but it would still be a hack
@@ -187,21 +189,25 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
             public Response render(ResponseDefinition responseDefinition) {
                 Request request = responseDefinition.getOriginalRequest();
                 String scopePath = request.getHeader(HeaderName.ofTheCorrelationKey());
-                //Chop off the segment representing the current user - NB!!! MAJOR ASSUMPTION
-                // Maybe we should change the format of the scope path, something like:
-                // runId:/scope1/scope1.1/scope1.1.1:userId
-                String stepContainerPath = ParentPath.of(scopePath);
-                CorrelationState correlationState = correlatedScopes.get(stepContainerPath);
-                //CorrelationState could be null if we are not using the scoped client, e.g. testing source systems....
-                String stepName = correlationState == null ? null : correlationState.getCurrentStep();
-                RecordedExchange exchange = exchangeJournal.requestReceived(scopePath, stepName, request);
-                try {
-                    Response response = responseRenderer.render(responseDefinition);
-                    exchangeJournal.responseReceived(exchange, response);
-                    return response;
-                } catch (RuntimeException e) {
-                    exchangeJournal.responseReceived(exchange, Response.notConfigured());
-                    throw e;
+                if (scopePath != null) {
+                    //Chop off the segment representing the current user - NB!!! MAJOR ASSUMPTION
+                    // Maybe we should change the format of the scope path, something like:
+                    // runId:/scope1/scope1.1/scope1.1.1:userId
+                    String stepContainerPath = ParentPath.of(scopePath);
+                    CorrelationState correlationState = correlatedScopes.get(stepContainerPath);
+                    //CorrelationState could be null if we are not using the scoped client, e.g. testing source systems....
+                    String stepName = correlationState == null ? null : correlationState.getCurrentStep();
+                    RecordedExchange exchange = exchangeJournal.requestReceived(scopePath, stepName, request);
+                    try {
+                        Response response = responseRenderer.render(responseDefinition);
+                        exchangeJournal.responseReceived(exchange, response);
+                        return response;
+                    } catch (RuntimeException e) {
+                        exchangeJournal.responseReceived(exchange, Response.notConfigured());
+                        throw e;
+                    }
+                } else {
+                    return responseRenderer.render(responseDefinition);
                 }
             }
         };

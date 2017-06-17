@@ -11,12 +11,16 @@ import com.github.tomakehurst.wiremock.standalone.CommandLineOptions;
 import com.github.tomakehurst.wiremock.standalone.MappingsLoader;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.stubbing.StubMappings;
+import com.sbg.bdd.resource.file.DirectoryResourceRoot;
 
+import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
@@ -41,12 +45,35 @@ public class ScopedWireMockServerRunner {
         System.setProperty("org.mortbay.log.class", "com.github.tomakehurst.wiremock.jetty.LoggerAdapter");
     }
 
-    private WireMockServer wireMockServer;
+    private static ScopedWireMockServer wireMockServer;
+
+    public static ScopedWireMockServer getWireMockServer() {
+        return wireMockServer;
+    }
 
     public void run(String... args) {
-        ArrayList<String> argList = new ArrayList<>(Arrays.asList(args));
+        ArrayList<String> argList = new ArrayList<>();
+        Map<String, DirectoryResourceRoot> resourceRoots = new HashMap<>();
+        for (int i = 0; i < args.length; i++) {
+            String arg = args[i];
+            if (arg.equals("--resourceRoot")) {
+                String[] split = args[i + 1].split("\\:");
+                resourceRoots.put(split[0], new DirectoryResourceRoot(split[0], new File(split[1])));
+                i++;
+            } else {
+                argList.add(arg);
+            }
+        }
         argList.add("--extensions");
-        argList.add(ProxyUrlTransformer.class.getName() + "," + ScopeExtensions.class.getName() + "," + InvalidHeadersLoggingTransformer.class.getName());
+
+        String extensions = ProxyUrlTransformer.class.getName() + "," + ScopeExtensions.class.getName() + "," + InvalidHeadersLoggingTransformer.class.getName();
+        try {
+            Class<?> cls = Class.forName("com.sbg.bdd.wiremock.scoped.integration.cucumber.CucumberFormattingScopeListener");
+            extensions = extensions + "," + cls.getName();
+        } catch (ClassNotFoundException e) {
+
+        }
+        argList.add(extensions);
         final CommandLineOptions options = new CommandLineOptions(argList.toArray(new String[0]));
         if (options.help()) {
             out.println(options.helpText());
@@ -58,19 +85,19 @@ public class ScopedWireMockServerRunner {
         filesFileSource.createIfNecessary();
         FileSource mappingsFileSource = fileSource.child(MAPPINGS_ROOT);
         mappingsFileSource.createIfNecessary();
-        if(System.getProperty("javax.net.ssl.keyStore")!=null) {
+        if (System.getProperty("javax.net.ssl.keyStore") != null) {
             Options proxyOptions = (Options) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{Options.class}, new InvocationHandler() {
                 @Override
                 public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                     if (method.getName().equals("httpsSettings")) {
                         return new HttpsSettings.Builder().trustStorePath(System.getProperty("javax.net.ssl.keyStore")).trustStorePassword(System.getProperty("javax.net.ssl.keyStorePassword")).build();
                     } else {
-                        return method.invoke(options,args);
+                        return method.invoke(options, args);
                     }
                 }
             });
             wireMockServer = new ScopedWireMockServer(proxyOptions);
-        }else{
+        } else {
             wireMockServer = new ScopedWireMockServer(options);
         }
         if (options.recordMappingsEnabled()) {
@@ -82,6 +109,9 @@ public class ScopedWireMockServerRunner {
         }
 
         try {
+            for (Map.Entry<String, DirectoryResourceRoot> entry : resourceRoots.entrySet()) {
+                wireMockServer.registerResourceRoot(entry.getKey(), entry.getValue());
+            }
             wireMockServer.start();
             out.println(BANNER);
             out.println();
@@ -106,18 +136,6 @@ public class ScopedWireMockServerRunner {
                 stubMappings.addMapping(proxyBasedMapping);
             }
         });
-    }
-
-    public void stop() {
-        wireMockServer.stop();
-    }
-
-    public boolean isRunning() {
-        return wireMockServer.isRunning();
-    }
-
-    public int port() {
-        return wireMockServer.port();
     }
 
     public static void main(String... args) {

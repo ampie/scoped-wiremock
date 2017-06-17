@@ -28,23 +28,32 @@ public class CountMatcher extends BaseMatcher<Integer> {
     public void describeTo(Description description) {
         delegate.describeTo(description);
     }
-    public CountMatcher times(){
+
+    public CountMatcher times() {
         return this;
     }
 
     public CountMatcher and(int secondVar) {
-        delegate=allOf(delegate,lessThan(secondVar));
+        delegate = allOf(delegate, lessThan(secondVar));
         return this;
     }
+
     public static CountMatcher once() {
         return new CountMatcher(equalTo(1));
     }
+
     public static CountMatcher twice() {
         return new CountMatcher(equalTo(2));
     }
+
     public static CountMatcher exactly(int times) {
         return new CountMatcher(equalTo(times));
     }
+
+    public static CountMatcher exactly(CountMatcher countMatcher) {
+        return countMatcher;
+    }
+
     public static CountMatcher between(int times) {
         return new CountMatcher(greaterThan(times));
     }
