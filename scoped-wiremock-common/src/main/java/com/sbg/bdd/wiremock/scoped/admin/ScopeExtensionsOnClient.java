@@ -24,6 +24,10 @@ public class ScopeExtensionsOnClient implements AdminApiExtension{
                 Reflection.setValue(entry,"value",new CreateStubMappingTask());
             }
         }
+        //Resource management
+        router.add(POST, "/resources/list", new ListResourcesTask(currentAdmin));
+        router.add(POST, "/resources/read", new ReadResourceTask(currentAdmin));
+        router.add(POST, "/resources/write", new WriteResourceTask(currentAdmin));
         //Scope management
         router.add(POST, "/scopes/join", new JoinKnownCorrelatedScopeTask(currentAdmin));
         router.add(POST, "/scopes/new", new StartNewCorrelatedScopeTask(currentAdmin));

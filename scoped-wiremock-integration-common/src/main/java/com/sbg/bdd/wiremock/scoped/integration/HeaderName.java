@@ -1,6 +1,9 @@
 package com.sbg.bdd.wiremock.scoped.integration;
 
 public class HeaderName {
+    public static String ofTheSessionToken(){
+        return System.getProperty("scoped.wiremock.token.header", "x-sbg-token");
+    }
     public static String ofTheCorrelationKey() {
         return System.getProperty("scoped.wiremock.correllation.key.header", "x-sbg-messageTraceId");
     }

@@ -63,7 +63,7 @@ task copyRuntimeLibs(type: Copy) {
 task createDockerfile(type: Dockerfile) {
     dependsOn copyRuntimeLibs
     destFile = project.file("${buildDir}/docker/Dockerfile")
-    from 'docker.registry.standardbank.co.za/com.sbg.automation/scoped-wiremock-base:1.0'
+    from 'docker.registry.standardbank.co.za/com.sbg.bdd/scoped-wiremock-base:1.0'
     addFile('lib/*', '/wiremock/')
     maintainer 'Ampie Barnard "ampie.barnard@standardbank.co.za"'
 }
@@ -71,7 +71,7 @@ task createDockerfile(type: Dockerfile) {
 task buildImage(type: DockerBuildImage) {
     dependsOn createDockerfile
     inputDir = createDockerfile.destFile.parentFile
-    tag = 'docker.registry.standardbank.co.za/com.sbg.automation/scoped-wiremock:0.0.1'
+    tag = 'docker.registry.standardbank.co.za/com.sbg.bdd/scoped-wiremock:0.0.1'
 }
 task createWireMockContainer(type: DockerCreateContainer) {
     dependsOn buildImage

@@ -1,6 +1,8 @@
 package com.sbg.bdd.resource.file;
 
+import com.sbg.bdd.resource.Resource;
 import com.sbg.bdd.resource.ResourceRoot;
+import com.sbg.bdd.resource.ResourceSupport;
 
 import java.io.File;
 

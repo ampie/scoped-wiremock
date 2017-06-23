@@ -3,6 +3,7 @@ package com.sbg.bdd.resource;
 public interface ResourceContainer extends Resource{
     Resource[] list();
     Resource[] list(ResourceFilter filter);
+    Resource resolveOrFail(String ... segments) throws IllegalArgumentException;
     Resource resolveExisting(String ... segments);
     WritableResource resolvePotential(String ... segments);
     ResourceContainer resolvePotentialContainer(String ... segments);

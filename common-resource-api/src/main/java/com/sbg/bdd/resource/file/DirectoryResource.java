@@ -13,7 +13,10 @@ public class DirectoryResource extends FileSystemResource implements ResourceCon
         super(parent, file);
     }
 
-
+    @Override
+    public Resource resolveOrFail(String... segments) throws IllegalArgumentException {
+        return ResourceSupport.resolveExisting(this, segments,true);
+    }
     @Override
     public Resource[] list() {
         Map<String, FileSystemResource> children = getChildren();
@@ -54,7 +57,7 @@ public class DirectoryResource extends FileSystemResource implements ResourceCon
     @Override
     public Resource resolveExisting(String... segments) {
         FileSystemResource previous = this;
-        return ResourceSupport.resolveExisting(previous, segments);
+        return ResourceSupport.resolveExisting(previous, segments, false);
     }
 
     @Override
