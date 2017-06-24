@@ -27,19 +27,21 @@ public class ListResourcesTask extends ScopeAdminTask {
         ResourceState resourceState = Json.read(request.getBodyAsString(), ResourceState.class);
         ResourceContainer resourceRoot = super.admin.getResourceRoot(resourceState.getResourceRoot());
         ResourceContainer resourceContainer = (ResourceContainer) resourceRoot.resolveExisting(resourceState.getPath());
-        Resource[] resources = resourceContainer.list();
         List<ResourceState> children = new ArrayList<>();
-        for (Resource resource : resources) {
-            ResourceState child = new ResourceState(resourceRoot.getName(), resource.getPath());
-            if(resource instanceof ResourceContainer){
-                child.setType(ResourceType.CONTAINER);
-            }else if(((ReadableResource)resource).canWrite()){
-                child.setType(ResourceType.READ_WRITE);
-            }else{
-                child.setType(ResourceType.READ_ONlY);
+        if (resourceContainer != null) {
+            Resource[] resources = resourceContainer.list();
+            for (Resource resource : resources) {
+                ResourceState child = new ResourceState(resourceRoot.getName(), resource.getPath());
+                if (resource instanceof ResourceContainer) {
+                    child.setType(ResourceType.CONTAINER);
+                } else if (((ReadableResource) resource).canWrite()) {
+                    child.setType(ResourceType.READ_WRITE);
+                } else {
+                    child.setType(ResourceType.READ_ONlY);
 
+                }
+                children.add(child);
             }
-            children.add(child);
         }
         return responseDefinition()
                 .withStatus(HTTP_OK)
