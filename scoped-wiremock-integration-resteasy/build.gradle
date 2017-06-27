@@ -2,9 +2,14 @@ dependencies {
     compile(project(":scoped-wiremock-integration-common"))
     compile(project(":scoped-wiremock-integration-cdi"))
     compileOnly('javax.enterprise:cdi-api:1.2')
-    compile('org.jboss.resteasy:resteasy-jaxrs:2.3.10.Final')
+    compile('org.jboss.resteasy:resteasy-jaxrs:2.3.10.Final'){
+        exclude(module: 'jboss-logging')
+    }
+    compile('org.jboss.logging:jboss-logging:3.1.4.GA')
     compileOnly('org.apache.httpcomponents:httpclient:4.5.1')
     testCompile('javax.enterprise:cdi-api:1.2')
-    testCompile('org.jboss.resteasy:resteasy-jaxrs:2.3.10.Final')
+    testCompile('org.jboss.resteasy:resteasy-jaxrs:2.3.10.Final'){
+        exclude(module: 'jboss-logging')
+    }
     testCompile('org.apache.httpcomponents:httpclient:4.5.1')
 }
