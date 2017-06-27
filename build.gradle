@@ -97,14 +97,7 @@ subprojects {
                     asNode().children().last() + {
                         resolveStrategy = Closure.DELEGATE_FIRST
                         name "$rootProject.name"
-                        description "A cucumber plugin that manages complex scoping"
-
-                        url 'https://github.com/ampie/cucumber-jbm-screenplay'
-                        scm {
-                            url 'scm:git:git@github.com:ampie/cucumber-jbm-screenplay.git'
-                            connection 'scm:git:git@github.com:ampie/cucumber-jbm-screenplay.git'
-                            developerConnection 'scm:git:git@github.com:ampie/cucumber-jbm-screenplay.git'
-                        }
+                        description "A cucumber plugin that provides WireMock integration and complex scoping"
                         licenses {
                             license {
                                 name 'The Apache Software License, Version 2.0'
@@ -116,7 +109,7 @@ subprojects {
                             developer {
                                 id 'ampie'
                                 name 'Ampie Barnard'
-                                email 'ampie@gmail.com'
+                                email 'ampie.barnard@standardbank.co.za'
                             }
                         }
                     }
