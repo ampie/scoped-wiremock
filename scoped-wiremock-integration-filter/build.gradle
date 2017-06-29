@@ -1,5 +1,6 @@
 dependencies {
-    compile('javax.servlet:javax.servlet-api:3.1.0')
+    compileOnly('javax.servlet:javax.servlet-api:3.1.0')
     compile(project(':scoped-wiremock-integration-common'))
     testCompile('cglib:cglib-nodep:2.2')
+    testCompile('javax.servlet:javax.servlet-api:3.1.0')
 }

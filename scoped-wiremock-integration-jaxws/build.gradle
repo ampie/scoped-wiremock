@@ -8,10 +8,7 @@ sourceSets {
     }
 }
 ext.libraryVersions = [
-        javaee                  : '7.0',
-        wildfly                 : '1.1.0.Alpha1',
-        arquillian              : '1.1.10.Final',
-        shrinkWrapResolverGradle: '2.2.0'
+        javaee: '7.0'
 ]
 wsdl2java {
     wsdlDir = file("$projectDir/src/test/resources")
@@ -21,16 +18,7 @@ wsdl2java {
 
 dependencies {
     compile(project(':scoped-wiremock-integration-common'))
-
-    testCompile('com.github.tomakehurst:wiremock:2.6.0'){
-
-    }
-    testCompile "org.jboss.arquillian.junit:arquillian-junit-container:${libraryVersions.arquillian}"
-    testCompile "org.jboss.arquillian.protocol:arquillian-protocol-servlet:${libraryVersions.arquillian}"
+    testCompile( "com.github.tomakehurst:wiremock:$WIREMOCK_VERSION")
     testCompile 'javax.enterprise:cdi-api:1.2'
     testCompile 'javax.ejb:javax.ejb-api:3.2'
-    testCompile 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api-maven:2.2.0'
-    testCompile 'org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:2.2.0'
-    testCompile "org.wildfly.arquillian:wildfly-arquillian-container-managed:${libraryVersions.wildfly}"
-    testCompile "org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-gradle-depchain:${libraryVersions.shrinkWrapResolverGradle}"
 }

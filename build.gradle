@@ -1,8 +1,8 @@
 buildscript {
     repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
+//        maven {url "https://plugins.gradle.org/m2/"}
+        mavenLocal()
+        maven{ url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/public/'}
     }
     dependencies {
         classpath "no.nils:wsdl2java:0.10"
@@ -15,13 +15,16 @@ allprojects {
     apply plugin: 'maven-publish-auth'
 
     group = 'com.sbg.bdd'
-    version = '0.0.2'
+    version = '0.0.3'
 }
 
 subprojects {
     apply plugin: "no.nils.wsdl2java"
     apply plugin: 'java'
     apply plugin: 'groovy'
+    ext {
+        WIREMOCK_VERSION='2.6.0'
+    }
     dependencies{
         testCompile 'org.slf4j:slf4j-api:1.7.21'
         testCompile 'org.slf4j:slf4j-jdk14:1.7.12'
@@ -49,10 +52,13 @@ subprojects {
     artifacts.archives packageSources
     repositories {
         mavenLocal()
-        maven { url 'http://repository.jboss.org/nexus/content/groups/public' }
-        maven { url 'http://repository.jboss.org/nexus/content/repositories/deprecated' }
-        maven { url "http://repo.maven.apache.org/maven2" }
-        maven { url "https://plugins.gradle.org/m2/" }
+        maven{ url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/public/'}
+        maven{ url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/releases/'}
+        maven{ url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/snapshots/'}
+//        maven { url 'http://repository.jboss.org/nexus/content/groups/public' }
+//        maven { url 'http://repository.jboss.org/nexus/content/repositories/deprecated' }
+//        maven { url "http://repo.maven.apache.org/maven2" }
+//        maven { url "https://plugins.gradle.org/m2/" }
     }
 
 

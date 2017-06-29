@@ -1,6 +1,5 @@
 package com.sbg.bdd.wiremock.scoped.client;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.Options;
 import com.sbg.bdd.wiremock.scoped.ScopedWireMockTest;
 import com.sbg.bdd.wiremock.scoped.server.ScopedWireMockServer;

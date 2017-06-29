@@ -64,8 +64,12 @@ public class ScopedWireMockServerRunner {
                 argList.add(arg);
             }
         }
-        argList.add("--extensions");
+        if(!argList.contains("--port")){
+            argList.add("--port");
+            argList.add("0");
+        }
 
+        argList.add("--extensions");
         String extensions = ProxyUrlTransformer.class.getName() + "," + ScopeExtensions.class.getName() + "," + InvalidHeadersLoggingTransformer.class.getName();
         try {
             Class<?> cls = Class.forName("com.sbg.bdd.wiremock.scoped.integration.cucumber.CucumberFormattingScopeListener");

@@ -4,16 +4,6 @@ apply plugin: 'maven-publish'
 dependencies {
     compile(project(':scoped-wiremock-integration-common'))
     compile(project(':common-resource-api'))
-    compile('commons-codec:commons-codec:1.9')
-    compileOnly(group: 'com.github.tomakehurst', name: 'wiremock', version: '2.6.0') {
-        exclude(module: 'httpclient')
-        exclude(module: 'asm')
-    }
-    testCompile('org.apache.httpcomponents:httpclient:4.5.1')
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.4'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
-    testCompile(group: 'com.github.tomakehurst', name: 'wiremock', version: '2.6.0') {
-        exclude(module: 'httpclient')
-        exclude(module: 'asm')
-    }
+    compileOnly(  "com.github.tomakehurst:wiremock:$WIREMOCK_VERSION")
+    testCompile(  "com.github.tomakehurst:wiremock:$WIREMOCK_VERSION")
 }
