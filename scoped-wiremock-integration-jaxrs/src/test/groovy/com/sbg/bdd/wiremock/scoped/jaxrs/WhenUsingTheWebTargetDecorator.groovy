@@ -18,7 +18,7 @@ class WhenUsingTheWebTargetDecorator extends Specification {
         def state = BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState()
 //        state.set('localhost/8080/somepath', true)
         state.clear()
-        def decorator = new DynamicWebTarget(ClientBuilder.newClient(),new EndPointPropertyLiteral("prop1"),new EndPointCategoryLiteral("cat1"))
+        def decorator = new DynamicWebTarget(new KeyStoreHelper(),new EndPointPropertyLiteral("prop1"),new EndPointCategoryLiteral("cat1"))
         when:
         def invocation=decorator.path("/last/segment").request().buildGet()
 
@@ -33,7 +33,7 @@ class WhenUsingTheWebTargetDecorator extends Specification {
         BaseDependencyInjectorAdaptor.PROPERTIES.put("prop1", "http://somehost:9090/some/base/path")
         def state = BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState()
         state.set('localhost/8080/somepath', true)
-        def decorator = new DynamicWebTarget(ClientBuilder.newClient(),new EndPointPropertyLiteral("prop1"),new EndPointCategoryLiteral("cat1"))
+        def decorator = new DynamicWebTarget(new KeyStoreHelper(),new EndPointPropertyLiteral("prop1"),new EndPointCategoryLiteral("cat1"))
         when:
         def invocation=decorator.path("/last/segment").request().buildGet()
 

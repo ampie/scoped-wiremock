@@ -3,8 +3,14 @@ package com.sbg.bdd.wiremock.scoped.jaxrs;
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
 import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
 import com.sbg.bdd.wiremock.scoped.integration.*;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
 
+import javax.annotation.PreDestroy;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Configuration;
@@ -23,13 +29,27 @@ public class DynamicWebTarget implements WebTarget {
     private Client client;
     private URL originalUrl;
 
-    public DynamicWebTarget(Client client, EndPointProperty endPointProperty, EndPointCategory endPointCategory) {
-        this.client = client;
+    public DynamicWebTarget(KeyStoreHelper keystoreHelper, EndPointProperty endPointProperty, EndPointCategory endPointCategory) {
+        ClientBuilder builder = ClientBuilder.newBuilder().hostnameVerifier(new HostnameVerifier(){
+            @Override
+            public boolean verify(String hostname, SSLSession session) {
+                return true;
+            }
+        });
+        if (keystoreHelper.getKeystore()!=null) {
+            builder= builder.keyStore(keystoreHelper.getKeystore(), keystoreHelper.getKeystorePassword());
+        }
+        client = builder.build();
         this.endpointRegistry = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
         this.endPointProperty = endPointProperty;
         this.endPointCategory = endPointCategory;
         currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
     }
+    @PreDestroy
+    public void closeClient(){
+        client.close();
+    }
+
     private WebTarget getDelegate() {
         if (delegate == null) {
             try {

@@ -1,0 +1,10 @@
+systemProp.http.proxyHost=websenseproxy.standardbank.co.za
+systemProp.http.proxyPort=8080
+systemProp.http.proxyUser=c735885
+systemProp.http.proxyPassword=Ainnikki0717
+systemProp.http.nonProxyHosts=nexus.standardbank.co.za
+systemProp.https.proxyHost=websenseproxy.standardbank.co.za
+systemProp.https.proxyPort=8080
+systemProp.https.proxyUser=c735885
+systemProp.https.proxyPassword=Ainnikki0717
+systemProp.https.nonProxyHosts=nexus.standardbank.co.za

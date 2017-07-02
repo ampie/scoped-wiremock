@@ -4,8 +4,8 @@ dependencies {
     compile('commons-codec:commons-codec:1.9')
     compile 'com.samskivert:jmustache:1.13'
     compile(project(':common-resource-api'))
-    compileOnly(  "com.github.tomakehurst:wiremock:$WIREMOCK_VERSION")
-    testCompile(  "com.github.tomakehurst:wiremock:$WIREMOCK_VERSION")
+    compileOnly("com.github.tomakehurst:wiremock:$WIREMOCK_VERSION")
+    testCompile("com.github.tomakehurst:wiremock:$WIREMOCK_VERSION")
     testCompile('cglib:cglib-nodep:2.2')
     testCompile(project(':scoped-wiremock-server'))
     testCompile files(this.project(':scoped-wiremock-common').sourceSets.test.output)

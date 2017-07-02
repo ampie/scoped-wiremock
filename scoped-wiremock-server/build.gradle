@@ -2,11 +2,12 @@ description = 'Scoped WireMock'
 buildscript {
     repositories {
         jcenter()
-        maven{ url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/public/'}
+        //maven{ url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/public/'}
+        maven{ url "https://plugins.gradle.org/m2/"}
     }
 
     dependencies {
-        classpath 'com.bmuschko:gradle-docker-plugin:3.0.3'
+        classpath 'com.bmuschko:gradle-docker-plugin:3.0.8'
     }
 }
 
@@ -18,7 +19,8 @@ import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.container.*
 dependencies {
     compile(project(':scoped-wiremock-common'))
-    compileOnly ( "com.github.tomakehurst:wiremock:$WIREMOCK_VERSION")
+    compile('com.github.tomakehurst:wiremock:2.6.0')
+    compileOnly("com.github.tomakehurst:wiremock:$WIREMOCK_VERSION")
     compileOnly('junit:junit:4.12')
     compileOnly('javax.enterprise:cdi-api:1.2')
     compile 'commons-io:commons-io:2.5'
@@ -53,7 +55,7 @@ task copyRuntimeLibs(type: Copy) {
 task createDockerfile(type: Dockerfile) {
     dependsOn copyRuntimeLibs
     destFile = project.file("${buildDir}/docker/Dockerfile")
-    from 'docker.registry.standardbank.co.za/com.sbg.bdd/scoped-wiremock-base:1.0'
+    from 'docker.registry.standardbank.co.za/com.sbg.bdd/scoped-wiremock-base:1.1'
     addFile('lib/*', '/wiremock/')
     maintainer 'Ampie Barnard "ampie.barnard@standardbank.co.za"'
 }
@@ -61,7 +63,7 @@ task createDockerfile(type: Dockerfile) {
 task buildImage(type: DockerBuildImage) {
     dependsOn createDockerfile
     inputDir = createDockerfile.destFile.parentFile
-    tag = 'docker.registry.standardbank.co.za/com.sbg.bdd/scoped-wiremock:0.0.1'
+    tag = "docker.registry.standardbank.co.za/com.sbg.bdd/scoped-wiremock:$version"
 }
 task createWireMockContainer(type: DockerCreateContainer) {
     dependsOn buildImage
