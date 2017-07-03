@@ -1,31 +1,28 @@
+group = 'com.sbg.bdd'
+version = '0.0.4'
+ext {
+    WIREMOCK_VERSION = '2.6.0'
+}
 buildscript {
     repositories {
-        maven {url "https://plugins.gradle.org/m2/"}
         mavenLocal()
-        //maven{ url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/public/'}
-    }
-    dependencies {
-        classpath "no.nils:wsdl2java:0.10"
-        classpath 'org.hibernate.build.gradle:gradle-maven-publish-auth:2.0.1'
+        if (System.getProperty("runExteranlly") == 'true') {
+            maven { url "https://plugins.gradle.org/m2/" }
+        } else {
+            maven { url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/public/' }
+        }
+        dependencies {
+            classpath 'org.hibernate.build.gradle:gradle-maven-publish-auth:2.0.1'
+        }
     }
 }
-allprojects {
+subprojects {
     apply plugin: 'maven'
     apply plugin: 'maven-publish'
     apply plugin: 'maven-publish-auth'
-
-    group = 'com.sbg.bdd'
-    version = '0.0.3'
-}
-
-subprojects {
-    apply plugin: "no.nils.wsdl2java"
     apply plugin: 'java'
     apply plugin: 'groovy'
-    ext {
-        WIREMOCK_VERSION='2.6.0'
-    }
-    dependencies{
+    dependencies {
         testCompile 'org.slf4j:slf4j-api:1.7.21'
         testCompile 'org.slf4j:slf4j-jdk14:1.7.12'
         testCompile 'junit:junit:4.12'
@@ -52,15 +49,17 @@ subprojects {
     artifacts.archives packageSources
     repositories {
         mavenLocal()
-        //maven{ url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/public/'}
-        //maven{ url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/releases/'}
-        //maven{ url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/snapshots/'}
-        maven { url 'http://repository.jboss.org/nexus/content/groups/public' }
-        maven { url 'http://repository.jboss.org/nexus/content/repositories/deprecated' }
-        maven { url "http://repo.maven.apache.org/maven2" }
-        maven { url "https://plugins.gradle.org/m2/" }
+        if (System.getProperty("runExteranlly") =='true') {
+            maven { url 'http://repository.jboss.org/nexus/content/groups/public' }
+            maven { url 'http://repository.jboss.org/nexus/content/repositories/deprecated' }
+            maven { url "http://repo.maven.apache.org/maven2" }
+            maven { url "https://plugins.gradle.org/m2/" }
+        } else {
+            maven { url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/public/' }
+            maven { url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/releases/' }
+            maven { url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/snapshots/' }
+        }
     }
-
 
     task sourcesJar(type: Jar, dependsOn: classes) {
         classifier = 'sources'
@@ -86,9 +85,9 @@ subprojects {
             mavenJava(MavenPublication) {
 
                 println "Publishing $project.name:$project.group:$project.version"
-                groupId 'com.sbg.bdd'
+                groupId "$rootProject.group"
                 artifactId "$project.name"
-
+                version "$rootProject.version"
                 from components.java
 
                 artifact sourcesJar {
