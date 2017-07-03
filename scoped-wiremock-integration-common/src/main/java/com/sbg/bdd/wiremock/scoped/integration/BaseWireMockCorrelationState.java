@@ -10,18 +10,20 @@ import java.util.logging.Logger;
 public class BaseWireMockCorrelationState implements WireMockCorrelationState {
     private static final Logger LOGGER = Logger.getLogger(WireMockCorrelationState.class.getName());
     private String correlationPath;
-    private Integer wireMockPort;
     private Map<String, Integer> sequenceNumbers = new HashMap<>();
     private boolean proxyUnmappedEndpoints = false;
-    private String wireMockHost;
-
+    private Integer wireMockPort;
+    private String wireMockHost;//The hostname downstream process would use to talk to wireMock
+    private static String wireMockInternalHostName;//the hostname this process uses to talk to WireMock (e.g. Android: 10.0.2.2)
     public BaseWireMockCorrelationState() {
     }
 
     public String getCorrelationPath() {
         return correlationPath;
     }
-
+    public static void connectToWireMockOn(String wireMockInternalHostName){
+        BaseWireMockCorrelationState.wireMockInternalHostName=wireMockInternalHostName;
+    }
     @Override
     public Map<String, Integer> getSequenceNumbers() {
         return Collections.unmodifiableMap(sequenceNumbers);
@@ -30,7 +32,7 @@ public class BaseWireMockCorrelationState implements WireMockCorrelationState {
     @Override
     public URL getWireMockBaseUrl() {
         try {
-            return new URL("http://" + wireMockHost + ":" + wireMockPort);
+            return new URL("http://" + (wireMockInternalHostName ==null?wireMockHost:wireMockInternalHostName) + ":" + wireMockPort);
         } catch (MalformedURLException e) {
             throw new IllegalStateException(e);
         }
