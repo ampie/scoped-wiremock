@@ -15,7 +15,7 @@ apply plugin: 'maven'
 apply plugin: 'com.bmuschko.docker-remote-api'
 
 import com.bmuschko.gradle.docker.tasks.image.Dockerfile
-import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.*
 import com.bmuschko.gradle.docker.tasks.container.*
 dependencies {
     compile(project(':scoped-wiremock-common'))
@@ -65,6 +65,12 @@ task buildImage(type: DockerBuildImage) {
     inputDir = createDockerfile.destFile.parentFile
     tag = "docker.registry.standardbank.co.za/com.sbg.bdd/scoped-wiremock:$version"
 }
+
+task pushImage(type: DockerPushImage) {
+    dependsOn buildImage
+    imageName = "docker.registry.standardbank.co.za/com.sbg.bdd/scoped-wiremock:$version"
+}
+
 task createWireMockContainer(type: DockerCreateContainer) {
     dependsOn buildImage
     targetImageId { buildImage.getImageId() }
