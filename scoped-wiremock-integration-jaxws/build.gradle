@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         mavenLocal()
-        if (System.getProperty("runExteranlly") == 'true') {
+        if (System.getProperty("runExternally") == 'true') {
             jcenter()
         } else {
             maven { url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/public/' }
