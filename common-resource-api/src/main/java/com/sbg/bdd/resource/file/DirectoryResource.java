@@ -8,7 +8,6 @@ import java.util.*;
 public class DirectoryResource extends FileSystemResource implements ResourceContainer {
 
     private Map<String, FileSystemResource> children;
-
     public DirectoryResource(DirectoryResource parent, File file) {
         super(parent, file);
     }
@@ -22,7 +21,9 @@ public class DirectoryResource extends FileSystemResource implements ResourceCon
         Map<String, FileSystemResource> children = getChildren();
         return children.values().toArray(new FileSystemResource[children.size()]);
     }
-
+    public void clearCache(){
+        children=null;
+    }
     private Map<String, FileSystemResource> getChildren() {
         String[] actualChildrenNames = getFile().list();
         if (needsRefresh(actualChildrenNames)) {

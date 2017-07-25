@@ -60,24 +60,23 @@ public class ScopedWireMockServerRunner {
                 String[] split = args[i + 1].split("\\:");
                 resourceRoots.put(split[0], new DirectoryResourceRoot(split[0], new File(split[1])));
                 i++;
+            } else if (arg.equals("--extensions")) {
+                argList.add(arg);
+                argList.add(args[i+1] + "," + buildExtensionsString());
+                i++;
             } else {
                 argList.add(arg);
             }
         }
-        if(!argList.contains("--port")){
+        if (!argList.contains("--port")) {
             argList.add("--port");
             argList.add("0");
         }
-
-        argList.add("--extensions");
-        String extensions = ProxyUrlTransformer.class.getName() + "," + ScopeExtensions.class.getName() + "," + InvalidHeadersLoggingTransformer.class.getName();
-        try {
-            Class<?> cls = Class.forName("com.sbg.bdd.wiremock.scoped.integration.cucumber.CucumberFormattingScopeListener");
-            extensions = extensions + "," + cls.getName();
-        } catch (ClassNotFoundException e) {
-
+        if(!argList.contains("--extensions")) {
+            argList.add("--extensions");
+            String extensions = buildExtensionsString();
+            argList.add(extensions);
         }
-        argList.add(extensions);
         final CommandLineOptions options = new CommandLineOptions(argList.toArray(new String[0]));
         if (options.help()) {
             out.println(options.helpText());
@@ -124,6 +123,17 @@ public class ScopedWireMockServerRunner {
             System.err.println(e.getMessage());
             System.exit(1);
         }
+    }
+
+    private String buildExtensionsString() {
+        String extensions = ProxyUrlTransformer.class.getName() + "," + ScopeExtensions.class.getName() + "," + InvalidHeadersLoggingTransformer.class.getName();
+        try {
+            Class<?> cls = Class.forName("com.sbg.bdd.wiremock.scoped.integration.cucumber.CucumberFormattingScopeListener");
+            extensions = extensions + "," + cls.getName();
+        } catch (ClassNotFoundException e) {
+
+        }
+        return extensions;
     }
 
     private void addProxyMapping(final String baseUrl) {

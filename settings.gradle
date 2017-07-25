@@ -12,6 +12,4 @@ include 'scoped-wiremock-integration-cdi'
 include 'scoped-wiremock-integration-resteasy'
 include 'scoped-wiremock-integration-jaxrs'
 include 'scoped-wiremock-integration-spring'
-include 'scoped-wiremock-integration-cucumber'
-include 'cucumber-common'
 

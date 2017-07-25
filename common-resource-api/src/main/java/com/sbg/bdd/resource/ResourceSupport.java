@@ -17,19 +17,24 @@ public class ResourceSupport {
 
     public static <T extends Resource> T resolveExisting(Resource previous, String[] segments, boolean failWhenNotFound) {
         for (String segment : flatten(segments)) {
-            if (segment.equals("..")) {
-                previous = previous.getContainer();
-            } else if (segment.equals(".")) {
-                previous = previous;// you get the point
-            } else if (previous instanceof ResourceContainer) {
+            if (previous instanceof ResourceContainer) {
                 ResourceContainer previousDir = (ResourceContainer) previous;
                 previous = previousDir.getChild(segment);
-                if(previous == null && failWhenNotFound){
-                    throw new IllegalArgumentException("Could not find the resource " + String.join("/" + segments) + ". The offending segment is '" + segment +"'");
+                if (previous == null && failWhenNotFound) {
+                    throw new IllegalArgumentException("Could not find the resource " + join(segments) + ". The offending segment is '" + segment + "'");
                 }
             }
         }
         return (T) previous;
+    }
+
+    private static String join(String... segments) {
+        StringBuilder sb = new StringBuilder();
+        for (String segment : segments) {
+            sb.append("/");
+            sb.append(segment);
+        }
+        return sb.toString();
     }
 
     public static String[] flatten(String[] segments) {
@@ -39,7 +44,13 @@ public class ResourceSupport {
                 String[] split = s.split("\\/");
                 for (String atomicSegment : split) {
                     if (atomicSegment.trim().length() > 0) {
-                        result.add(atomicSegment);
+                        if (atomicSegment.equals("..")) {
+                            result.remove(result.size() - 1);
+                        } else if (atomicSegment.equals(".")) {
+                            //nothing
+                        } else {
+                            result.add(atomicSegment);
+                        }
                     }
                 }
             }

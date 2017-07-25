@@ -8,6 +8,8 @@ import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.sbg.bdd.resource.ReadableResource;
 import com.sbg.bdd.resource.Resource;
 import com.sbg.bdd.resource.ResourceContainer;
+import com.sbg.bdd.resource.file.DirectoryResource;
+import com.sbg.bdd.resource.file.DirectoryResourceRoot;
 import com.sbg.bdd.wiremock.scoped.admin.model.ResourceState;
 import com.sbg.bdd.wiremock.scoped.admin.model.ResourceType;
 
@@ -26,6 +28,9 @@ public class ListResourcesTask extends ScopeAdminTask {
     public ResponseDefinition execute(Admin admin, Request request, PathParams pathParams) {
         ResourceState resourceState = Json.read(request.getBodyAsString(), ResourceState.class);
         ResourceContainer resourceRoot = super.admin.getResourceRoot(resourceState.getResourceRoot());
+        if(resourceRoot instanceof DirectoryResourceRoot){
+            ((DirectoryResourceRoot) resourceRoot).clearCache();
+        }
         ResourceContainer resourceContainer = (ResourceContainer) resourceRoot.resolveExisting(resourceState.getPath());
         List<ResourceState> children = new ArrayList<>();
         if (resourceContainer != null) {

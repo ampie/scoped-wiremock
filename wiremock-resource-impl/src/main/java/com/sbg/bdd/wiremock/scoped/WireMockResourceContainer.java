@@ -12,7 +12,9 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -115,7 +117,8 @@ public class WireMockResourceContainer extends WireMockResource implements Resou
 
     @Override
     public boolean fallsWithin(String path) {
-        return path.startsWith(getPath());
+        //TODO yeah think aoubt this - do we want to send an actual call out to determine the answer?
+        return !new File(path).isAbsolute();
     }
 
     @Override
