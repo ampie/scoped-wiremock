@@ -1,6 +1,0 @@
-dependencies {
-    compile(project(':scoped-wiremock-server'))
-    compile(project(':cucumber-common'))
-    compileOnly(  "com.github.tomakehurst:wiremock:$WIREMOCK_VERSION")
-    testCompile(  "com.github.tomakehurst:wiremock:$WIREMOCK_VERSION")
-}
