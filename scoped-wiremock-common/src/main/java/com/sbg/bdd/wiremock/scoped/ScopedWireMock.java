@@ -75,7 +75,7 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
         Admin admin = (Admin) this.admin;
         return admin.countRequestsMatching(requestPatternBuilder.build()).getCount();
     }
-    private List<String> stopCorrelatedScope(String knownScopePath, Map<String, Object> map) {
+    public List<String> stopCorrelatedScope(String knownScopePath, Map<String, Object> map) {
         return admin.stopCorrelatedScope(new CorrelationState(knownScopePath,map));
     }
 

@@ -1,5 +1,5 @@
 group = 'com.sbg.bdd'
-version = '0.1.1'
+version = '0.1.2'
 ext {
     WIREMOCK_VERSION = '2.6.0'
 }
