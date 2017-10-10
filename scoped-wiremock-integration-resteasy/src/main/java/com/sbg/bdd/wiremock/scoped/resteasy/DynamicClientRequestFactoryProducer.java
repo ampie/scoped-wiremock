@@ -1,10 +1,8 @@
 package com.sbg.bdd.wiremock.scoped.resteasy;
 
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
-import com.sbg.bdd.wiremock.scoped.cdi.internal.EndPointCategoryLiteral;
-import com.sbg.bdd.wiremock.scoped.cdi.internal.EndPointPropertyLiteral;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
+import com.sbg.bdd.wiremock.scoped.cdi.internal.MockableEndPointLiteral;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.jboss.resteasy.client.ClientRequestFactory;
@@ -13,7 +11,6 @@ import org.jboss.resteasy.client.core.executors.ApacheHttpClient4Executor;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
-import javax.inject.Inject;
 
 @ApplicationScoped
 public class DynamicClientRequestFactoryProducer {
@@ -23,18 +20,18 @@ public class DynamicClientRequestFactoryProducer {
     }
 
     @Produces
-    @EndPointProperty("")
-    public ClientRequestFactory getClientRequestFactory(InjectionPoint ip){
-        EndPointProperty epp = ip.getAnnotated().getAnnotation(EndPointProperty.class);
-        EndPointCategory epc = ip.getAnnotated().getAnnotation(EndPointCategory.class);
-        return getClientRequestFactory(epp,epc);
+    public ClientRequestFactory getClientRequestFactory(InjectionPoint ip) {
+        MockableEndPoint epp = ip.getAnnotated().getAnnotation(MockableEndPoint.class);
+        return getClientRequestFactory(epp);
     }
-    public static ClientRequestFactory newClientRequestFactory(String propertyName, String category){
-        return getClientRequestFactory(new EndPointPropertyLiteral(propertyName),new EndPointCategoryLiteral(category));
+
+    public static ClientRequestFactory newClientRequestFactory(String propertyName, String... categories) {
+        return getClientRequestFactory(new MockableEndPointLiteral(propertyName, categories, new String[0]));
     }
-    private static ClientRequestFactory getClientRequestFactory(EndPointProperty ep, EndPointCategory epc) {
+
+    private static ClientRequestFactory getClientRequestFactory(MockableEndPoint ep) {
         CloseableHttpClient httpClient = HttpClients.createSystem();
         ApacheHttpClient4Executor clientExecutor = new ApacheHttpClient4Executor(httpClient);
-        return new DynamicClientRequestFactory(clientExecutor, ep,epc);
+        return new DynamicClientRequestFactory(clientExecutor, ep);
     }
 }

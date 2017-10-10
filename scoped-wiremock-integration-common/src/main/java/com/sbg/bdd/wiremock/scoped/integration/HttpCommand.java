@@ -1,4 +1,4 @@
-package com.sbg.bdd.wiremock.scoped.filter;
+package com.sbg.bdd.wiremock.scoped.integration;
 
 
 
@@ -8,8 +8,17 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.logging.Logger;
 
+/**
+ * An excessively lightweight command based HTTP client for HTTP operations that
+ * 1. Occur only once or twice during test execution, e.g. configuration propagation
+ * 2. Need to run in an environment where limiting dependencies is essential
+ * NB!!!
+ * No connection pooling takes place here. Use with care.
+ */
 public class HttpCommand {
+    private static Logger LOGGER = Logger.getLogger(HttpCommand.class.getName());
     private HttpURLConnection connection;
     private URL url;
     private String method;
@@ -37,7 +46,7 @@ public class HttpCommand {
             String result = "";
             if (connection.getErrorStream() != null) {
                 result = toString(connection.getErrorStream());
-                InboundCorrelationPathFilter.LOGGER.fine(result);
+                LOGGER.fine(result);
             } else if (connection.getInputStream() != null) {
                 result = toString(connection.getInputStream());
             }
@@ -58,7 +67,7 @@ public class HttpCommand {
         return sb.toString();
     }
 
-    public String getOutput() {
+    public String getOutboundData() {
         return output;
     }
 

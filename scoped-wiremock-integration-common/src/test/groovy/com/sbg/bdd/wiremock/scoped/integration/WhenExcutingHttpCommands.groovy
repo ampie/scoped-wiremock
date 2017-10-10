@@ -1,5 +1,6 @@
-package com.sbg.bdd.wiremock.scoped.filter
+package com.sbg.bdd.wiremock.scoped.integration
 
+import com.sbg.bdd.wiremock.scoped.integration.HttpCommand
 import spock.lang.Specification
 
 class WhenExcutingHttpCommands extends Specification {

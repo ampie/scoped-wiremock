@@ -22,6 +22,7 @@ public abstract class ProxyStrategies {
     public static ResponseStrategy proxyTo(final String baseUrl) {
         return new ResponseStrategy() {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext context) throws Exception {
+                //TODO try to push the next to lines down to builder
                 builder.getRequestPatternBuilder().changeUrlToPattern();
                 builder.atPriority(context.calculatePriority(5));
                 return aResponse().proxiedFrom(baseUrl);

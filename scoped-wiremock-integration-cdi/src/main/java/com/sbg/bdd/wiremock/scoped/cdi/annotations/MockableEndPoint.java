@@ -7,8 +7,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+@Qualifier
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.FIELD, ElementType.CONSTRUCTOR})
-public @interface EndPointCategory {
-    String value();
+@Target({ElementType.METHOD, ElementType.FIELD})
+public @interface MockableEndPoint {
+    @Nonbinding String propertyName();
+    @Nonbinding String[] categories();
+    @Nonbinding String[] scopes();
 }

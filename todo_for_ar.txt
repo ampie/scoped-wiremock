@@ -1,0 +1,12 @@
+1. Move the RecordingSpecification logic to the server side
+- Add the recordingSpecification as a property on the Mapping json structure
+- Implement the rest CRUD endpoint at a different url, e.g. /extended_mappings
+- Move the logic to determine which recording specifications are in scope to the server
+- Mirror the scope tree on the server
+-- may require moving ScopedScreenplay there, or otherwise just implement a scope object
+-- may want to make CorrelatedScopeAdmin a bit more clever and group mappings per scope,
+            maybe even a hierarchal StubMappings implementation
+
+- Do the actual recording/playback on the server
+
+2. Extend the EndPointConfigRegistry to return all mockable Endpoints within a certain scope

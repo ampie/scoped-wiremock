@@ -6,8 +6,7 @@ import com.sbg.bdd.resource.file.DirectoryResourceRoot;
 import com.sbg.bdd.resource.file.ReadableFileResource;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedMappingBuilder;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedRequestPatternBuilder;
-import com.sbg.bdd.wiremock.scoped.client.endpointconfig.EndpointConfig;
-import com.sbg.bdd.wiremock.scoped.client.endpointconfig.RemoteEndPointConfigRegistry;
+import com.sbg.bdd.wiremock.scoped.admin.endpointconfig.RemoteEndPointConfigRegistry;
 
 import java.io.File;
 import java.net.URL;
@@ -77,13 +76,4 @@ public class WireMockContextStub implements WireMockContext {
         return localLevel;
     }
 
-    @Override
-    public EndpointConfig endpointUrlFor(String serviceEndpointPropertyName) {
-        return this.endPointConfigRegistry.endpointUrlFor(serviceEndpointPropertyName);
-    }
-
-    @Override
-    public Set<EndpointConfig> allKnownExternalEndpoints() {
-        return endPointConfigRegistry.allKnownExternalEndpoints();
-    }
 }

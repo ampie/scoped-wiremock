@@ -1,8 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.filter;
 
+import com.sbg.bdd.wiremock.scoped.integration.EndpointConfig;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
-
-import java.net.URL;
 
 public class ProxyMappingBuilder {
     public static String buildMapping(EndpointConfig config) {

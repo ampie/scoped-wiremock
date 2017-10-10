@@ -1,14 +1,10 @@
 package com.sbg.bdd.wiremock.scoped.filter;
 
 
-import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
-import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
-import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
-import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
+import com.sbg.bdd.wiremock.scoped.integration.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Map;
@@ -26,16 +22,16 @@ public class CorrelationStateSynchronizer {
     }
 
     private void registerDefaultEndpointMappings() {
-        Set<EndpointConfig> allEndpointConfigs = EndpointTypeTracker.getInstance().getAllEndpointConfigs();
+        Set<EndpointConfig> allEndpointConfigs = ServerSideEndPointConfigRegistry.getInstance().getAllEndpointConfigs();
         for (EndpointConfig config : allEndpointConfigs) {
             registerProxyMappingForEndpoint(config);
         }
-        EndpointTypeTracker.getInstance().registerWireMockBaseUrl(this.wireMockCorrelationState.getWireMockBaseUrl());
+        ServerSideEndPointConfigRegistry.getInstance().registerWireMockBaseUrl(this.wireMockCorrelationState.getWireMockBaseUrl());
     }
 
 
     private boolean shouldRegisterDefaultEndpointMappings() {
-        return EndpointTypeTracker.getInstance().isNewWireMock(this.wireMockCorrelationState.getWireMockBaseUrl());
+        return ServerSideEndPointConfigRegistry.getInstance().isNewWireMock(this.wireMockCorrelationState.getWireMockBaseUrl());
     }
 
     private void registerProxyMappingForEndpoint(EndpointConfig config) {

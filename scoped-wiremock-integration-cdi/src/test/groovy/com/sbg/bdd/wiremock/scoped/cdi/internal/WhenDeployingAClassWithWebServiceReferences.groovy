@@ -2,32 +2,38 @@ package com.sbg.bdd.wiremock.scoped.cdi.internal
 
 import com.sbg.bdd.wiremock.scoped.cdi.ExampleClass
 import com.sbg.bdd.wiremock.scoped.cdi.DummyBinding
+import com.sbg.bdd.wiremock.scoped.integration.EndpointConfig
+import com.sbg.bdd.wiremock.scoped.filter.ServerSideEndPointConfigRegistry
 import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry
-import com.sbg.bdd.wiremock.scoped.jaxws.OutboundCorrelationPathSOAPHandler
 import spock.lang.Specification
 
 import javax.enterprise.inject.spi.AnnotatedField
 import javax.enterprise.inject.spi.AnnotatedType
 import javax.enterprise.inject.spi.InjectionTarget
 import javax.enterprise.inject.spi.ProcessInjectionTarget
-import javax.xml.ws.BindingProvider
 
 class WhenDeployingAClassWithWebServiceReferences extends Specification{
-    def 'all operations to that web service should be intercepted an populated with the correct endpoint address' (){
+
+    def 'the endpoint config registry should be updated with all appropriate REST and SOAP endpoints' (){
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
         BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndPointRegistry){
-            endpointUrlFor(_) >> new URL('http://some.host.com')
+            endpointUrlFor('my.soap.endpoint.property') >> new URL('http://some.soap.host.com')
+            endpointUrlFor('my.rest.endpoint.property') >> new URL('http://some.rest.host.com')
         }
-        def field = ExampleClass.class.getField('theWebService')
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new RequestScopedWireMockCorrelationState()
         def example = new ExampleClass(new DummyBinding())
-        def annotatedField = Mock(AnnotatedField){
-            getJavaMember() >> field
+        example.theRestService=new Object()
+        def webReferenceField = Mock(AnnotatedField){
+            getJavaMember() >> ExampleClass.class.getField('theWebService')
+        }
+        def restReferenceField = Mock(AnnotatedField){
+            getJavaMember() >> ExampleClass.class.getField('theRestService')
         }
         def annotatedType = Mock(AnnotatedType){
-            getFields() >> Collections.singleton(annotatedField)
+            getFields() >> new HashSet<>(Arrays.asList(webReferenceField,restReferenceField))
         }
         def processInjectionTarget = Mock(ProcessInjectionTarget){
             getAnnotatedType() >> annotatedType
@@ -39,14 +45,16 @@ class WhenDeployingAClassWithWebServiceReferences extends Specification{
 
         when:
         new DynamicWebServiceEndPointExtension().processInjectionTarget(processInjectionTarget)
-        example.theWebService.doStoff()
 
-
-        def binding = example.theWebService.binding
         then:
-        binding.handlerChain.size() ==1
-        binding.handlerChain.get(0) instanceof OutboundCorrelationPathSOAPHandler
-        def context = example.theWebService.requestContext
-        context[BindingProvider.ENDPOINT_ADDRESS_PROPERTY] == 'http://some.host.com'
+        ServerSideEndPointConfigRegistry.instance.allEndpointConfigs.size() == 2
+        def soapConfig = ServerSideEndPointConfigRegistry.instance.getEndpointConfig('my.soap.endpoint.property')
+        soapConfig.endpointType == EndpointConfig.EndpointType.SOAP
+        soapConfig.url == new URL('http://some.soap.host.com')
+        soapConfig.categories[0] == "cat1"
+        soapConfig.categories[1] == "cat2"
+        soapConfig.scope[0] == "scope1"
+        soapConfig.scope[1] == "scope2"
     }
+
 }

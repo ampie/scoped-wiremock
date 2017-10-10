@@ -1,18 +1,14 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
-import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
 
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.enterprise.inject.spi.InjectionTarget;
-import javax.jws.WebService;
-import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Service;
-import javax.xml.ws.WebServiceClient;
+import javax.xml.ws.WebServiceRef;
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
 import java.util.Set;
@@ -37,9 +33,11 @@ class InjectionTargetWrapper<X> implements InjectionTarget<X> {
                 Object ref = webServiceRef.get(instance);
                 if (ref == null) {
                     //Fallback - should generally not happen.
-                    // Leave it here because when it fails it provides some useful diagnostic information
+                    // Leave it here because when it fails it provides some useful diagnostic information such as when the WSDL file is not found
                     try {
-                        Class<?> serviceClass = Class.forName(webServiceRef.getType().getName() + "_Service");
+                        WebServiceRef webServiceRefAnnotation = webServiceRef.getAnnotation(WebServiceRef.class);
+                        //TODO could derive the type from the WSDL...? too much work
+                        Class<?> serviceClass = webServiceRefAnnotation.value();
                         Service service = (Service) serviceClass.newInstance();
                         ref = service.getPort(webServiceRef.getType());
                     } catch (ReflectiveOperationException e) {
@@ -59,9 +57,8 @@ class InjectionTargetWrapper<X> implements InjectionTarget<X> {
 
     private void wrapReference(X instance, Field webServiceRef, BindingProvider bp) throws IllegalAccessException {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        EndPointProperty epp = webServiceRef.getAnnotation(EndPointProperty.class);
-        EndPointCategory epc = webServiceRef.getAnnotation(EndPointCategory.class);
-        DynamicWebServiceReferenceInvocationHandler ih = new DynamicWebServiceReferenceInvocationHandler(bp, epp, epc);
+        MockableEndPoint mep = webServiceRef.getAnnotation(MockableEndPoint.class);
+        DynamicWebServiceReferenceInvocationHandler ih = new DynamicWebServiceReferenceInvocationHandler(bp,mep);
         webServiceRef.set(instance, Proxy.newProxyInstance(cl, getInterfaces(webServiceRef), ih));
     }
 

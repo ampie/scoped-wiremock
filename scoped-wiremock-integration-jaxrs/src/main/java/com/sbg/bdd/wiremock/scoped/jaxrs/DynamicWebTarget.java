@@ -1,10 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.jaxrs;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
 import com.sbg.bdd.wiremock.scoped.integration.*;
-import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
 
 import javax.annotation.PreDestroy;
 import javax.net.ssl.HostnameVerifier;
@@ -24,12 +21,11 @@ public class DynamicWebTarget implements WebTarget {
     private final EndPointRegistry endpointRegistry;
     private final WireMockCorrelationState currentCorrelationState;
     private WebTarget delegate;
-    private final EndPointProperty endPointProperty;
-    private final EndPointCategory endPointCategory;
+    private final MockableEndPoint endPointProperty;
     private Client client;
     private URL originalUrl;
 
-    public DynamicWebTarget(KeyStoreHelper keystoreHelper, EndPointProperty endPointProperty, EndPointCategory endPointCategory) {
+    public DynamicWebTarget(KeyStoreHelper keystoreHelper, MockableEndPoint endPointProperty) {
         ClientBuilder builder = ClientBuilder.newBuilder().hostnameVerifier(new HostnameVerifier(){
             @Override
             public boolean verify(String hostname, SSLSession session) {
@@ -42,7 +38,6 @@ public class DynamicWebTarget implements WebTarget {
         client = builder.build();
         this.endpointRegistry = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
         this.endPointProperty = endPointProperty;
-        this.endPointCategory = endPointCategory;
         currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
     }
     @PreDestroy
@@ -53,7 +48,7 @@ public class DynamicWebTarget implements WebTarget {
     private WebTarget getDelegate() {
         if (delegate == null) {
             try {
-                originalUrl = endpointRegistry.endpointUrlFor(endPointProperty.value());
+                originalUrl = endpointRegistry.endpointUrlFor(endPointProperty.propertyName());
                 if (currentCorrelationState.isSet()) {
                     URL url = URLHelper.replaceBaseUrl(originalUrl, currentCorrelationState.getWireMockBaseUrl());
                     delegate = client.target(url.toURI());
@@ -62,7 +57,6 @@ public class DynamicWebTarget implements WebTarget {
                 }
                 delegate.register(InboundResponseCorrelationKeyFilter.class);
                 delegate.register(OutboundRequestCorrelationKeyFilter.class);
-
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
@@ -75,8 +69,10 @@ public class DynamicWebTarget implements WebTarget {
             Invocation.Builder request = getDelegate().request();
             //This is still wrong, but the filter will fix it
             request=request.header(HeaderName.ofTheOriginalUrl(), URLHelper.hostOnly(originalUrl).toExternalForm());
-            if (endPointCategory != null && currentCorrelationState.isSet() ) {
-                request=request.header(HeaderName.ofTheEndpointCategory(), endPointCategory.value());
+            if (endPointProperty.categories() != null && currentCorrelationState.isSet() ) {
+                for (String s : endPointProperty.categories()) {
+                    request=request.header(HeaderName.ofTheEndpointCategory(), s);
+                }
             }
             return request;
         } finally {

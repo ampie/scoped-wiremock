@@ -1,11 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
-import com.sbg.bdd.wiremock.scoped.filter.EndpointConfig;
-import com.sbg.bdd.wiremock.scoped.filter.EndpointTypeTracker;
-import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
-import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
+import com.sbg.bdd.wiremock.scoped.filter.ServerSideEndPointConfigRegistry;
 
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AnnotatedField;
@@ -23,23 +19,20 @@ public class DynamicWebServiceEndPointExtension implements Extension {
         registerEndPoints(pit);
         Set<Field> webServiceRefs = extractWebServiceReferences(pit);
         if (webServiceRefs.size() > 0) {
-            pit.setInjectionTarget(new InjectionTargetWrapper<>( pit.getInjectionTarget(), webServiceRefs));
+            pit.setInjectionTarget(new InjectionTargetWrapper<>(pit.getInjectionTarget(), webServiceRefs));
         }
     }
 
     private void registerEndPoints(ProcessInjectionTarget<?> pit) {
-        Set<EndPointProperty> webServiceRefs = new HashSet<>();
+        Set<MockableEndPoint> webServiceRefs = new HashSet<>();
         for (AnnotatedField<?> annotatedField : pit.getAnnotatedType().getFields()) {
-            Field declaredField=annotatedField.getJavaMember();
-            String categoryName= EndpointConfig.NO_CATEGORY;
-            EndPointCategory category=declaredField.getAnnotation(EndPointCategory.class);
-            if(category!=null){
-                categoryName=category.value();
-            }
+            Field declaredField = annotatedField.getJavaMember();
             if (isPortRef(declaredField)) {
-                EndpointTypeTracker.getInstance().registerSoapEndpoint(declaredField.getAnnotation(EndPointProperty.class).value(),categoryName);
-            } else if (declaredField.isAnnotationPresent(EndPointProperty.class)) {
-                EndpointTypeTracker.getInstance().registerRestEndpoint(declaredField.getAnnotation(EndPointProperty.class).value(),categoryName);
+                MockableEndPoint annotation = declaredField.getAnnotation(MockableEndPoint.class);
+                ServerSideEndPointConfigRegistry.getInstance().registerSoapEndpoint(annotation.propertyName(), annotation.categories(), annotation.scopes());
+            } else if (declaredField.isAnnotationPresent(MockableEndPoint.class)) {
+                MockableEndPoint annotation = declaredField.getAnnotation(MockableEndPoint.class);
+                ServerSideEndPointConfigRegistry.getInstance().registerRestEndpoint(annotation.propertyName(), annotation.categories(), annotation.scopes());
             }
 
         }
@@ -57,7 +50,7 @@ public class DynamicWebServiceEndPointExtension implements Extension {
     }
 
     private <X> boolean isPortRef(Field declaredField) {
-        return declaredField.isAnnotationPresent(WebServiceRef.class) && declaredField.isAnnotationPresent(EndPointProperty.class) && declaredField.getType().isInterface();
+        return declaredField.isAnnotationPresent(WebServiceRef.class) && declaredField.isAnnotationPresent(MockableEndPoint.class) && declaredField.getType().isInterface();
     }
 
 }

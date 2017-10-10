@@ -4,10 +4,9 @@ package com.sbg.bdd.wiremock.scoped.client;
 import com.sbg.bdd.resource.ReadableResource;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedMappingBuilder;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedRequestPatternBuilder;
-import com.sbg.bdd.wiremock.scoped.client.endpointconfig.EndpointConfigRegistry;
 
 
-public interface WireMockContext extends EndpointConfigRegistry {
+public interface WireMockContext {
 
     ReadableResource resolveInputResource(String fileName);
 

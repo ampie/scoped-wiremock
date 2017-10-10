@@ -4,10 +4,9 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
 import com.github.tomakehurst.wiremock.matching.*;
-import com.sbg.bdd.wiremock.scoped.client.endpointconfig.EndpointConfigRegistry;
+import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,8 +20,8 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
     private String pathSuffix;
     private boolean urlIsPattern = false;
     private boolean toAllKnownExternalServices = false;
-    private UrlPattern urlPattern;
     private String endpointCategory;
+    private UrlPattern urlPattern;
 
 
     public ExtendedRequestPatternBuilder(ExtendedRequestPatternBuilder builder) {
@@ -55,14 +54,17 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
 
     public T toAnyKnownExternalService() {
         toAllKnownExternalServices = true;
+        //TODO this line is superfluous. URLInfo is irrelevant because multiple children will be created
         urlInfo = ".*";
-        return (T)this;
+        return (T) this;
     }
+
     public T toAny(String category) {
-        return (T)toAnyKnownExternalService().ofCategory(category);
+        return (T) toAnyKnownExternalService().ofCategory(category);
     }
+
     public T service() {
-        return (T)this;
+        return (T) this;
     }
 
     @Override
@@ -77,11 +79,11 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
     public void changeUrlToPattern() {
         urlIsPattern = true;
     }
-    
+
     public T to(String urlInfo, String pathSuffix) {
         this.urlInfo = urlInfo;
         this.pathSuffix = pathSuffix;
-        return (T)this;
+        return (T) this;
     }
 
     public T to(String urlInfo) {
@@ -92,33 +94,6 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
         return urlPattern;
     }
 
-    private UrlPattern calculateUrlPattern(EndpointConfigRegistry endPointRegistry) {
-        String path = this.urlInfo;
-        if (isPropertyName(path)) {
-            try {
-                URL uri = endPointRegistry.endpointUrlFor(path).getUrl();
-                path = uri.getPath();
-            } catch (Exception e) {
-                System.out.println(e);
-                //TODO Think about this
-            }
-        }
-        if (pathSuffix != null) {
-            path = path + this.pathSuffix;
-        }
-        if (this.urlIsPattern && !path.endsWith(".*")) {
-            path = path + ".*";
-        }
-        if (path.contains(".*")) {
-            return new UrlPathPattern(new RegexPattern(path), true);
-        } else {
-            return new UrlPathPattern(new EqualToPattern(path), false);
-        }
-    }
-    
-    private boolean isPropertyName(String p) {
-        return p.matches("[_a-zA-Z0-9\\.]+");
-    }
 
     public String getUrlInfo() {
         return urlInfo;
@@ -151,18 +126,11 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
 //        };
 //    }
 
-    
-    public void prepareForBuild(EndpointConfigRegistry endPointRegistry) {
-        if (urlPattern == null) {
-            urlPattern = calculateUrlPattern(endPointRegistry);
-        }
-        setValue(this, "url", urlPattern);
-
-    }
 
     public ExtendedMappingBuilder to(ResponseStrategy responseStrategy) {
         return will(responseStrategy);
     }
+
     public ExtendedMappingBuilder toReturn(ResponseDefinitionBuilder response) {
         ExtendedMappingBuilder ruleBuilder = new ExtendedMappingBuilder(this);
         ruleBuilder.willReturn(response);
@@ -177,7 +145,7 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
         for (StringValuePattern stringValuePattern : bodyPattern) {
             withRequestBody(stringValuePattern);
         }
-        return (T)this;
+        return (T) this;
     }
 
     @Override
@@ -186,12 +154,22 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
     }
 
     public T ofCategory(String p) {
-        this.endpointCategory=p;
+        this.endpointCategory = p;
         withHeader(HeaderName.ofTheEndpointCategory(), WireMock.equalTo(p));
-        return (T)this;
+        return (T) this;
     }
 
     public String getEndpointCategory() {
         return endpointCategory;
+    }
+
+    public ExtendedRequestPattern build() {
+        ExtendedRequestPattern requestPattern = new ExtendedRequestPattern(super.build());
+        requestPattern.setEndpointCategory(endpointCategory);
+        requestPattern.setPathSuffix(pathSuffix);
+        requestPattern.setToAllKnownExternalServices(toAllKnownExternalServices);
+        requestPattern.setUrlInfo(urlInfo);
+        requestPattern.setUrlIsPattern(urlIsPattern);
+        return requestPattern;
     }
 }

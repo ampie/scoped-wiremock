@@ -4,6 +4,8 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
+import com.github.tomakehurst.wiremock.http.ResponseDefinition;
+import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedResponseDefinition;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -99,5 +101,12 @@ public class ExtendedResponseDefinitionBuilder extends ResponseDefinitionBuilder
     @Override
     public ExtendedResponseDefinitionBuilder withFixedDelay(Integer milliseconds) {
         return (ExtendedResponseDefinitionBuilder)super.withFixedDelay(milliseconds);
+    }
+
+    @Override
+    public ExtendedResponseDefinition build() {
+        ExtendedResponseDefinition result = new ExtendedResponseDefinition(super.build());
+        result.setInterceptFromSource(interceptedFromSource);
+        return result;
     }
 }

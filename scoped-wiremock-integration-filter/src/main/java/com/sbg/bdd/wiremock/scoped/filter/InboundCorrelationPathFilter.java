@@ -1,7 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.filter;
 
-import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
-import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
+import com.sbg.bdd.wiremock.scoped.integration.EndpointConfig;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -61,7 +60,7 @@ public class InboundCorrelationPathFilter implements Filter {
     }
 
     private boolean writeSingleEndpointConfig(ServletOutputStream outputStream, String propertyName) throws IOException {
-        EndpointConfig config = EndpointTypeTracker.getInstance().getEndpointConfig(propertyName);
+        EndpointConfig config = ServerSideEndPointConfigRegistry.getInstance().getEndpointConfig(propertyName);
         if (config != null) {
             outputStream.print(config.toJson());
             return true;
@@ -71,7 +70,7 @@ public class InboundCorrelationPathFilter implements Filter {
 
     private boolean writeAllEndpointConfigs(ServletOutputStream outputStream) throws IOException {
         outputStream.print("{\"configs\":[");
-        Set<EndpointConfig> endpointProperties = EndpointTypeTracker.getInstance().getAllEndpointConfigs();
+        Set<EndpointConfig> endpointProperties = ServerSideEndPointConfigRegistry.getInstance().getAllEndpointConfigs();
         Iterator<EndpointConfig> iterator = endpointProperties.iterator();
         while (iterator.hasNext()) {
             outputStream.print(iterator.next().toJson());

@@ -9,16 +9,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DummyBinding implements BindingProvider,TheWebService {
+public class DummyBinding implements BindingProvider,HelloPortType {
 
 
     private Map<String, Object> requestContext=new HashMap<>();
     private Binding binding=new MyBinding();
 
-    @Override
-    public void doStoff() {
-
-    }
 
     @Override
     public Map<String, Object> getRequestContext() {
@@ -42,6 +38,11 @@ public class DummyBinding implements BindingProvider,TheWebService {
 
     @Override
     public <T extends EndpointReference> T getEndpointReference(Class<T> clazz) {
+        return null;
+    }
+
+    @Override
+    public String sayHello(String firstName) {
         return null;
     }
 

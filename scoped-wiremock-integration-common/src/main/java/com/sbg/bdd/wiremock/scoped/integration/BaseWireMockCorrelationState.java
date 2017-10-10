@@ -38,7 +38,6 @@ public class BaseWireMockCorrelationState implements WireMockCorrelationState {
         }
     }
 
-    //TODO perhaps retrieve this form the Automation service? - performance may be an issue
     public Integer getNextSequenceNumberFor(String endPointIdentifier) {
         Integer next = sequenceNumbers.get(endPointIdentifier);
         next = next == null ? 1 : next + 1;

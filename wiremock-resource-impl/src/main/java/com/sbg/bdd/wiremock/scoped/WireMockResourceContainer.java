@@ -3,6 +3,7 @@ package com.sbg.bdd.wiremock.scoped;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionLikeType;
 import com.github.tomakehurst.wiremock.common.Json;
+import com.sbg.bdd.resource.Resource;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.resource.ResourceFilter;
 import com.sbg.bdd.resource.ResourceSupport;
@@ -15,6 +16,7 @@ import okhttp3.ResponseBody;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -60,7 +62,13 @@ public class WireMockResourceContainer extends WireMockResource implements Resou
 
     @Override
     public WireMockResource[] list(ResourceFilter filter) {
-        return (WireMockResource[]) ResourceSupport.list(filter, getChildren(), this);
+        List<Resource> result = new ArrayList<>();
+        for (Map.Entry<String, ? extends Resource> entry : children.entrySet()) {
+            if (filter.accept(this, entry.getKey())) {
+                result.add(entry.getValue());
+            }
+        }
+        return result.toArray(new WireMockResource[result.size()]);
     }
 
     @Override

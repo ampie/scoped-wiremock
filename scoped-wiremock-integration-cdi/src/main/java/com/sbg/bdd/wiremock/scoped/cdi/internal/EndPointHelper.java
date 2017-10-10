@@ -1,18 +1,13 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
-
 import javax.xml.ws.BindingProvider;
 import java.lang.reflect.Proxy;
 
-public class EndPointHelper {
-    public static <T> T wrapEndpoint(T input, String propertyName, String category) {
+public abstract class EndPointHelper {
+    public static <T> T wrapEndpoint(T input, String propertyName, String ... categories) {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        EndPointProperty epp = new EndPointPropertyLiteral(propertyName);
-        EndPointCategory epc = new EndPointCategoryLiteral(category);
-        DynamicWebServiceReferenceInvocationHandler ih = new DynamicWebServiceReferenceInvocationHandler((BindingProvider) input, epp, epc);
+        MockableEndPointLiteral epp = new MockableEndPointLiteral(propertyName,categories,new String[0]);
+        DynamicWebServiceReferenceInvocationHandler ih = new DynamicWebServiceReferenceInvocationHandler((BindingProvider) input, epp);
         return (T) Proxy.newProxyInstance(cl, input.getClass().getInterfaces(), ih);
-
     }
 }

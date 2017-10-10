@@ -1,6 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.client
 
-import com.sbg.bdd.wiremock.scoped.client.endpointconfig.RemoteEndPointConfigRegistry
+import com.sbg.bdd.wiremock.scoped.admin.endpointconfig.RemoteEndPointConfigRegistry
 import groovy.json.JsonOutput
 import okhttp3.Call
 import okhttp3.MediaType

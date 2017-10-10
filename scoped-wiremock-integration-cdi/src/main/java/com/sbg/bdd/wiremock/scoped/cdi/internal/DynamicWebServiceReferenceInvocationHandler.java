@@ -1,7 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointCategory;
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndPointProperty;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
 import com.sbg.bdd.wiremock.scoped.integration.*;
 import com.sbg.bdd.wiremock.scoped.jaxws.OutboundCorrelationPathSOAPHandler;
 
@@ -13,19 +12,18 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
 public class DynamicWebServiceReferenceInvocationHandler implements InvocationHandler {
     private static final Logger LOGGER = Logger.getLogger(DynamicWebServiceReferenceInvocationHandler.class.getName());
     private BindingProvider delegate;
-    private final EndPointProperty endPointProperty;
-    private final EndPointCategory endPointCategory;
     private EndPointRegistry endPointRegistry;
+    private MockableEndPoint mockableEndPoint;
 
-    public DynamicWebServiceReferenceInvocationHandler(BindingProvider delegate, EndPointProperty endPointProperty, EndPointCategory endPointCategory) {
-        this.endPointProperty = endPointProperty;
-        this.endPointCategory = endPointCategory;
+    public DynamicWebServiceReferenceInvocationHandler(BindingProvider delegate, MockableEndPoint mockableEndPoint) {
+        this.mockableEndPoint = mockableEndPoint;
         this.delegate = delegate;
         attachInterceptor(delegate);
     }
@@ -54,10 +52,10 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
             if (method.isAnnotationPresent(WebMethod.class) && !isProbablyAlreadyMocked()) {
-                URL originalUrl = getEndPointRegistry().endpointUrlFor(endPointProperty.value());
+                URL originalUrl = getEndPointRegistry().endpointUrlFor(mockableEndPoint.propertyName());
                 URL urlToUse = getUrlToUse(originalUrl);
-                if (endPointCategory != null) {
-                    delegate.getRequestContext().put(HeaderName.ofTheEndpointCategory(), endPointCategory.value());
+                if(mockableEndPoint.categories()!=null && mockableEndPoint.categories().length> 0) {
+                    delegate.getRequestContext().put(HeaderName.ofTheEndpointCategory(), Arrays.asList(mockableEndPoint.categories()));
                 }
                 delegate.getRequestContext().put(HeaderName.ofTheOriginalUrl(), originalUrl);
                 delegate.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, urlToUse.toExternalForm());
@@ -84,7 +82,7 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
     }
 
     private boolean isProbablyAlreadyMocked() {
-        //TODO just keep an eye on this
+        //TODO just keep an eye on this and then remove it. The assumption does not hold true anymore
         String endpoint = (String) delegate.getRequestContext().get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY);
         if (endpoint != null && endpoint.startsWith("http://localhost")) {
 //            return true;

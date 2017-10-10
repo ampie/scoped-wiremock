@@ -57,7 +57,4 @@ class OutboundCorrelationPathRestInterceptor implements ClientExecutionIntercept
         return response;
     }
 
-    public static void main(String[] args) throws MalformedURLException {
-        System.out.println(new URL("http://asdf:wer@sadfasdf:90/asdf/fsda?sadf=123").getPath());
-    }
 }
