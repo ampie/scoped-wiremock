@@ -14,6 +14,7 @@ import com.sbg.bdd.wiremock.scoped.admin.model.RecordedRequest;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedResponse;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 
@@ -22,7 +23,7 @@ import static com.sbg.bdd.wiremock.scoped.server.ScopePathMatcher.matches;
 //NB!! necessary because the normal InMemoryRequestJournal only stores the request with the responseDefinition, not the actual response
 public class ExchangeJournal  {
     private ConcurrentLinkedQueue<RecordedExchange> recordings = new ConcurrentLinkedQueue<>();
-    private Map<String, RecordedExchange> exchangesInProgress = new HashMap<>();
+    private Map<String, RecordedExchange> exchangesInProgress = new ConcurrentHashMap<>();
 
     public RecordedExchange requestReceived(String scopePath, String step, Request request) {
         RecordedExchange exchange=new RecordedExchange(buildRecordedRequest(request), scopePath, step);

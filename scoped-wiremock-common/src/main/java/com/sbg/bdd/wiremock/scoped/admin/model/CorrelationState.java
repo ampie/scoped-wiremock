@@ -35,7 +35,6 @@ public class CorrelationState {
 
     public CorrelationState() {
     }
-
     public CorrelationState(String correlationPath) {
         this.correlationPath = correlationPath;
     }
@@ -78,4 +77,7 @@ public class CorrelationState {
         this.currentStep = currentStep;
     }
 
+    public void setPayload(Map<String, Object> payload) {
+        this.payload = payload;
+    }
 }

@@ -16,17 +16,30 @@ public class ScopeListeners  {
         this.scopeListeners = scopeListeners;
     }
 
-    public void fireScopeStarted(CorrelationState knownScope) {
+    public void fireGlobalStarted(CorrelationState knownScope) {
         for (ScopeListener listener : scopeListeners.values()) {
             listener.setScopedAdmin(admin);
-            listener.scopeStarted(knownScope);
+            listener.globalScopeStarted(knownScope);
         }
     }
 
-    public void fireScopeStopped(CorrelationState state) {
+    public void fireGlobalScopeStopped(CorrelationState state) {
         for (ScopeListener listener : scopeListeners.values()) {
             listener.setScopedAdmin(admin);
-            listener.scopeStopped(state);
+            listener.globalScopeStopped(state);
+        }
+    }
+    public void fireNestedStarted(CorrelationState knownScope) {
+        for (ScopeListener listener : scopeListeners.values()) {
+            listener.setScopedAdmin(admin);
+            listener.nestedScopeStarted(knownScope);
+        }
+    }
+
+    public void fireNestedScopeStopped(CorrelationState state) {
+        for (ScopeListener listener : scopeListeners.values()) {
+            listener.setScopedAdmin(admin);
+            listener.nestedScopeStopped(state);
         }
     }
 

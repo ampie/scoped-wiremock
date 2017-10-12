@@ -10,7 +10,7 @@ import com.samskivert.mustache.Template;
 import com.sbg.bdd.resource.ReadableResource;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.common.MimeTypeHelper;
-import com.sbg.bdd.wiremock.scoped.client.DefaultMappingPriority;
+import com.sbg.bdd.wiremock.scoped.admin.model.ScopeLocalPriority;
 import com.sbg.bdd.wiremock.scoped.client.WireMockContext;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedMappingBuilder;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedResponseDefinitionBuilder;
@@ -25,17 +25,16 @@ import static java.lang.String.format;
 
 
 public class ResponseBodyStrategies {
-
-
     public static ResponseStrategy returnTheBody(final String body, final String contentType) {
         return new ResponseStrategy() {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext scope) throws Exception {
-                builder.atPriority(scope.calculatePriority(DefaultMappingPriority.BODY_KNOWN.priority()));
+                builder.atPriority(ScopeLocalPriority.BODY_KNOWN);
                 return aResponse().withBody(body).withHeader("Content-Type", contentType);
             }
+
             @Override
             public String getDescription() {
-                return format("return the body \"%s\"",body);
+                return format("return the body \"%s\"", body);
             }
         };
     }
@@ -46,16 +45,17 @@ public class ResponseBodyStrategies {
                 ReadableResource bodyFile = scope.resolveInputResource(fileName);
                 String responseBody = new String(bodyFile.read());
                 String headers = readHeaders(bodyFile);
-                builder.atPriority(scope.calculatePriority(DefaultMappingPriority.BODY_KNOWN.priority()));
+                builder.atPriority(ScopeLocalPriority.BODY_KNOWN);
                 ExtendedResponseDefinitionBuilder responseBuilder = aResponse().withBody(responseBody).withHeader("Content-Type", MimeTypeHelper.determineContentType(fileName));
                 if (headers != null) {
                     addHeaders(headers, responseBuilder);
                 }
                 return responseBuilder;
             }
+
             @Override
             public String getDescription() {
-                return format("return the file \"%s\"",fileName);
+                return format("return the file \"%s\"", fileName);
             }
 
         };
@@ -73,16 +73,17 @@ public class ResponseBodyStrategies {
                 tmpl.execute(templateBuilder.getVariables(), writer);
                 String responseBody = writer.toString();
 
-                builder.atPriority(scope.calculatePriority(DefaultMappingPriority.BODY_KNOWN.priority()));
+                builder.atPriority(ScopeLocalPriority.BODY_KNOWN);
                 ExtendedResponseDefinitionBuilder responseBuilder = aResponse().withBody(responseBody).withHeader("Content-Type", MimeTypeHelper.determineContentType(templateBuilder.getFileName()));
                 if (headers != null) {
                     addHeaders(headers, responseBuilder);
                 }
                 return responseBuilder;
             }
+
             @Override
             public String getDescription() {
-                return format("merge the template \"%s\"",templateBuilder.getFileName());
+                return format("merge the template \"%s\"", templateBuilder.getFileName());
             }
         };
     }
@@ -105,8 +106,8 @@ public class ResponseBodyStrategies {
         String baseName = templateFile.getName().substring(0, templateFile.getName().lastIndexOf('.'));
         ResourceContainer container = templateFile.getContainer();
         ReadableResource headersFile = (ReadableResource) templateFile.getContainer().resolveExisting(baseName + ".headers.json");
-        if (headersFile!=null) {
-            return new String (headersFile.read());
+        if (headersFile != null) {
+            return new String(headersFile.read());
         } else {
             return null;
         }

@@ -33,7 +33,8 @@ public class CorrelationStateSynchronizer {
     private boolean shouldRegisterDefaultEndpointMappings() {
         return ServerSideEndPointConfigRegistry.getInstance().isNewWireMock(this.wireMockCorrelationState.getWireMockBaseUrl());
     }
-
+    @Deprecated
+    //Move to wiremock on the server
     private void registerProxyMappingForEndpoint(EndpointConfig config) {
         try {
             URL wireMockBaseUrl = new URL(this.wireMockCorrelationState.getWireMockBaseUrl() + "/__admin/mappings");

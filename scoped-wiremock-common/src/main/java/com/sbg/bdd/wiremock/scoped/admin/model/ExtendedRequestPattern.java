@@ -55,7 +55,17 @@ public class ExtendedRequestPattern extends RequestPattern {
     }
 
     public ExtendedRequestPattern(RequestPattern source) {
-        super(source);
+        super(
+                source.getUrlMatcher(),
+                source.getMethod(),
+                source.getHeaders(),
+                source.getQueryParameters(),
+                source.getCookies(),
+                source.getBasicAuthCredentials(),
+                source.getBodyPatterns(),
+                source.getCustomMatcher()
+        );
+        setUrlInfo(source.getUrlMatcher().getExpected());
     }
 
     public String getUrlInfo() {

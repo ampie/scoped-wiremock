@@ -69,7 +69,7 @@ public class EndpointConfig implements Comparable<EndpointConfig> {
 
     }
 
-    public static EndpointConfig fromJson(String json) {
+    public static EndpointConfig oneFromJson(String json) {
         //OK, not so simple, but we don't want external dependencies here
         try {
             Pattern compile = Pattern.compile(PARSE_STRING);
@@ -83,6 +83,19 @@ public class EndpointConfig implements Comparable<EndpointConfig> {
             }
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException(e);
+        }
+    }
+
+    public static EndpointConfig[] manyFromJson(String json) {
+        if (json.length() > 2) {
+            String[] split = json.substring(2, json.length() - 2).split("\\},\\{");
+            EndpointConfig[] result = new EndpointConfig[split.length];
+            for (int i = 0; i < result.length; i++) {
+                result[0] = oneFromJson("{" + split[i] + "}");
+            }
+            return result;
+        } else {
+            return new EndpointConfig[0];
         }
     }
 

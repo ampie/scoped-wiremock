@@ -1,6 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.client
 
 import com.github.tomakehurst.wiremock.common.Json
+import com.sbg.bdd.wiremock.scoped.admin.model.ScopeLocalPriority
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
 import com.sbg.bdd.wiremock.scoped.client.strategies.ProxyStrategies
 import groovy.json.JsonSlurper
@@ -22,9 +23,9 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         def mappings = wireMockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['urlPathPattern'] == '/home/path.*'
+        mapping['extendedRequest']['urlPathPattern'] == '/home/path.*'
         mapping['response']['proxyBaseUrl'] == "http://some.host.com/base"
-        mapping['priority'] == DefaultMappingPriority.FALLBACK_PROXY.priority()
+        mapping['priority'] == ScopeLocalPriority.FALLBACK_PROXY.priority()
     }
 
     def 'should create an intercepting proxy mapping that targets the original service'() throws Exception {
@@ -40,7 +41,7 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
         mapping['request']['urlPathPattern'] == '/resolved/endpoint.*'
         mapping['response']['proxyBaseUrl'] == "http://somehost.com"
-        mapping['priority'] == DefaultMappingPriority.FALLBACK_PROXY.priority()
+        mapping['priority'] == ScopeLocalPriority.FALLBACK_PROXY.priority()
     }
     def 'should create an proxy mapping that intercepts all calls to endpoints of a certain category'() throws Exception {
         given:
@@ -56,7 +57,7 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         mapping['request']['headers'][HeaderName.ofTheEndpointCategory()].equalTo == 'category1'
         mapping['request']['urlPathPattern'] == '/service/one/endpoint.*'
         mapping['response']['proxyBaseUrl'] == "http://somehost.com"
-        mapping['priority'] == DefaultMappingPriority.FALLBACK_PROXY.priority()
+        mapping['priority'] == ScopeLocalPriority.FALLBACK_PROXY.priority()
     }
 
     def 'should target the service under test'() throws Exception {
@@ -79,7 +80,7 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         mapping['response']['transformerParameters']['action'] == 'use'
         mapping['response']['transformerParameters']['which'] == 'trailing'
         mapping['response']['transformerParameters']['numberOfSegments'] == 5
-        mapping['priority'] == DefaultMappingPriority.SPECIFIC_PROXY.priority()
+        mapping['priority'] == ScopeLocalPriority.SPECIFIC_PROXY.priority()
     }
 
     def 'should target a specified url'() throws Exception {
@@ -103,6 +104,6 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         mapping['response']['transformerParameters']['action'] == 'ignore'
         mapping['response']['transformerParameters']['which'] == 'leading'
         mapping['response']['transformerParameters']['numberOfSegments'] == 5
-        mapping['priority'] == DefaultMappingPriority.SPECIFIC_PROXY.priority()
+        mapping['priority'] == ScopeLocalPriority.SPECIFIC_PROXY.priority()
     }
 }

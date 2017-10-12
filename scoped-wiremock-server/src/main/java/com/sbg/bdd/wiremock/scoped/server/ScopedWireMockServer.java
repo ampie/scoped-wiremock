@@ -10,10 +10,12 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
+import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedStubMapping;
 import com.sbg.bdd.wiremock.scoped.common.CanStartAndStop;
 import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
 
+import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -55,23 +57,15 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     }
 
 
-    private static Options withExtensions(Options options) {
-        if (options instanceof WireMockConfiguration) {
-            ((WireMockConfiguration) options).extensions(ProxyUrlTransformer.class);
-            ((WireMockConfiguration) options).extensions(ScopeExtensions.class);
-            ((WireMockConfiguration) options).extensions(InvalidHeadersLoggingTransformer.class);
-            ((WireMockConfiguration) options).extensions(ScopeUpdatingResponseTransformer.class);
-        } else {
-            //TODO Clone it into a WireMockConfiguration
-
-        }
-        return options;
-    }
-
     @Override
     public void resetAll() {
         super.resetAll();
         scopeAdmin.resetAll();
+    }
+
+    @Override
+    public void register(ExtendedStubMapping extendedStubMapping) {
+        scopeAdmin.register(extendedStubMapping);
     }
 
     @Override
@@ -87,6 +81,11 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     @Override
     public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
         scopeAdmin.serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
+    }
+
+    @Override
+    public CorrelationState startNewGlobalScope(String testRunName, URL wireMockPublicUrl, URL baseUrlOfServiceUnderTest, String integrationScope) {
+        return scopeAdmin.startNewGlobalScope(testRunName, wireMockPublicUrl, baseUrlOfServiceUnderTest, integrationScope);
     }
 
     @Override
@@ -122,6 +121,11 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     @Override
     public ResourceContainer getResourceRoot(String resourceRoot) {
         return scopeAdmin.getResourceRoot(resourceRoot);
+    }
+
+    @Override
+    public CorrelationState stopGlobalScope(String testRunName, URL wireMockPublicUrl, int sequenceNumber) {
+        return scopeAdmin.stopGlobalScope(testRunName, wireMockPublicUrl, sequenceNumber);
     }
 
     @Override
@@ -165,4 +169,18 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     public String baseUrl() {
         return "http://" + host() + ":" + port();
     }
+    private static Options withExtensions(Options options) {
+        if (options instanceof WireMockConfiguration) {
+            ((WireMockConfiguration) options).extensions(ProxyUrlTransformer.class);
+            ((WireMockConfiguration) options).extensions(ScopeExtensions.class);
+            ((WireMockConfiguration) options).extensions(InvalidHeadersLoggingTransformer.class);
+            ((WireMockConfiguration) options).extensions(ScopeUpdatingResponseTransformer.class);
+        } else {
+            //TODO Clone it into a WireMockConfiguration
+
+        }
+        return options;
+    }
+
+
 }

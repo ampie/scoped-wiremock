@@ -40,6 +40,11 @@ public class WireMockContextStub implements WireMockContext {
     }
 
     @Override
+    public String getCorrelationPath() {
+        return "asdf";
+    }
+
+    @Override
     public ReadableResource resolveInputResource(String fileName) {
         if(!getSrcTestResources().fallsWithin(fileName)){
             File file = new File(fileName);
@@ -69,11 +74,6 @@ public class WireMockContextStub implements WireMockContext {
     @Override
     public int count(ExtendedRequestPatternBuilder requestPatternBuilder) {
         return 0;
-    }
-
-    @Override
-    public Integer calculatePriority(int localLevel) {
-        return localLevel;
     }
 
 }

@@ -21,16 +21,16 @@ import java.util.logging.Logger;
 public class RemoteEndPointConfigRegistry {
     private static final Logger LOGGER = Logger.getLogger(RemoteEndPointConfigRegistry.class.getName());
     private final String baseUrl;
-    private final String scope;
-    private static final String ENDPOINT_CONFIG_PATH = "/MockableEndPoints/";
+    private final String wireScope;
+    public static final String ENDPOINT_CONFIG_PATH = "/MockableEndPoints/";
     private Set<EndpointConfig> endpointConfigs;
 
-    public RemoteEndPointConfigRegistry(String baseUrl, String scope) {
+    public RemoteEndPointConfigRegistry(String baseUrl, String integrationScope) {
         this.baseUrl = baseUrl;
-        if (scope == null) {
-            this.scope = "all";
+        if (integrationScope == null) {
+            this.wireScope = "all";
         } else {
-            this.scope = scope;
+            this.wireScope = integrationScope;
         }
     }
 
@@ -39,14 +39,14 @@ public class RemoteEndPointConfigRegistry {
             URL url = new URL(baseUrl + ENDPOINT_CONFIG_PATH);
             URLConnection connection = url.openConnection();
             connection.connect();
-            HttpCommand command = new HttpCommand(new URL(baseUrl + ENDPOINT_CONFIG_PATH + scope), "GET", null);
+            HttpCommand command = new HttpCommand(new URL(baseUrl + ENDPOINT_CONFIG_PATH + wireScope), "GET", null);
             JsonNode result = Json.node(HttpCommandExecutor.INSTANCE.execute(command));
             ArrayNode array = (ArrayNode) result.get("configs");
             Set<EndpointConfig> endPoints = new TreeSet<>();
             for (int i = 0; i < array.size(); i++) {
                 ObjectNode object = (ObjectNode) array.get(i);
                 try {
-                    endPoints.add(EndpointConfig.fromJson(object.toString()));
+                    endPoints.add(EndpointConfig.oneFromJson(object.toString()));
                 } catch (IllegalArgumentException e) {
                     LOGGER.log(Level.WARNING,"Could not read EndPointConfig: " + object.toString(),e);
                 }

@@ -24,7 +24,6 @@ public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
             synchronizer.synchronize();
         } else {
             synchronizer = new CorrelationStateSynchronizer(admin, request.getHeaders());
-
             if(synchronizer.canProcess()){
                 synchronizer.synchronize();
                 response=synchronizer.synchronize(response);

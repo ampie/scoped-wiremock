@@ -7,7 +7,8 @@ import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedRequestPatternBuilder
 
 
 public interface WireMockContext {
-
+    String getCorrelationPath();
+    
     ReadableResource resolveInputResource(String fileName);
 
     String getBaseUrlOfServiceUnderTest();
@@ -16,5 +17,4 @@ public interface WireMockContext {
 
     int count(ExtendedRequestPatternBuilder requestPatternBuilder);
 
-    Integer calculatePriority(int localLevel);
 }

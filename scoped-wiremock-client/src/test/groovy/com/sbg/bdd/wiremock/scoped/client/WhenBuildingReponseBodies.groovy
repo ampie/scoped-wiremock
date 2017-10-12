@@ -1,6 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.client
 
 import com.github.tomakehurst.wiremock.common.Json
+import com.sbg.bdd.wiremock.scoped.admin.model.ScopeLocalPriority
 import com.sbg.bdd.wiremock.scoped.client.strategies.ResponseBodyStrategies
 import groovy.json.JsonSlurper
 
@@ -26,7 +27,7 @@ class WhenBuildingReponseBodies extends WhenWorkingWithWireMock {
         mapping['response']['headers']['Content-Type'] == 'application/json'
         mapping['response']['headers']['foo-header'] == 'bar-header-value'
         mapping['response']['body'] == "{\"foo\":\"bar\"}"
-        mapping['priority'] == DefaultMappingPriority.BODY_KNOWN.priority()
+        mapping['priority'] == ScopeLocalPriority.BODY_KNOWN.priority()
     }
     def 'should load the body by merging a template with provided variables'() throws Exception{
         given:
@@ -44,7 +45,7 @@ class WhenBuildingReponseBodies extends WhenWorkingWithWireMock {
         mapping['response']['headers']['Content-Type'] == 'text/xml'
         mapping['response']['headers']['foo-header'] == 'bar-header-value'
         mapping['response']['body'] == "<root>thisValue</root>"
-        mapping['priority'] == DefaultMappingPriority.BODY_KNOWN.priority()
+        mapping['priority'] == ScopeLocalPriority.BODY_KNOWN.priority()
     }
 
 }

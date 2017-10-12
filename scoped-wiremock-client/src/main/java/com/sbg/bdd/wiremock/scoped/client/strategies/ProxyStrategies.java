@@ -1,6 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.client.strategies;
 
 
+import com.sbg.bdd.wiremock.scoped.admin.model.ScopeLocalPriority;
 import com.sbg.bdd.wiremock.scoped.client.WireMockContext;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedMappingBuilder;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedResponseDefinitionBuilder;
@@ -24,7 +25,7 @@ public abstract class ProxyStrategies {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext context) throws Exception {
                 //TODO try to push the next to lines down to builder
                 builder.getRequestPatternBuilder().changeUrlToPattern();
-                builder.atPriority(context.calculatePriority(5));
+                builder.atPriority(ScopeLocalPriority.FALLBACK_PROXY);
                 return aResponse().proxiedFrom(baseUrl);
             }
             @Override
@@ -38,7 +39,7 @@ public abstract class ProxyStrategies {
     public static ResponseStrategy beIntercepted() {
         return new ResponseStrategy() {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext context) throws Exception {
-                builder.atPriority(context.calculatePriority(5));
+                builder.atPriority(ScopeLocalPriority.FALLBACK_PROXY);
                 builder.getRequestPatternBuilder().changeUrlToPattern();
                 return aResponse().interceptedFromSource();
             }
@@ -53,17 +54,13 @@ public abstract class ProxyStrategies {
 
     /**
      * For use from the ProxyMappingBuiler only
-     * @param baseUrl
-     * @param segments
-     * @param action
-     * @param which
-     * @return
+     * TODO move to server
      */
     static ResponseStrategy target(final String baseUrl, final int segments, final String action, final String which) {
         return new ResponseStrategy() {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext context) throws Exception {
                 builder.getRequestPatternBuilder().changeUrlToPattern();
-                builder.atPriority(context.calculatePriority(4));
+                builder.atPriority(ScopeLocalPriority.SPECIFIC_PROXY);
                 String baseUrlToUse=baseUrl == null?context.getBaseUrlOfServiceUnderTest():baseUrl;
                 return aResponse().proxiedFrom(baseUrlToUse).withTransformers("ProxyUrlTransformer")
                         .withTransformerParameter("numberOfSegments", segments)
@@ -74,9 +71,7 @@ public abstract class ProxyStrategies {
             public String getDescription() {
                 return format("proxy to \"%s\"",baseUrl);
             }
-
         };
     }
-
 
 }

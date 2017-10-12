@@ -4,16 +4,14 @@ import com.github.tomakehurst.wiremock.client.BasicCredentials;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.ScenarioMappingBuilder;
-import com.github.tomakehurst.wiremock.http.ResponseDefinition;
-import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern;
 import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedResponseDefinition;
 import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedStubMapping;
+import com.sbg.bdd.wiremock.scoped.admin.model.ScopeLocalPriority;
 import com.sbg.bdd.wiremock.scoped.client.WireMockContext;
 
-import java.net.URL;
 import java.util.*;
 
 public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements MappingBuilder {
@@ -25,8 +23,9 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
     //Standard
     private String name;
     private UUID id = UUID.randomUUID();
-    private Integer priority;
     private Boolean persistent;
+    private String rootCorrelationPath;
+    private ScopeLocalPriority localPriority;
 
     public ExtendedMappingBuilder(ExtendedRequestPatternBuilder requestPatternBuilder, ExtendedResponseDefinitionBuilder responseDefinitionBuilder, RecordingSpecification recordingSpecification) {
         this(requestPatternBuilder);
@@ -124,14 +123,15 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
 
 
     public T atPriority(Integer priority) {
-        this.priority = priority;
+        if (priority != null)
+            if (priority >= ScopeLocalPriority.values().length) {
+                throw new IllegalArgumentException("ExtendedMappings only support the priority values provided in the " + ScopeLocalPriority.class.getName() + " class");
+            } else {
+                this.localPriority = ScopeLocalPriority.values()[priority];
+
+            }
         return (T) this;
     }
-
-    public Integer getPriority() {
-        return priority;
-    }
-
 
     public ExtendedRequestPatternBuilder getRequestPatternBuilder() {
         return requestPatternBuilder;
@@ -158,8 +158,8 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
     public StubMapping build() {
         ExtendedRequestPattern requestPattern = requestPatternBuilder.build();
         ExtendedResponseDefinition response = responseDefinitionBuilder.build();
-        ExtendedStubMapping mapping = new ExtendedStubMapping(requestPattern, response);
-        mapping.setPriority(priority);
+        ExtendedStubMapping mapping = new ExtendedStubMapping(rootCorrelationPath, requestPattern, response);
+        mapping.setLocalPriority(localPriority);
         mapping.setUuid(id);
         mapping.setName(name);
         mapping.setPersistent(persistent);
@@ -180,6 +180,7 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
     }
 
     private void registerTo(WireMockContext verificationContext) {
+        this.rootCorrelationPath = verificationContext.getCorrelationPath();
         verificationContext.register(this);
     }
 
@@ -194,9 +195,12 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
             }
         }
         //This may not have been created by one of the known ResponseBodyStrategies, so let's just give it a default priority and assume the user wants this as a priority
-        if (getPriority() == null && verificationContext != null) {
-            atPriority(verificationContext.calculatePriority(1));
+        if (localPriority == null && verificationContext != null) {
+            atPriority(ScopeLocalPriority.BODY_KNOWN);
         }
     }
 
+    public void atPriority(ScopeLocalPriority scopeLocalPriority) {
+        this.localPriority = scopeLocalPriority;
+    }
 }

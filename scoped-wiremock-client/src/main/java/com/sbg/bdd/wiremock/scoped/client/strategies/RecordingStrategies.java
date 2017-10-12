@@ -1,6 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.client.strategies;
 
 
+import com.sbg.bdd.wiremock.scoped.admin.model.ScopeLocalPriority;
 import com.sbg.bdd.wiremock.scoped.client.WireMockContext;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedMappingBuilder;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedResponseDefinitionBuilder;
@@ -14,7 +15,7 @@ public abstract class RecordingStrategies {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext scope) throws Exception {
                 builder.getRecordingSpecification().mapsToJournalDirectory(journalDirectoryOverride);
                 builder.getRequestPatternBuilder().changeUrlToPattern();
-                builder.atPriority(scope.calculatePriority(1));
+                builder.atPriority(ScopeLocalPriority.JOURNAL);
                 return null;
             }
 
@@ -30,7 +31,7 @@ public abstract class RecordingStrategies {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext scope) throws Exception {
                 builder.getRecordingSpecification().mapsToJournalDirectory();
                 builder.getRequestPatternBuilder().changeUrlToPattern();
-                builder.atPriority(scope.calculatePriority(1));
+                builder.atPriority(ScopeLocalPriority.JOURNAL);
                 return null;
             }
             @Override
@@ -47,7 +48,7 @@ public abstract class RecordingStrategies {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext scope) throws Exception {
                 builder.getRequestPatternBuilder().changeUrlToPattern();
                 builder.getRecordingSpecification().playbackResponsesFrom(recordingDirectory);
-                builder.atPriority(scope.calculatePriority(2));
+                builder.atPriority(ScopeLocalPriority.RECORDINGS);
                 return null;
             }
 
@@ -63,7 +64,7 @@ public abstract class RecordingStrategies {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext scope) throws Exception {
                 builder.getRequestPatternBuilder().changeUrlToPattern();
                 builder.getRecordingSpecification().playbackResponses();
-                builder.atPriority(scope.calculatePriority(2));
+                builder.atPriority(ScopeLocalPriority.RECORDINGS);
                 return null;
             }
             @Override
@@ -78,7 +79,7 @@ public abstract class RecordingStrategies {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext scope) throws Exception {
                 builder.getRequestPatternBuilder().changeUrlToPattern();
                 builder.getRecordingSpecification().recordingResponsesTo(recordingDirectory);
-                builder.atPriority(scope.calculatePriority(2));
+                builder.atPriority(ScopeLocalPriority.RECORDINGS);
                 return null;
             }
             @Override
@@ -93,7 +94,7 @@ public abstract class RecordingStrategies {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext scope) throws Exception {
                 builder.getRequestPatternBuilder().changeUrlToPattern();
                 builder.getRecordingSpecification().recordingResponses();
-                builder.atPriority(scope.calculatePriority(2));
+                builder.atPriority(ScopeLocalPriority.RECORDINGS);
                 return null;
             }
             @Override

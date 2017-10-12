@@ -11,12 +11,14 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
+import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedStubMapping;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
 import com.sbg.bdd.wiremock.scoped.common.CanStartAndStop;
 import com.sbg.bdd.wiremock.scoped.common.ExchangeRecorder;
 import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +59,18 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
     }
 
     //Scope management
+    public CorrelationState startNewGlobalScope(String testRunName, URL wireMockPublicUrl, URL baseUrlOfServiceUnderTest, String integrationScope) {
+        return admin.startNewGlobalScope(testRunName, wireMockPublicUrl, baseUrlOfServiceUnderTest, integrationScope);
+    }
+    public CorrelationState stopGlobalScope(String testRunName, URL wireMockPublicUrl, int sequenceNumber) {
+        return admin.stopGlobalScope(testRunName, wireMockPublicUrl, sequenceNumber);
+    }
+    @Deprecated
+    public CorrelationState startNewCorrelatedScope(String knownScopePath) {
+        return admin.startNewCorrelatedScope(knownScopePath);
+    }
+    @Deprecated
+    //Use the payloaded version
     public CorrelationState joinCorrelatedScope(String knownScopePath) {
         return joinCorrelatedScope(knownScopePath, Collections.<String, Object>emptyMap());
     }
@@ -64,9 +78,6 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
         return admin.joinKnownCorrelatedScope(new CorrelationState(knownScopePath,payload));
     }
 
-    public CorrelationState startNewCorrelatedScope(String knownScopePath) {
-        return admin.startNewCorrelatedScope(knownScopePath);
-    }
 
     public List<String> stopCorrelatedScope(String knownScopePath) {
         return stopCorrelatedScope(knownScopePath, Collections.<String,Object>emptyMap());
@@ -99,6 +110,7 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
         return admin.findExchangesAgainstStep(scopePath, stepName);
     }
 
+    @Deprecated
     public void stopStep(String scopePath, String stepName) {
         stopStep(scopePath, stepName, Collections.<String, Object>emptyMap());
 
@@ -149,5 +161,8 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
 
     public void  serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
         admin.serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
+    }
+    public void register(ExtendedStubMapping stubMapping){
+        admin.register(stubMapping);
     }
 }

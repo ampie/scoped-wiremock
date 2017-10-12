@@ -69,7 +69,7 @@ public class InboundCorrelationPathFilter implements Filter {
     }
 
     private boolean writeAllEndpointConfigs(ServletOutputStream outputStream) throws IOException {
-        outputStream.print("{\"configs\":[");
+        outputStream.print("[");
         Set<EndpointConfig> endpointProperties = ServerSideEndPointConfigRegistry.getInstance().getAllEndpointConfigs();
         Iterator<EndpointConfig> iterator = endpointProperties.iterator();
         while (iterator.hasNext()) {
@@ -78,7 +78,7 @@ public class InboundCorrelationPathFilter implements Filter {
                 outputStream.print(",");
             }
         }
-        outputStream.print("]}");
+        outputStream.print("]");
         return true;
     }
 

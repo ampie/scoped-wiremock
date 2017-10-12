@@ -12,7 +12,8 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.util.List;
-
+@Deprecated
+//TODO check if this is ued anywhere. From JUnit unit tests, we are more likely to use the ScopedWireMockServerRule
 public class ScopedWireMockClientRule extends ScopedWireMockClient implements TestRule, MethodRule {
     private boolean failOnUnmatchedStubs = false;
 

@@ -2,7 +2,7 @@ package com.sbg.bdd.wiremock.scoped.client.strategies;
 
 import com.sbg.bdd.wiremock.scoped.client.builders.ResponseStrategy;
 
-
+//TODO move to server
 public class ProxyMappingBuilder {
     String baseUrl;
     int segments;

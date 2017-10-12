@@ -108,7 +108,7 @@ public class ScopedWireMockServerRunner {
         }
 
         if (options.specifiesProxyUrl()) {
-            addProxyMapping(options.proxyUrl());
+            throw new IllegalArgumentException("Global proxy urls not supported in ScopedWireMock");
         }
 
         try {
@@ -136,21 +136,6 @@ public class ScopedWireMockServerRunner {
         return extensions;
     }
 
-    private void addProxyMapping(final String baseUrl) {
-        wireMockServer.loadMappingsUsing(new MappingsLoader() {
-            @Override
-            public void loadMappingsInto(StubMappings stubMappings) {
-                RequestPattern requestPattern = newRequestPattern(ANY, anyUrl()).build();
-                ResponseDefinition responseDef = responseDefinition()
-                        .proxiedFrom(baseUrl)
-                        .build();
-
-                StubMapping proxyBasedMapping = new StubMapping(requestPattern, responseDef);
-                proxyBasedMapping.setPriority(10); // Make it low priority so that existing stubs will take precedence
-                stubMappings.addMapping(proxyBasedMapping);
-            }
-        });
-    }
 
     public static void main(String... args) {
         new ScopedWireMockServerRunner().run(args);
