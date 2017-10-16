@@ -31,7 +31,7 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
             get(HeaderName.ofTheOriginalUrl()) >> new URL('http://endpoint.com/context/service/operation')
             get(MessageContext.MESSAGE_OUTBOUND_PROPERTY) >> Boolean.TRUE
             get(SOAPMessageContext.WSDL_OPERATION) >> endpointIdentifier
-            get(HeaderName.ofTheEndpointCategory()) >> 'category1'
+            get(HeaderName.ofTheEndpointCategory()) >> ['category1']
         }
 
         when:

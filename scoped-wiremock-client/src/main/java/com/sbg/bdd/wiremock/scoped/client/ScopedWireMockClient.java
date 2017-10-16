@@ -12,13 +12,11 @@ import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
 
 import java.util.List;
 
-@Deprecated
-//TODO check if this is used anywhere
+
 public class ScopedWireMockClient extends ScopedWireMock implements HasBaseUrl {
 
     public ScopedWireMockClient(ScopedAdmin admin) {
         super(admin);
-
     }
 
     public ScopedWireMockClient(int port) {

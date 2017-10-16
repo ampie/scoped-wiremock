@@ -1,4 +1,4 @@
-package com.sbg.bdd.wiremock.scoped;
+package com.sbg.bdd.wiremock.scoped.resources;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionLikeType;
@@ -15,7 +15,6 @@ import okhttp3.ResponseBody;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

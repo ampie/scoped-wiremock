@@ -9,7 +9,7 @@ import com.github.tomakehurst.wiremock.http.*;
 import java.util.List;
 
 public class ExtendedResponseDefinition extends ResponseDefinition{
-    private Boolean interceptFromSource;
+    private boolean interceptFromSource=false;
     @JsonCreator
     public ExtendedResponseDefinition(@JsonProperty("status") int status,
                               @JsonProperty("statusMessage") String statusMessage,
@@ -28,6 +28,7 @@ public class ExtendedResponseDefinition extends ResponseDefinition{
                               @JsonProperty("fromConfiguredStub") Boolean wasConfigured,
                                       @JsonProperty("interceptFromSource") Boolean interceptFromSource) {
         super(status, statusMessage, body, jsonBody, base64Body, bodyFileName, headers, additionalProxyRequestHeaders, fixedDelayMilliseconds, delayDistribution, proxyBaseUrl, fault, transformers, transformerParameters, wasConfigured);
+        this.interceptFromSource = interceptFromSource;
     }
 
     public ExtendedResponseDefinition(ResponseDefinition source) {
@@ -36,11 +37,11 @@ public class ExtendedResponseDefinition extends ResponseDefinition{
                 source.getDelayDistribution(), source.getProxyBaseUrl(), source.getFault(), source.getTransformers(), source.getTransformerParameters(), source.wasConfigured());
     }
 
-    public Boolean getInterceptFromSource() {
+    public boolean isInterceptFromSource() {
         return interceptFromSource;
     }
 
-    public void setInterceptFromSource(Boolean interceptFromSource) {
+    public void setInterceptFromSource(boolean interceptFromSource) {
         this.interceptFromSource = interceptFromSource;
     }
 }

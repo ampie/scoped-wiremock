@@ -4,7 +4,7 @@ import com.sbg.bdd.wiremock.scoped.cdi.DummyBinding
 import com.sbg.bdd.wiremock.scoped.cdi.ExampleClass
 import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
-import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry
+import com.sbg.bdd.wiremock.scoped.integration.EndpointRegistry
 import com.sbg.bdd.wiremock.scoped.jaxws.OutboundCorrelationPathSOAPHandler
 import spock.lang.Specification
 
@@ -18,7 +18,7 @@ class WhenInvokingAClassWithWebServiceReferences extends Specification{
     def 'by default, all operations to that web service should be intercepted an populated with the correct endpoint address' (){
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndPointRegistry){
+        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndpointRegistry){
             endpointUrlFor('my.soap.endpoint.property') >> new URL('http://some.soap.host.com')
         }
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new RequestScopedWireMockCorrelationState()
@@ -53,7 +53,7 @@ class WhenInvokingAClassWithWebServiceReferences extends Specification{
     def 'within a scoped wiremockable call, all operations to that web service should be intercepted an populated with an endpoint mocked on the WireMock server' (){
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndPointRegistry){
+        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndpointRegistry){
             endpointUrlFor('my.soap.endpoint.property') >> new URL('http://some.soap.host.com')
         }
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new RequestScopedWireMockCorrelationState()
@@ -89,7 +89,7 @@ class WhenInvokingAClassWithWebServiceReferences extends Specification{
     def 'a WebService reference should be created automatically using the Service implementation in the WebService annotation if the reference is null' (){
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndPointRegistry){
+        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndpointRegistry){
             endpointUrlFor('my.soap.endpoint.property') >> new URL('http://some.soap.host.com')
         }
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new RequestScopedWireMockCorrelationState()
@@ -124,7 +124,7 @@ class WhenInvokingAClassWithWebServiceReferences extends Specification{
     def 'the developer should be able to create a WebService reference programmatically' (){
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndPointRegistry){
+        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndpointRegistry){
             endpointUrlFor('my.soap.endpoint.property') >> new URL('http://some.soap.host.com')
         }
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new RequestScopedWireMockCorrelationState()
@@ -147,7 +147,7 @@ class WhenInvokingAClassWithWebServiceReferences extends Specification{
     def 'the OutboundCorrelationPathSOAPHandler should be added once only to the handler chain' (){
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndPointRegistry){
+        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndpointRegistry){
             endpointUrlFor('my.soap.endpoint.property') >> new URL('http://some.soap.host.com')
         }
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new RequestScopedWireMockCorrelationState()

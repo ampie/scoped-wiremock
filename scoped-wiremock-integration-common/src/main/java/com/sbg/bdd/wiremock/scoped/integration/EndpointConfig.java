@@ -3,13 +3,13 @@ package com.sbg.bdd.wiremock.scoped.integration;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class EndpointConfig implements Comparable<EndpointConfig> {
+    public static final String ENDPOINT_CONFIG_PATH = "/MockableEndPoints/";
+    public static final String LOCAL_INTEGRATION_SCOPE = "local";
 
     private static final String FORMAT = "{\"propertyName\":\"%s\",\"url\":\"%s\",\"endpointType\":\"%s\",\"categories\":[%s],\"scopes\":[%s]}";
     private static final String PARSE_STRING = buildParseString();

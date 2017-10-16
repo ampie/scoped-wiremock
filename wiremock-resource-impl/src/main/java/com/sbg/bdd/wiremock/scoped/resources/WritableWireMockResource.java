@@ -1,9 +1,7 @@
-package com.sbg.bdd.wiremock.scoped;
+package com.sbg.bdd.wiremock.scoped.resources;
 
 import com.github.tomakehurst.wiremock.common.Json;
-import com.sbg.bdd.resource.ReadableResource;
 import com.sbg.bdd.resource.WritableResource;
-import com.sbg.bdd.resource.file.ReadableFileResource;
 import com.sbg.bdd.wiremock.scoped.admin.WriteResourceTask;
 import com.sbg.bdd.wiremock.scoped.admin.model.ResourceState;
 import okhttp3.Request;

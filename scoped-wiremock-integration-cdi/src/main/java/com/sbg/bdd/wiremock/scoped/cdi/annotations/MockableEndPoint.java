@@ -12,6 +12,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.FIELD})
 public @interface MockableEndPoint {
     @Nonbinding String propertyName();
-    @Nonbinding String[] categories();
-    @Nonbinding String[] scopes();
+    @Nonbinding String[] categories() default {};
+    @Nonbinding String[] scopes() default {};
 }

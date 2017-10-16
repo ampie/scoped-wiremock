@@ -7,7 +7,7 @@ import java.util.Properties;
  */
 public class BaseDependencyInjectorAdaptor implements DependencyInjectorAdaptor {
     public static final Properties PROPERTIES = new Properties();
-    public static EndPointRegistry ENDPOINT_REGISTRY = new PropertiesEndpointRegistry(PROPERTIES);
+    public static EndpointRegistry ENDPOINT_REGISTRY = new PropertiesEndpointRegistry(PROPERTIES);
     public static WireMockCorrelationState CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState();
 
     public BaseDependencyInjectorAdaptor() {
@@ -21,7 +21,7 @@ public class BaseDependencyInjectorAdaptor implements DependencyInjectorAdaptor 
     }
 
     @Override
-    public EndPointRegistry getEndpointRegistry() {
+    public EndpointRegistry getEndpointRegistry() {
         return ENDPOINT_REGISTRY;
     }
 

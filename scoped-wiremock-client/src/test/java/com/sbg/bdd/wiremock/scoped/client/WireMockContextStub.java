@@ -6,13 +6,15 @@ import com.sbg.bdd.resource.file.DirectoryResourceRoot;
 import com.sbg.bdd.resource.file.ReadableFileResource;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedMappingBuilder;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedRequestPatternBuilder;
-import com.sbg.bdd.wiremock.scoped.admin.endpointconfig.RemoteEndPointConfigRegistry;
+import com.sbg.bdd.wiremock.scoped.admin.endpointconfig.RemoteEndpointConfigRegistry;
+import com.sbg.bdd.wiremock.scoped.server.CorrelatedScope;
+import com.sbg.bdd.wiremock.scoped.server.ExtendedStubMappingCreator;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class WireMockContextStub implements WireMockContext {
     static DirectoryResourceRoot srcTestResources;
@@ -22,17 +24,19 @@ public class WireMockContextStub implements WireMockContext {
         if (resource.getProtocol().equals("file")) {
             srcTestResources = new DirectoryResourceRoot("resourceRoot", new File(resource.getFile()).getParentFile());
         }
-        }
+    }
+
+    private CorrelatedScope scope;
 
     public static DirectoryResourceRoot getSrcTestResources() {
         return srcTestResources;
     }
 
-    RemoteEndPointConfigRegistry endPointConfigRegistry;
     private List<StubMapping> mappings = new ArrayList<>();
     private List<ExtendedMappingBuilder> recordingMappingBuilders = new ArrayList<>();
-    public WireMockContextStub(RemoteEndPointConfigRegistry endPointConfigRegistry) {
-        this.endPointConfigRegistry = endPointConfigRegistry;
+
+    public WireMockContextStub(CorrelatedScope scope) {
+        this.scope = scope;
     }
 
     public List<StubMapping> getMappings() {
@@ -46,11 +50,11 @@ public class WireMockContextStub implements WireMockContext {
 
     @Override
     public ReadableResource resolveInputResource(String fileName) {
-        if(!getSrcTestResources().fallsWithin(fileName)){
+        if (!getSrcTestResources().fallsWithin(fileName)) {
             File file = new File(fileName);
             return new ReadableFileResource(new DirectoryResourceRoot("resourceRoot", file.getParentFile()), file);
         }
-        return (ReadableResource)getSrcTestResources().resolveExisting(fileName);
+        return (ReadableResource) getSrcTestResources().resolveExisting(fileName);
     }
 
     @Override
@@ -59,13 +63,17 @@ public class WireMockContextStub implements WireMockContext {
     }
 
     @Override
-    public void register(ExtendedMappingBuilder child) {
-        if (child.getResponseDefinitionBuilder() == null) {
-            recordingMappingBuilders.add(child);
+    public void register(ExtendedMappingBuilder mapping) {
+        if (mapping.getResponseDefinitionBuilder() == null) {
+            recordingMappingBuilders.add(mapping);
         } else {
-            mappings.add(child.build());
+            List<StubMapping> list = new ExtendedStubMappingCreator(mapping.build(), scope).createAllSupportingStubMappings();
+            for (StubMapping child : list) {
+                mappings.add(child);
+            }
         }
     }
+
 
     public List<ExtendedMappingBuilder> getRecordingMappingBuilders() {
         return recordingMappingBuilders;

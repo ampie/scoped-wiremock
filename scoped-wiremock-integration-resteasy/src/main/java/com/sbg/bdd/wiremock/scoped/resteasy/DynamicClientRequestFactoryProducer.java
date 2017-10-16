@@ -20,6 +20,7 @@ public class DynamicClientRequestFactoryProducer {
     }
 
     @Produces
+    @MockableEndPoint(propertyName = "")
     public ClientRequestFactory getClientRequestFactory(InjectionPoint ip) {
         MockableEndPoint epp = ip.getAnnotated().getAnnotation(MockableEndPoint.class);
         return getClientRequestFactory(epp);

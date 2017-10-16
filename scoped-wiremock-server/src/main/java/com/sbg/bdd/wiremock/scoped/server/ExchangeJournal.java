@@ -1,7 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.server;
 
 
-
 import com.github.tomakehurst.wiremock.common.Gzip;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
@@ -21,18 +20,18 @@ import java.util.regex.Pattern;
 import static com.sbg.bdd.wiremock.scoped.server.ScopePathMatcher.matches;
 
 //NB!! necessary because the normal InMemoryRequestJournal only stores the request with the responseDefinition, not the actual response
-public class ExchangeJournal  {
+public class ExchangeJournal {
     private ConcurrentLinkedQueue<RecordedExchange> recordings = new ConcurrentLinkedQueue<>();
     private Map<String, RecordedExchange> exchangesInProgress = new ConcurrentHashMap<>();
 
     public RecordedExchange requestReceived(String scopePath, String step, Request request) {
-        RecordedExchange exchange=new RecordedExchange(buildRecordedRequest(request), scopePath, step);
+        RecordedExchange exchange = new RecordedExchange(buildRecordedRequest(request), scopePath, step);
         //Scopes are single threaded:
         RecordedExchange activeExchange = exchangesInProgress.get(contextKey(exchange.getStepContainerPath(), step));
-        if(activeExchange ==null) {
+        if (activeExchange == null) {
             exchangesInProgress.put(contextKey(exchange.getStepContainerPath(), step), exchange);
             exchange.setRootExchange(true);
-        }else{
+        } else {
             activeExchange.getInnerMostActiveExchange().recordNestedExchange(exchange);
         }
         this.recordings.add(exchange);
@@ -47,15 +46,27 @@ public class ExchangeJournal  {
         String key = contextKey(exchange.getStepContainerPath(), exchange.getStep());
         RecordedExchange activeExchange = exchangesInProgress.get(key);
         activeExchange.getInnerMostActiveExchange().recordResponse(recordResponse(response));
-        if(activeExchange.getResponse()!=null){
+        if (activeExchange.getResponse() != null) {
             exchangesInProgress.remove(key);
         }
+    }
+
+    public int count(List<RequestPattern> patterns) {
+        int result = 0;
+        for (RequestPattern pattern : patterns) {
+            for (RecordedExchange recording : this.recordings) {
+                if (pattern.match(recording.getRequest()).isExactMatch()) {
+                    result++;
+                }
+            }
+        }
+        return result;
     }
 
     public List<RecordedExchange> findMatchingExchanges(RequestPattern pattern) {
         List<RecordedExchange> result = new ArrayList<>();
         for (RecordedExchange recording : this.recordings) {
-            if(pattern.match(recording.getRequest()).isExactMatch()){
+            if (pattern.match(recording.getRequest()).isExactMatch()) {
                 result.add(new RecordedExchange(recording));
             }
         }
@@ -101,8 +112,8 @@ public class ExchangeJournal  {
 
     public void clearScope(Pattern scopePathPattern) {
         Iterator<RecordedExchange> iterator = recordings.iterator();
-        while(iterator.hasNext()){
-            if(matches(scopePathPattern,iterator.next().getRequest())){
+        while (iterator.hasNext()) {
+            if (matches(scopePathPattern, iterator.next().getRequest())) {
                 iterator.remove();
             }
         }
@@ -115,7 +126,7 @@ public class ExchangeJournal  {
     public List<RecordedExchange> findExchangesAgainstStep(String scopePath, String stepName) {
         List<RecordedExchange> result = new ArrayList<>();
         for (RecordedExchange recording : this.recordings) {
-            if(include(scopePath, stepName, recording)){
+            if (include(scopePath, stepName, recording)) {
                 result.add(recording);
             }
         }

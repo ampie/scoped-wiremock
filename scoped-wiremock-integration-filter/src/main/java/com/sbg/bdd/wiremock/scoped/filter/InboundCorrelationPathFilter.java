@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 
 public class InboundCorrelationPathFilter implements Filter {
     static final Logger LOGGER = Logger.getLogger(InboundCorrelationPathFilter.class.getName());
-    private static final String PROPERTY_PATH = "/Property/";
     public static final String SCOPED_WIREMOCK_ENABLED = InboundCorrelationPathFilter.class.getSimpleName() + ".scoped_wiremock_enabled";
 
     @Override
@@ -26,7 +25,7 @@ public class InboundCorrelationPathFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) req;
         try {
             boolean doFilter = true;
-            if (processPropertyRequest(response, request)) {
+            if (processEndPointConfigRequest(response, request)) {
                 doFilter = false;
             } else if (isAutomationSupportEnabled()) {
                 correlationStateSynchronizer.readCorrelationSessionFrom(request);
@@ -44,26 +43,12 @@ public class InboundCorrelationPathFilter implements Filter {
         return "true".equals(System.getProperty(SCOPED_WIREMOCK_ENABLED));
     }
 
-    private boolean processPropertyRequest(ServletResponse response, HttpServletRequest request) throws IOException {
-        int indexOf = request.getRequestURI().indexOf(PROPERTY_PATH);
+    private boolean processEndPointConfigRequest(ServletResponse response, HttpServletRequest request) throws IOException {
+        int indexOf = request.getRequestURI().indexOf(EndpointConfig.ENDPOINT_CONFIG_PATH +"all");
         if (indexOf > 1) {
             response.setContentType("application/json");
-            String propertyName = request.getRequestURI().substring(indexOf + PROPERTY_PATH.length());
             ServletOutputStream outputStream = response.getOutputStream();
-            if (propertyName.equals("all")) {
-                return writeAllEndpointConfigs(outputStream);
-            } else {
-                return writeSingleEndpointConfig(outputStream, propertyName);
-            }
-        }
-        return false;
-    }
-
-    private boolean writeSingleEndpointConfig(ServletOutputStream outputStream, String propertyName) throws IOException {
-        EndpointConfig config = ServerSideEndPointConfigRegistry.getInstance().getEndpointConfig(propertyName);
-        if (config != null) {
-            outputStream.print(config.toJson());
-            return true;
+            return writeAllEndpointConfigs(outputStream);
         }
         return false;
     }

@@ -10,18 +10,16 @@ import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.SortedConcurrentMappingSet;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.verification.InMemoryRequestJournal;
+import com.github.tomakehurst.wiremock.verification.VerificationResult;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
-import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
-import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedStubMapping;
-import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
+import com.sbg.bdd.wiremock.scoped.admin.model.*;
 import com.sbg.bdd.wiremock.scoped.common.ExchangeRecorder;
 import com.sbg.bdd.wiremock.scoped.common.ParentPath;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 import com.sbg.bdd.wiremock.scoped.server.extended.ServeEventsQueueDecorator;
 import com.sbg.bdd.wiremock.scoped.server.extended.SortedConcurrentMappingSetDecorator;
 
-import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -42,22 +40,23 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
 
     public CorrelatedScopeAdmin() {
     }
+    //Scope Management
 
     @Override
-    public CorrelationState startNewGlobalScope(String testRunName, URL wireMockPublicUrl, URL baseUrlOfServiceUnderTest, String integrationScope) {
+    public GlobalCorrelationState startNewGlobalScope(GlobalCorrelationState globalCorrelationState) {
         int sequenceNumberToUse = -1;
         do {
-            sequenceNumberToUse++;
-        } while (globalScopes.containsKey(GlobalScope.toKey(testRunName, wireMockPublicUrl, sequenceNumberToUse)));
-        GlobalScope newGlobalScope = new GlobalScope(testRunName, wireMockPublicUrl, baseUrlOfServiceUnderTest, sequenceNumberToUse);
+            globalCorrelationState.setSequenceNumber(++sequenceNumberToUse);
+        } while (globalScopes.containsKey(GlobalScope.toKey(globalCorrelationState)));
+        GlobalScope newGlobalScope = new GlobalScope(globalCorrelationState);
         globalScopes.put(newGlobalScope.getKey(), newGlobalScope);
         scopeListeners.fireGlobalStarted(newGlobalScope.getCorrelationState());
         return newGlobalScope.getCorrelationState();
     }
 
     @Override
-    public CorrelationState stopGlobalScope(String testRunName, URL wireMockPublicUrl, int sequenceNumber) {
-        GlobalScope globalScope = globalScopes.remove(GlobalScope.toKey(testRunName, wireMockPublicUrl, sequenceNumber));
+    public GlobalCorrelationState stopGlobalScope(GlobalCorrelationState globalCorrelationState) {
+        GlobalScope globalScope = globalScopes.remove(GlobalScope.toKey(globalCorrelationState));
         if (globalScope == null) {
             return null;
         } else {
@@ -67,41 +66,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     }
 
     @Override
-    public void register(ExtendedStubMapping extendedStubMapping) {
-        ExtendedStubMappingCreator creator = new ExtendedStubMappingCreator(extendedStubMapping,getCorrelatedScop(extendedStubMapping.getCorrelationPath()));
-        for (StubMapping mapping : creator.createAllSupportingStubMappings()) {
-            admin.addStubMapping(mapping);
-        }
-    }
-
-    @Override
-    public void registerResourceRoot(String name, ResourceContainer root) {
-        this.resourceRoots.put(name, root);
-    }
-
-    @Override
-    public ResourceContainer getResourceRoot(String resourceRoot) {
-        return resourceRoots.get(resourceRoot);
-    }
-
-    @Override
-    public void saveRecordingsForRequestPattern(RequestPattern pattern, ResourceContainer recordingDirectory) {
-        new ExchangeRecorder(this, admin).saveRecordingsForRequestPattern(pattern, recordingDirectory);
-    }
-
-    @Override
-    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
-        new ExchangeRecorder(this, admin).serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
-    }
-
-
-    @Override
-    public CorrelationState startNewCorrelatedScope(String parentScopePath) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public CorrelationState joinKnownCorrelatedScope(CorrelationState knownScope) {
+    public CorrelationState startNestedScope(CorrelationState knownScope) {
         CorrelationState state = findOrCreateCorrelatedScope(knownScope);
         scopeListeners.fireNestedStarted(knownScope);
         return state;
@@ -114,10 +79,62 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     }
 
     @Override
+    public List<String> stopCorrelatedScope(CorrelationState state) {
+        this.stubMappingsMappings.removeMappingsForScope(state.getCorrelationPath());
+        GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(state.getCorrelationPath()));
+        if (globalScope == null) {
+            return new ArrayList<>();
+        } else {
+            CorrelatedScope nestedScope = globalScope.findNestedScope(state.getCorrelationPath());
+            if (nestedScope instanceof GlobalScope) {
+                scopeListeners.fireGlobalScopeStopped(state);
+            }else{
+                scopeListeners.fireNestedScopeStopped(state);
+            }
+            Pattern pattern = Pattern.compile(state.getCorrelationPath() + ".*");
+            this.requestJournalServedStubs.removeServedStubsForScope(pattern);
+            this.exchangeJournal.clearScope(pattern);
+            if (nestedScope instanceof GlobalScope) {
+                globalScopes.remove(((GlobalScope) nestedScope).getKey());
+                return nestedScope.getDescendentCorrelationPaths();
+            }
+            return nestedScope.getParent().removeChild(nestedScope);
+        }
+    }
+
+    @Override
+    public CorrelationState getCorrelatedScope(String correlationPath) {
+        CorrelatedScope correlatedScope = getCorrelatedScopeImpl(correlationPath);
+        return correlatedScope == null ? null : correlatedScope.getCorrelationState();
+    }
+    @Override
     public List<StubMapping> getMappingsInScope(String scopePath) {
         return stubMappingsMappings.findMappingsForScope(scopePath);
     }
 
+    //Resources
+    @Override
+    public void registerResourceRoot(String name, ResourceContainer root) {
+        this.resourceRoots.put(name, root);
+    }
+
+    @Override
+    public ResourceContainer getResourceRoot(String resourceRoot) {
+        return resourceRoots.get(resourceRoot);
+    }
+
+    //Recording Management
+    @Override
+    public void saveRecordingsForRequestPattern(RequestPattern pattern, ResourceContainer recordingDirectory) {
+        new ExchangeRecorder(this, admin).saveRecordingsForRequestPattern(pattern, recordingDirectory);
+    }
+
+    @Override
+    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
+        new ExchangeRecorder(this, admin).serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
+    }
+
+    //Step management
     @Override
     public void startStep(CorrelationState state) {
         getCorrelatedScope(state.getCorrelationPath()).setCurrentStep(state.getCurrentStep());
@@ -130,52 +147,22 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
         scopeListeners.fireStepCompleted(state);
     }
 
+    //Others
     @Override
     public List<RecordedExchange> findExchangesAgainstStep(String scopePath, String stepName) {
         return exchangeJournal.findExchangesAgainstStep(scopePath, stepName);
     }
 
-    public CorrelationState getCorrelatedScope(String correlationPath) {
-        CorrelatedScope correlatedScope = getCorrelatedScop(correlationPath);
-        return correlatedScope==null?null:correlatedScope.getCorrelationState();
-    }
-    public CorrelatedScope getCorrelatedScop(String correlationPath) {
-        GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(correlationPath));
-        if (globalScope == null) {
-            return null;
-        } else {
-            return globalScope.findNestedScope(correlationPath);
+    @Override
+    public void register(ExtendedStubMapping extendedStubMapping) {
+        ExtendedStubMappingCreator creator = new ExtendedStubMappingCreator(extendedStubMapping, getCorrelatedScopeImpl(extendedStubMapping.getRequest().getCorrelationPath()));
+        for (StubMapping mapping : creator.createAllSupportingStubMappings()) {
+            admin.addStubMapping(mapping);
         }
     }
-
-    private CorrelationState findOrCreateCorrelatedScope(CorrelationState correlationState) {
-        GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(correlationState.getCorrelationPath()));
-        if (globalScope == null) {
-            return null;
-        } else {
-            CorrelationState state = globalScope.findOrCreateNestedScope(correlationState.getCorrelationPath()).getCorrelationState();
-            state.setPayload(correlationState.getPayload());
-            return state;
-        }
-    }
-
-    public List<String> stopCorrelatedScope(CorrelationState state) {
-        this.stubMappingsMappings.removeMappingsForScope(state.getCorrelationPath());
-        GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(state.getCorrelationPath()));
-        if (globalScope == null) {
-            return new ArrayList<>();
-        } else {
-            CorrelatedScope nestedScope = globalScope.findNestedScope(state.getCorrelationPath());
-            Pattern pattern = Pattern.compile(state.getCorrelationPath() + ".*");
-            scopeListeners.fireNestedScopeStopped(state);
-            this.requestJournalServedStubs.removeServedStubsForScope(pattern);
-            this.exchangeJournal.clearScope(pattern);
-            if(nestedScope instanceof GlobalScope){
-                globalScopes.remove(((GlobalScope) nestedScope).getKey());
-                return nestedScope.getDescendentCorrelationPaths();
-            }
-            return nestedScope.getParent().removeChild(nestedScope);
-        }
+    public int count(ExtendedRequestPattern pattern){
+        ExtendedStubMappingCreator creator = new ExtendedStubMappingCreator(new ExtendedStubMapping(pattern,null), getCorrelatedScopeImpl(pattern.getCorrelationPath()));
+        return this.exchangeJournal.count(creator.createAllSupportingRequestPatterns());
     }
 
 
@@ -183,7 +170,16 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
         return exchangeJournal.findMatchingExchanges(pattern);
     }
 
+    public void resetAll() {
+        this.exchangeJournal.reset();
+        this.stubMappingsMappings.clear();
+        this.globalScopes.clear();
+        this.requestJournalServedStubs.clear();
+    }
 
+    public void setScopeListeners(Map<String, ScopeListener> scopeListeners) {
+        this.scopeListeners = new ScopeListeners(this, scopeListeners);
+    }
     /**
      * A lot of hacks to ensure that all in scope mappings and request journal entries are removed when a scope
      * is completed
@@ -247,14 +243,24 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     }
 
 
-    public void resetAll() {
-        this.exchangeJournal.reset();
-        this.stubMappingsMappings.clear();
-        this.globalScopes.clear();
-        this.requestJournalServedStubs.clear();
+    private CorrelatedScope getCorrelatedScopeImpl(String correlationPath) {
+        GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(correlationPath));
+        if (globalScope == null) {
+            return null;
+        } else {
+            return globalScope.findNestedScope(correlationPath);
+        }
     }
 
-    public void setScopeListeners(Map<String, ScopeListener> scopeListeners) {
-        this.scopeListeners = new ScopeListeners(this, scopeListeners);
+    private CorrelationState findOrCreateCorrelatedScope(CorrelationState correlationState) {
+        GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(correlationState.getCorrelationPath()));
+        if (globalScope == null) {
+            return null;
+        } else {
+            CorrelationState state = globalScope.findOrCreateNestedScope(correlationState.getCorrelationPath()).getCorrelationState();
+            state.setPayload(correlationState.getPayload());
+            return state;
+        }
     }
+
 }

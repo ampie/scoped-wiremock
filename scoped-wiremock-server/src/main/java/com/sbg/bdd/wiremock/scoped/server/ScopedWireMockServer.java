@@ -2,18 +2,15 @@ package com.sbg.bdd.wiremock.scoped.server;
 
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.sbg.bdd.resource.ResourceContainer;
-import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
+import com.sbg.bdd.wiremock.scoped.admin.model.*;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
-import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedStubMapping;
 import com.sbg.bdd.wiremock.scoped.common.CanStartAndStop;
 import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
-import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
 
 import java.net.URL;
 import java.util.ArrayDeque;
@@ -67,6 +64,10 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     public void register(ExtendedStubMapping extendedStubMapping) {
         scopeAdmin.register(extendedStubMapping);
     }
+    @Override
+    public int count(ExtendedRequestPattern requestPattern) {
+       return scopeAdmin.count(requestPattern);
+    }
 
     @Override
     public void registerResourceRoot(String name, ResourceContainer root) {
@@ -84,18 +85,13 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     }
 
     @Override
-    public CorrelationState startNewGlobalScope(String testRunName, URL wireMockPublicUrl, URL baseUrlOfServiceUnderTest, String integrationScope) {
-        return scopeAdmin.startNewGlobalScope(testRunName, wireMockPublicUrl, baseUrlOfServiceUnderTest, integrationScope);
+    public GlobalCorrelationState startNewGlobalScope(GlobalCorrelationState globalCorrelationState) {
+        return scopeAdmin.startNewGlobalScope(globalCorrelationState);
     }
 
     @Override
-    public CorrelationState startNewCorrelatedScope(String parentScopePath) {
-        return scopeAdmin.startNewCorrelatedScope(parentScopePath);
-    }
-
-    @Override
-    public CorrelationState joinKnownCorrelatedScope(CorrelationState knownScope) {
-        return scopeAdmin.joinKnownCorrelatedScope(knownScope);
+    public CorrelationState startNestedScope(CorrelationState knownScope) {
+        return scopeAdmin.startNestedScope(knownScope);
     }
 
     @Override
@@ -124,8 +120,8 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     }
 
     @Override
-    public CorrelationState stopGlobalScope(String testRunName, URL wireMockPublicUrl, int sequenceNumber) {
-        return scopeAdmin.stopGlobalScope(testRunName, wireMockPublicUrl, sequenceNumber);
+    public GlobalCorrelationState stopGlobalScope(GlobalCorrelationState globalCorrelationState) {
+        return scopeAdmin.stopGlobalScope(globalCorrelationState);
     }
 
     @Override

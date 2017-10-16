@@ -1,4 +1,4 @@
-package com.sbg.bdd.wiremock.scoped;
+package com.sbg.bdd.wiremock.scoped.resources;
 
 import com.sbg.bdd.resource.Resource;
 import okhttp3.MediaType;

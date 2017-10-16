@@ -1,5 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.client;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionLikeType;
 import com.github.tomakehurst.wiremock.admin.AdminRoutes;
 import com.github.tomakehurst.wiremock.admin.model.PathParams;
@@ -9,12 +11,10 @@ import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.*;
-import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
-import com.sbg.bdd.wiremock.scoped.admin.model.ExchangeJournalRequest;
-import com.sbg.bdd.wiremock.scoped.admin.model.JournalMode;
-import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
+import com.sbg.bdd.wiremock.scoped.admin.model.*;
 import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
 
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +59,29 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
     }
 
     @Override
+    public void register(ExtendedStubMapping extendedStubMapping) {
+        executeRequest(
+                scopedAdminRoutes.requestSpecForTask(CreateExtendedStubMappingTask.class),
+                PathParams.empty(),
+                extendedStubMapping,
+                Void.class,
+                201
+        );
+    }
+
+    @Override
+    public int count(ExtendedRequestPattern requestPattern) {
+        Map objectNode = executeRequest(
+                scopedAdminRoutes.requestSpecForTask(CountByExtendedRequestPatternTask.class),
+                PathParams.empty(),
+                requestPattern,
+                Map.class,
+                200
+        );
+        return (Integer)objectNode.get("count");
+    }
+
+    @Override
     public void registerResourceRoot(String name, ResourceContainer root) {
         this.resourceRoots.put(name, root);
     }
@@ -72,8 +95,6 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
                 Void.class,
                 204
         );
-
-
     }
 
     @Override
@@ -88,8 +109,31 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
     }
 
     @Override
+    public GlobalCorrelationState startNewGlobalScope(GlobalCorrelationState state) {
+        return executeRequest(
+                scopedAdminRoutes.requestSpecForTask(StartNewGlobalScopeTask.class),
+                PathParams.empty(),
+                state,
+                GlobalCorrelationState.class,
+                200
+        );
+    }
+
+    @Override
     public ResourceContainer getResourceRoot(String resourceRoot) {
         return resourceRoots.get(resourceRoot);
+    }
+
+    @Override
+    public GlobalCorrelationState stopGlobalScope(GlobalCorrelationState state) {
+
+        return executeRequest(
+                scopedAdminRoutes.requestSpecForTask(StopGlobalScopeTask.class),
+                PathParams.empty(),
+                state,
+                GlobalCorrelationState.class,
+                200
+        );
     }
 
     public int port() {
@@ -107,18 +151,7 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
     }
 
     @Override
-    public CorrelationState startNewCorrelatedScope(String parentScopePath) {
-        return executeRequest(
-                scopedAdminRoutes.requestSpecForTask(StartNewCorrelatedScopeTask.class),
-                PathParams.empty(),
-                new CorrelationState(parentScopePath),
-                CorrelationState.class,
-                200
-        );
-    }
-
-    @Override
-    public CorrelationState joinKnownCorrelatedScope(CorrelationState knownScope) {
+    public CorrelationState startNestedScope(CorrelationState knownScope) {
         return executeRequest(
                 scopedAdminRoutes.requestSpecForTask(JoinKnownCorrelatedScopeTask.class),
                 PathParams.empty(),

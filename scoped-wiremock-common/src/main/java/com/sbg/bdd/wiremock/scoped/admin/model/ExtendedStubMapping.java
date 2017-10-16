@@ -1,22 +1,25 @@
 package com.sbg.bdd.wiremock.scoped.admin.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 
+import java.util.UUID;
+
 @JsonIgnoreProperties({"request", "response"})
-@JsonPropertyOrder({"id", "name", "extendedRequest", "extendedResponse", "uuid", "correlationPath"})
+@JsonPropertyOrder({"id", "name", "extendedRequest", "extendedResponse", "uuid"})
 public class ExtendedStubMapping extends StubMapping {
-    private String correlationPath;
     private ExtendedRequestPattern extendedRequest;
     private ExtendedResponseDefinition extendedResponse;
     private ScopeLocalPriority localPriority;
 
+    public ExtendedStubMapping(){}
 
-    public ExtendedStubMapping(String correlationPath, ExtendedRequestPattern requestPattern, ExtendedResponseDefinition response) {
-        this.correlationPath = correlationPath;
+    public ExtendedStubMapping(ExtendedRequestPattern requestPattern, ExtendedResponseDefinition response) {
         setExtendedRequest(requestPattern);
         setExtendedResponse(response);
     }
@@ -59,10 +62,6 @@ public class ExtendedStubMapping extends StubMapping {
     public void setResponse(ResponseDefinition response) {
         this.extendedResponse = (ExtendedResponseDefinition) response;
         super.setResponse(response);
-    }
-
-    public String getCorrelationPath() {
-        return correlationPath;
     }
 
     public void setLocalPriority(ScopeLocalPriority localPriority) {

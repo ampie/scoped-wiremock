@@ -6,11 +6,11 @@ import com.github.tomakehurst.wiremock.client.BasicCredentials;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
 import com.github.tomakehurst.wiremock.matching.*;
 
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
 public class ExtendedRequestPattern extends RequestPattern {
+    private String correlationPath;
     private String urlInfo;
     private String pathSuffix;
     private boolean urlIsPattern = false;
@@ -19,7 +19,8 @@ public class ExtendedRequestPattern extends RequestPattern {
 
 
     @JsonCreator
-    public ExtendedRequestPattern(@JsonProperty("url") String url,
+    public ExtendedRequestPattern(@JsonProperty("correlationPath") String correlationPath,
+                                  @JsonProperty("url") String url,
                                   @JsonProperty("urlPattern") String urlPattern,
                                   @JsonProperty("urlPath") String urlPath,
                                   @JsonProperty("urlPathPattern") String urlPathPattern,
@@ -47,6 +48,7 @@ public class ExtendedRequestPattern extends RequestPattern {
                 bodyPatterns,
                 customMatcherDefinition
         );
+        this.correlationPath = correlationPath;
         this.urlInfo = urlInfo;
         this.pathSuffix = pathSuffix;
         this.urlIsPattern = urlIsPattern;
@@ -54,7 +56,7 @@ public class ExtendedRequestPattern extends RequestPattern {
         this.endpointCategory = endpointCategory;
     }
 
-    public ExtendedRequestPattern(RequestPattern source) {
+    public ExtendedRequestPattern(String correlationPath, RequestPattern source) {
         super(
                 source.getUrlMatcher(),
                 source.getMethod(),
@@ -65,7 +67,10 @@ public class ExtendedRequestPattern extends RequestPattern {
                 source.getBodyPatterns(),
                 source.getCustomMatcher()
         );
-        setUrlInfo(source.getUrlMatcher().getExpected());
+        this.correlationPath = correlationPath;
+        if (source.getUrlMatcher() != null) {
+            setUrlInfo(source.getUrlMatcher().getExpected());
+        }
     }
 
     public String getUrlInfo() {
@@ -107,4 +112,9 @@ public class ExtendedRequestPattern extends RequestPattern {
     public void setEndpointCategory(String endpointCategory) {
         this.endpointCategory = endpointCategory;
     }
+
+    public String getCorrelationPath() {
+        return correlationPath;
+    }
+
 }

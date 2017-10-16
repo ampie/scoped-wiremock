@@ -7,7 +7,7 @@ import com.github.tomakehurst.wiremock.matching.RegexPattern;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
-import com.sbg.bdd.wiremock.scoped.admin.endpointconfig.RemoteEndPointConfigRegistry;
+import com.sbg.bdd.wiremock.scoped.admin.endpointconfig.RemoteEndpointConfigRegistry;
 import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern;
 import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedStubMapping;
 import com.sbg.bdd.wiremock.scoped.admin.model.ScopeLocalPriority;
@@ -18,10 +18,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 public class ExtendedStubMappingCreator {
+    private static final Logger LOGGER=Logger.getLogger(ExtendedStubMappingCreator.class.getName());
     private ExtendedStubMapping stubMapping;
     private CorrelatedScope scope;
 
@@ -30,7 +34,7 @@ public class ExtendedStubMappingCreator {
         this.scope = scope;
     }
 
-    private RemoteEndPointConfigRegistry getEndPointConfigRegistry() {
+    private RemoteEndpointConfigRegistry getEndPointConfigRegistry() {
         return scope.getGlobalScope().getEndPointConfigRegistry();
     }
 
@@ -38,14 +42,15 @@ public class ExtendedStubMappingCreator {
         return new RequestPattern(urlPattern, request.getMethod(), request.getHeaders(), request.getQueryParameters(), request.getCookies(), request.getBasicAuthCredentials(), request.getBodyPatterns(), request.getCustomMatcher());
     }
 
+
     private UrlPathPattern calculateUrlPattern(ExtendedStubMapping newMapping) {
         String path = newMapping.getRequest().getUrlInfo();
         if (isPropertyName(path)) {
             try {
-                URL uri = getEndPointConfigRegistry().endpointUrlFor(path).getUrl();
+                URL uri = getEndPointConfigRegistry().endpointConfigFor(path).getUrl();
                 path = uri.getPath();
             } catch (Exception e) {
-                System.out.println(e);
+                LOGGER.log(Level.WARNING,"Could not resolve endpoint '" +path + "'.",e);
                 //TODO Think about this
             }
         }
@@ -76,10 +81,10 @@ public class ExtendedStubMappingCreator {
             Set<EndpointConfig> allEndpoints = getEndPointConfigRegistry().allKnownExternalEndpoints();
             for (EndpointConfig config : allEndpoints) {
                 if (sourceRequestPattern.getEndpointCategory() == null || config.getCategories().contains(sourceRequestPattern.getEndpointCategory())) {
-                    RequestPattern requestPattern = buildRequestPattern(urlPathMatching(config.getUrl().getPath() + ".*"), sourceRequestPattern);
+                    UrlPathPattern pathPattern = buildPathPattern(config);
+                    RequestPattern requestPattern = buildRequestPattern(pathPattern, sourceRequestPattern);
                     ResponseDefinition responseDefinition = buildResponseDefinition(stubMapping, config.getPropertyName());
-                    StubMapping childStubMapping = buildStubMapping(stubMapping, requestPattern, responseDefinition);
-                    result.add(childStubMapping);
+                    result.add(buildStubMapping(stubMapping, requestPattern, responseDefinition));
                 }
             }
         } else {
@@ -90,12 +95,25 @@ public class ExtendedStubMappingCreator {
         return result;
     }
 
+    private UrlPathPattern buildPathPattern(EndpointConfig config) {
+        UrlPathPattern pathPattern=null;
+        if(config.getEndpointType()== EndpointConfig.EndpointType.SOAP){
+            pathPattern=urlPathEqualTo(config.getUrl().getPath());
+        }else{
+            pathPattern=urlPathMatching(config.getUrl().getPath() + ".*");
+        }
+        return pathPattern;
+    }
+
     private StubMapping buildStubMapping(ExtendedStubMapping stubMapping, RequestPattern requestPattern, ResponseDefinition responseDefinition) {
         StubMapping childStubMapping = new StubMapping(requestPattern, responseDefinition);
         childStubMapping.setId(UUID.randomUUID());
         childStubMapping.setName(stubMapping.getName());
         childStubMapping.setPersistent(stubMapping.isPersistent());
-        childStubMapping.setPriority(calculatePriority(stubMapping.getLocalPriority()));
+        if(stubMapping.getLocalPriority()!=null) {
+            //HACK  Could be build requestPatterns only
+            childStubMapping.setPriority(calculatePriority(stubMapping.getLocalPriority()));
+        }
         return childStubMapping;
     }
 
@@ -109,12 +127,21 @@ public class ExtendedStubMappingCreator {
         ResponseDefinition result = null;
         if (sourceStubMapping.getResponse() != null) {
             ResponseDefinitionBuilder responseDefinitionBuilder = ResponseDefinitionBuilder.like(sourceStubMapping.getResponse());
-            if (Boolean.TRUE.equals(sourceStubMapping.getResponse().getInterceptFromSource())) {
-                URL url = getEndPointConfigRegistry().endpointUrlFor(propertyName).getUrl();
+            if (sourceStubMapping.getResponse().isInterceptFromSource()) {
+                URL url = getEndPointConfigRegistry().endpointConfigFor(propertyName).getUrl();
                 String proxiedBaseUrl = url.getProtocol() + "://" + url.getAuthority();
                 responseDefinitionBuilder = responseDefinitionBuilder.proxiedFrom(proxiedBaseUrl);
             }
             result = responseDefinitionBuilder.build();
+        }
+        return result;
+    }
+
+    public List<RequestPattern> createAllSupportingRequestPatterns() {
+        List<StubMapping> stubMappings = createAllSupportingStubMappings();
+        List<RequestPattern> result=new ArrayList<>();
+        for (StubMapping mapping : stubMappings) {
+            result.add(mapping.getRequest());
         }
         return result;
     }

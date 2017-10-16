@@ -11,7 +11,7 @@ import java.net.URI;
 import java.net.URL;
 
 public class DynamicClientRequestFactory extends ClientRequestFactory {
-    private final EndPointRegistry endpointRegistry;
+    private final EndpointRegistry endpointRegistry;
     private final MockableEndPoint endPointProperty;
 
     public DynamicClientRequestFactory(ClientExecutor executor, MockableEndPoint endPointProperty) {

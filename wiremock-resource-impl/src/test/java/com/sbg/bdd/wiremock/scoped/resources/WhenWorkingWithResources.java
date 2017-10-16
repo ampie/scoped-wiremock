@@ -1,7 +1,8 @@
-package com.sbg.bdd.wiremock.scoped.client;
+package com.sbg.bdd.wiremock.scoped.resources;
 
 
 import com.sbg.bdd.wiremock.scoped.*;
+import com.sbg.bdd.wiremock.scoped.resources.*;
 import com.sbg.bdd.wiremock.scoped.server.junit.ScopedWireMockServerRule;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;

@@ -27,7 +27,7 @@ class WhenBuildingReponseBodies extends WhenWorkingWithWireMock {
         mapping['response']['headers']['Content-Type'] == 'application/json'
         mapping['response']['headers']['foo-header'] == 'bar-header-value'
         mapping['response']['body'] == "{\"foo\":\"bar\"}"
-        mapping['priority'] == ScopeLocalPriority.BODY_KNOWN.priority()
+        mapping['priority'] == ScopeLocalPriority.BODY_KNOWN.priority() + 90
     }
     def 'should load the body by merging a template with provided variables'() throws Exception{
         given:
@@ -45,7 +45,7 @@ class WhenBuildingReponseBodies extends WhenWorkingWithWireMock {
         mapping['response']['headers']['Content-Type'] == 'text/xml'
         mapping['response']['headers']['foo-header'] == 'bar-header-value'
         mapping['response']['body'] == "<root>thisValue</root>"
-        mapping['priority'] == ScopeLocalPriority.BODY_KNOWN.priority()
+        mapping['priority'] == ScopeLocalPriority.BODY_KNOWN.priority() + 90
     }
 
 }

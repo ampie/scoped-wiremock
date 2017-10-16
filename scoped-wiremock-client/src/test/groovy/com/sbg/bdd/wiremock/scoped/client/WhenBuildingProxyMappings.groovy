@@ -11,6 +11,10 @@ import static com.sbg.bdd.wiremock.scoped.client.strategies.ProxyStrategies.beIn
 import static com.sbg.bdd.wiremock.scoped.client.strategies.ProxyStrategies.target
 import static com.sbg.bdd.wiremock.scoped.client.strategies.RequestStrategies.*
 
+/**
+ * This test traverses the client/server module boundary a bit, but it helps significantly with regression during the
+ * client to server refactoring process
+ */
 class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
 
     def 'should create a simple proxy mapping'() throws Exception {
@@ -23,9 +27,9 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         def mappings = wireMockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['extendedRequest']['urlPathPattern'] == '/home/path.*'
+        mapping['request']['urlPathPattern'] == '/home/path.*'
         mapping['response']['proxyBaseUrl'] == "http://some.host.com/base"
-        mapping['priority'] == ScopeLocalPriority.FALLBACK_PROXY.priority()
+        mapping['priority'] == ScopeLocalPriority.FALLBACK_PROXY.priority() + 90
     }
 
     def 'should create an intercepting proxy mapping that targets the original service'() throws Exception {
@@ -33,15 +37,15 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         def wireMockContext = initializeWireMockContext()
 
         when:
-        a(PUT).to("some.property.name").to(beIntercepted()).applyTo(wireMockContext)
+        a(PUT).to("external.service.a").to(beIntercepted()).applyTo(wireMockContext)
 
         then:
         def mappings = wireMockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['urlPathPattern'] == '/resolved/endpoint.*'
+        mapping['request']['urlPathPattern'] == '/service/one/endpoint.*'
         mapping['response']['proxyBaseUrl'] == "http://somehost.com"
-        mapping['priority'] == ScopeLocalPriority.FALLBACK_PROXY.priority()
+        mapping['priority'] == ScopeLocalPriority.FALLBACK_PROXY.priority() + 90
     }
     def 'should create an proxy mapping that intercepts all calls to endpoints of a certain category'() throws Exception {
         given:
@@ -57,14 +61,14 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         mapping['request']['headers'][HeaderName.ofTheEndpointCategory()].equalTo == 'category1'
         mapping['request']['urlPathPattern'] == '/service/one/endpoint.*'
         mapping['response']['proxyBaseUrl'] == "http://somehost.com"
-        mapping['priority'] == ScopeLocalPriority.FALLBACK_PROXY.priority()
+        mapping['priority'] == ScopeLocalPriority.FALLBACK_PROXY.priority() + 90
     }
 
     def 'should target the service under test'() throws Exception {
         given:
         def wireMockContext = initializeWireMockContext()
         when:
-        a(PUT).to("some.property.name").will(target()
+        a(PUT).to("external.service.a").will(target()
                 .theServiceUnderTest()
                 .using()
                 .theLast(5)
@@ -74,13 +78,13 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         def mappings = wireMockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['urlPathPattern'] == '/resolved/endpoint.*'
+        mapping['request']['urlPathPattern'] == '/service/one/endpoint.*'
         mapping['response']['proxyBaseUrl'] == 'http://service.com/under/test'
         mapping['response']['transformers'][0] == 'ProxyUrlTransformer'
         mapping['response']['transformerParameters']['action'] == 'use'
         mapping['response']['transformerParameters']['which'] == 'trailing'
         mapping['response']['transformerParameters']['numberOfSegments'] == 5
-        mapping['priority'] == ScopeLocalPriority.SPECIFIC_PROXY.priority()
+        mapping['priority'] == ScopeLocalPriority.SPECIFIC_PROXY.priority() + 90
     }
 
     def 'should target a specified url'() throws Exception {
@@ -88,7 +92,7 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         def wireMockContext = initializeWireMockContext()
 
         when:
-            a(PUT).to("some.property.name").to(
+            a(PUT).to("external.service.a").to(
                     target('http://target.com/base')
                             .ignoring()
                             .theFirst(5)
@@ -98,12 +102,12 @@ class WhenBuildingProxyMappings extends WhenWorkingWithWireMock {
         def mappings = wireMockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['urlPathPattern'] == '/resolved/endpoint.*'
+        mapping['request']['urlPathPattern'] == '/service/one/endpoint.*'
         mapping['response']['proxyBaseUrl'] == 'http://target.com/base'
         mapping['response']['transformers'][0] == 'ProxyUrlTransformer'
         mapping['response']['transformerParameters']['action'] == 'ignore'
         mapping['response']['transformerParameters']['which'] == 'leading'
         mapping['response']['transformerParameters']['numberOfSegments'] == 5
-        mapping['priority'] == ScopeLocalPriority.SPECIFIC_PROXY.priority()
+        mapping['priority'] == ScopeLocalPriority.SPECIFIC_PROXY.priority() + 90
     }
 }

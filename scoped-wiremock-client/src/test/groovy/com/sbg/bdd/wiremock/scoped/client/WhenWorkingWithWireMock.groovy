@@ -1,8 +1,11 @@
 package com.sbg.bdd.wiremock.scoped.client
 
-import com.sbg.bdd.wiremock.scoped.admin.endpointconfig.RemoteEndPointConfigRegistry
+import com.sbg.bdd.wiremock.scoped.admin.endpointconfig.RemoteEndpointConfigRegistry
+import com.sbg.bdd.wiremock.scoped.integration.EndpointConfig
 import com.sbg.bdd.wiremock.scoped.integration.HttpCommand
 import com.sbg.bdd.wiremock.scoped.integration.HttpCommandExecutor
+import com.sbg.bdd.wiremock.scoped.server.CorrelatedScope
+import com.sbg.bdd.wiremock.scoped.server.GlobalScope
 import groovy.json.JsonOutput
 
 import spock.lang.Specification
@@ -13,22 +16,20 @@ abstract class WhenWorkingWithWireMock extends Specification {
     static final int EVERYBODY_PRIORITY_DECREMENT = PRIORITIES_PER_LEVEL / 2;
 
     def initializeWireMockContext() {
-        HttpCommandExecutor.INSTANCE=Mock(HttpCommandExecutor) {
+        HttpCommandExecutor.INSTANCE = Mock(HttpCommandExecutor) {
             execute(_) >> { args ->
-                HttpCommand request = args[0]
-                def body = null;
-                if (request.url.toExternalForm().endsWith('/Property/all')) {
-                    body = JsonOutput.toJson([configs: [
-                            [propertyName: 'external.service.a', url: 'http://somehost.com/service/one/endpoint', endpointType: 'REST', categories:['category1']],
-                            [propertyName: 'external.service.b', url: 'http://somehost.com/service/two/endpoint', endpointType: 'SOAP', categories: ['category1']]
-
-                    ]])
-                } else {
-                    body = JsonOutput.toJson([propertyName: 'x', url: 'http://somehost.com/resolved/endpoint', endpointType: 'SOAP', category: 'category1'])
-                }
-                return body
+                return '[' +
+                        '{"propertyName":"external.service.a","url":"http://somehost.com/service/one/endpoint","endpointType":"REST","categories":["category1"],"scopes":[]},' +
+                        '{"propertyName":"external.service.b","url":"http://somehost.com/service/two/endpoint","endpointType":"SOAP","categories":["category1"],"scopes":[]}' +
+                        ']'
             }
         }
-        return new WireMockContextStub(new RemoteEndPointConfigRegistry('http://some.host/rest/', 'all'))
+        def registry = new RemoteEndpointConfigRegistry('http://some.host/rest/', EndpointConfig.LOCAL_INTEGRATION_SCOPE)
+        return new WireMockContextStub(Mock(CorrelatedScope) {
+            getLevel() >> 1
+            getGlobalScope() >> Mock(GlobalScope) {
+                getEndPointConfigRegistry() >> registry
+            }
+        })
     }
 }

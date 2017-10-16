@@ -21,7 +21,7 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
     private boolean urlIsPattern = false;
     private boolean toAllKnownExternalServices = false;
     private String endpointCategory;
-    private UrlPattern urlPattern;
+    private String correlationPath;
 
 
     public ExtendedRequestPatternBuilder(ExtendedRequestPatternBuilder builder) {
@@ -54,8 +54,6 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
 
     public T toAnyKnownExternalService() {
         toAllKnownExternalServices = true;
-        //TODO this line is superfluous. URLInfo is irrelevant because multiple children will be created
-        urlInfo = ".*";
         return (T) this;
     }
 
@@ -88,10 +86,6 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
 
     public T to(String urlInfo) {
         return to(urlInfo, null);
-    }
-
-    public UrlPattern getUrlPathPattern() {
-        return urlPattern;
     }
 
 
@@ -164,12 +158,16 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
     }
 
     public ExtendedRequestPattern build() {
-        ExtendedRequestPattern requestPattern = new ExtendedRequestPattern(super.build());
+        ExtendedRequestPattern requestPattern = new ExtendedRequestPattern(correlationPath, super.build());
         requestPattern.setEndpointCategory(endpointCategory);
         requestPattern.setPathSuffix(pathSuffix);
         requestPattern.setToAllKnownExternalServices(toAllKnownExternalServices);
         requestPattern.setUrlInfo(urlInfo);
         requestPattern.setUrlIsPattern(urlIsPattern);
         return requestPattern;
+    }
+
+    public void setCorrelationPath(String correlationPath) {
+        this.correlationPath = correlationPath;
     }
 }

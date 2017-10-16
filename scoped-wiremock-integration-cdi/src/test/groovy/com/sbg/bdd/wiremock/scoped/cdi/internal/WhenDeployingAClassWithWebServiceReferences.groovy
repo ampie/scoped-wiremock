@@ -6,7 +6,7 @@ import com.sbg.bdd.wiremock.scoped.integration.EndpointConfig
 import com.sbg.bdd.wiremock.scoped.filter.ServerSideEndPointConfigRegistry
 import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
-import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry
+import com.sbg.bdd.wiremock.scoped.integration.EndpointRegistry
 import spock.lang.Specification
 
 import javax.enterprise.inject.spi.AnnotatedField
@@ -19,7 +19,7 @@ class WhenDeployingAClassWithWebServiceReferences extends Specification{
     def 'the endpoint config registry should be updated with all appropriate REST and SOAP endpoints' (){
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndPointRegistry){
+        BaseDependencyInjectorAdaptor.ENDPOINT_REGISTRY=Mock(EndpointRegistry){
             endpointUrlFor('my.soap.endpoint.property') >> new URL('http://some.soap.host.com')
             endpointUrlFor('my.rest.endpoint.property') >> new URL('http://some.rest.host.com')
         }
@@ -53,8 +53,8 @@ class WhenDeployingAClassWithWebServiceReferences extends Specification{
         soapConfig.url == new URL('http://some.soap.host.com')
         soapConfig.categories[0] == "cat1"
         soapConfig.categories[1] == "cat2"
-        soapConfig.scope[0] == "scope1"
-        soapConfig.scope[1] == "scope2"
+        soapConfig.scopes[0] == "scope1"
+        soapConfig.scopes[1] == "scope2"
     }
 
 }

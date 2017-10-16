@@ -22,7 +22,7 @@ public class JoinKnownCorrelatedScopeTask extends ScopeAdminTask{
         sw.start();
         try {
             CorrelationState correlationState = Json.read(request.getBodyAsString(), CorrelationState.class);
-            CorrelationState scope = admin.joinKnownCorrelatedScope(correlationState);
+            CorrelationState scope = admin.startNestedScope(correlationState);
             return responseDefinition()
                     .withStatus(HTTP_OK)
                     .withBody(Json.write(scope))

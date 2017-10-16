@@ -16,6 +16,7 @@ class WhenProxyingUnmappedEndpoints extends Specification{
     def 'it should proxy all known endpoints when switched on'(){
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
         given:
+        ServerSideEndPointConfigRegistry.clear()
         System.setProperty(InboundCorrelationPathFilter.SCOPED_WIREMOCK_ENABLED, "true")
         def commands = new ArrayList()
         HttpCommandExecutor.INSTANCE=Mock(HttpCommandExecutor){
@@ -26,8 +27,8 @@ class WhenProxyingUnmappedEndpoints extends Specification{
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseWireMockCorrelationState()
         ServerSideEndPointConfigRegistry.getInstance().registerRestEndpoint('endpoint1','category1')
         ServerSideEndPointConfigRegistry.getInstance().registerSoapEndpoint('endpoint2','category1')
-        ServerSideEndPointConfigRegistry.getInstance().registerAdditionalRestEndpoint('endpoint3','category2')
-        ServerSideEndPointConfigRegistry.getInstance().registerAdditionalSoapEndpoint('endpoint4','category2')
+        ServerSideEndPointConfigRegistry.getInstance().registerRestEndpoint('endpoint3','category2')
+        ServerSideEndPointConfigRegistry.getInstance().registerSoapEndpoint('endpoint4','category2')
         def endpointProps = new Properties()
         endpointProps.put('endpoint1','http://host1.com')
         endpointProps.put('endpoint2','http://host2.com')

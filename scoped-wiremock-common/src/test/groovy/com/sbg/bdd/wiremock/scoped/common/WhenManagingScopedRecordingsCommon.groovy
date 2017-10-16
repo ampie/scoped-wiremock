@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.http.HttpClientFactory
 import com.github.tomakehurst.wiremock.http.RequestMethod
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState
+import com.sbg.bdd.wiremock.scoped.admin.model.GlobalCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
@@ -18,7 +19,7 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
 
     def 'shouldRecordAnExchangeAgainstTheScopeItOccurredIn'(){
         given: 'I have two scopes and I 2 requests in the first and 1 in the second'
-        def globalScope = wireMock.startNewGlobalScope('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl()+'/sut'),'sutx')
+        def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl()+'/sut'),'sutx'))
         def scope1 = wireMock.joinCorrelatedScope(globalScope.correlationPath + '/scope1',Collections.emptyMap())
         def scope2 = wireMock.joinCorrelatedScope(globalScope.correlationPath + '/scope2',Collections.emptyMap())
         wireMock.register(matching(scope1.correlationPath + '.*'), get(urlEqualTo("/test/uri1")).willReturn(aResponse().withBody("hello1")).atPriority(1))
@@ -38,7 +39,7 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
 
     def 'shouldDiscardAnExchangeWhenTheScopeItOccurredInStops'(){
         given: 'I have two scopes and I 2 requests in the first and 1 in the second'
-        def globalScope = wireMock.startNewGlobalScope('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl()+'/sut'),'sutx')
+        def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl()+'/sut'),'sutx'))
         def scope1 = wireMock.joinCorrelatedScope(globalScope.correlationPath + '/scope1',Collections.emptyMap())
         def scope2 = wireMock.joinCorrelatedScope(globalScope.correlationPath + '/scope2',Collections.emptyMap())
         wireMock.register(matching(scope1.correlationPath + '.*'), get(urlEqualTo("/test/uri1")).willReturn(aResponse().withBody("hello1")).atPriority(1))
@@ -48,7 +49,7 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
         assertThat(sendGet("/test/uri2", scope2.correlationPath), is(equalTo("hello2")))
 
         when:'I stop the first scope'
-        wireMock.stopCorrelatedScope(scope1.correlationPath)
+        wireMock.stopCorrelatedScope(scope1.correlationPath,Collections.emptyMap())
         def exchangesAgainstScope1 = wireMock.findMatchingExchanges(matching(scope1.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri1")).build());
         def exchangesAgainstScope2 = wireMock.findMatchingExchanges(matching(scope2.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri2")).build());
 
@@ -59,7 +60,7 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
 
     def 'shouldDiscardAnExchangeWhenTheParentOfTheScopeItOccurredInStops'(){
         given: 'I have two scopes and I 2 requests in the first and 1 in the second'
-        def globalScope = wireMock.startNewGlobalScope('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl()+'/sut'),'sutx')
+        def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl()+'/sut'),'sutx'))
         def scope1 = wireMock.joinCorrelatedScope(globalScope.correlationPath + '/scope1',Collections.emptyMap())
         def scope2 = wireMock.joinCorrelatedScope(globalScope.correlationPath + '/scope2',Collections.emptyMap())
         wireMock.register(matching(scope1.correlationPath + '.*'), get(urlEqualTo("/test/uri1")).willReturn(aResponse().withBody("hello1")).atPriority(1))
@@ -69,7 +70,7 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
         assertThat(sendGet("/test/uri2", scope2.correlationPath), is(equalTo("hello2")))
 
         when:'I stop the parent scope scope'
-        wireMock.stopCorrelatedScope(globalScope.correlationPath)
+        wireMock.stopCorrelatedScope(globalScope.correlationPath,Collections.emptyMap())
         def exchangesAgainstScope1 = wireMock.findMatchingExchanges(matching(scope1.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri1")).build());
         def exchangesAgainstScope2 = wireMock.findMatchingExchanges(matching(scope2.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri2")).build());
 
@@ -80,14 +81,14 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
 
     def 'shouldDiscardExchangesFromNestedScopeWhenItStops'(){
         given:
-        def globalScope = wireMock.startNewGlobalScope('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl()+'/sut'),'sutx')
+        def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl()+'/sut'),'sutx'))
         def nestedScope = wireMock.joinCorrelatedScope(globalScope.correlationPath + '/scope1',Collections.emptyMap())
         wireMock.register(get(urlEqualTo("/test/uri1")).withHeader(HeaderName.ofTheCorrelationKey(), matching(globalScope.correlationPath + '.*')).willReturn(aResponse().withBody("hello1")).atPriority(1));
         assertThat(sendGet("/test/uri1",nestedScope.getCorrelationPath()), is(equalTo("hello1")))
         assertThat(sendGet("/test/uri1", nestedScope.getCorrelationPath()), is(equalTo("hello1")))
         assertThat(sendGet("/test/uri1", globalScope.getCorrelationPath()), is(equalTo("hello1")))
         when:
-        wireMock.stopCorrelatedScope(nestedScope.getCorrelationPath());
+        wireMock.stopCorrelatedScope(nestedScope.getCorrelationPath(),Collections.emptyMap())
         then:
         def exchangesAgainstNestedScope = wireMock.findMatchingExchanges(matching(nestedScope.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri1")).build());
         exchangesAgainstNestedScope.size() == 0

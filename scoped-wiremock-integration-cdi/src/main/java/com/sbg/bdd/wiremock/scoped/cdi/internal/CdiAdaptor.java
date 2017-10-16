@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectorAdaptor;
-import com.sbg.bdd.wiremock.scoped.integration.EndPointRegistry;
+import com.sbg.bdd.wiremock.scoped.integration.EndpointRegistry;
 import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
 
 import javax.enterprise.context.spi.CreationalContext;
@@ -16,8 +16,8 @@ public class CdiAdaptor implements DependencyInjectorAdaptor {
     }
 
     @Override
-    public EndPointRegistry getEndpointRegistry() {
-        return resolveBean(EndPointRegistry.class);
+    public EndpointRegistry getEndpointRegistry() {
+        return resolveBean(EndpointRegistry.class);
     }
 
     private <T> T resolveBean(Class<T> clss) {

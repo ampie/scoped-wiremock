@@ -31,12 +31,12 @@ class WhenBuildingRequestPatterns extends WhenWorkingWithWireMock {
         def wiremockContext = initializeWireMockContext()
 
         when:
-        anyRequest().to("some.property.name").will(returnTheBody("blah", "text/plain")).applyTo(wiremockContext)
+        anyRequest().to("external.service.a").will(returnTheBody("blah", "text/plain")).applyTo(wiremockContext)
         then:
         def mappings = wiremockContext.mappings
         mappings.size() == 1
         def mapping = new JsonSlurper().parseText(Json.write(mappings[0]))
-        mapping['request']['urlPath'] == '/resolved/endpoint'
+        mapping['request']['urlPath'] == '/service/one/endpoint'
         mapping['response']['headers']['Content-Type'] == 'text/plain'
         mapping['response']['body'] == 'blah'
     }
@@ -56,7 +56,7 @@ class WhenBuildingRequestPatterns extends WhenWorkingWithWireMock {
         def mapping0 = new JsonSlurper().parseText(Json.write(mappings[0]))
         mapping0['request']['urlPathPattern'] == '/service/one/endpoint.*'
         def mapping1 = new JsonSlurper().parseText(Json.write(mappings[1]))
-        mapping1['request']['urlPathPattern'] == '/service/two/endpoint.*'
+        mapping1['request']['urlPath'] == '/service/two/endpoint'//because it is soap
         mapping1['response']['headers']['Content-Type'] == 'text/plain'
         mapping1['response']['body'] == 'blah'
     }

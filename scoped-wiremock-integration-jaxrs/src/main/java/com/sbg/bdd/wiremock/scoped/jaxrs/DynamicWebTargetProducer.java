@@ -11,6 +11,7 @@ public class DynamicWebTargetProducer {
     private KeyStoreHelper keystoreHelper;
 
     @Produces
+    @MockableEndPoint(propertyName = "")
     public WebTarget produceIt(InjectionPoint ip) {
         MockableEndPoint epp = ip.getAnnotated().getAnnotation(MockableEndPoint.class);
         return new DynamicWebTarget(keystoreHelper, epp);

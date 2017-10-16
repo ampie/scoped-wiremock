@@ -69,7 +69,7 @@
 //                .addClass(HeaderName.class)
 //                .addClass(BaseDependencyInjectorAdaptor.class)
 //                .addClass(BaseWireMockCorrelationState.class)
-//                .addClass(EndPointRegistry.class)
+//                .addClass(EndpointRegistry.class)
 //                .addClass(WireMockCorrelationState.class)
 //                .addAsResource(new StringAsset("my.endpoint=http://localhost:" + wireMock.port() + "/dummy"), "endpoints.properties")
 //                .addAsManifestResource(new ClassLoaderAsset("HelloService.wsdl"), "HelloService.wsdl")

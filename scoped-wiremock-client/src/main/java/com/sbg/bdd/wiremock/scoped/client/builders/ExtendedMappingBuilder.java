@@ -128,7 +128,6 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
                 throw new IllegalArgumentException("ExtendedMappings only support the priority values provided in the " + ScopeLocalPriority.class.getName() + " class");
             } else {
                 this.localPriority = ScopeLocalPriority.values()[priority];
-
             }
         return (T) this;
     }
@@ -155,10 +154,10 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
     }
 
 
-    public StubMapping build() {
+    public ExtendedStubMapping build() {
         ExtendedRequestPattern requestPattern = requestPatternBuilder.build();
-        ExtendedResponseDefinition response = responseDefinitionBuilder.build();
-        ExtendedStubMapping mapping = new ExtendedStubMapping(rootCorrelationPath, requestPattern, response);
+        ExtendedResponseDefinition response = responseDefinitionBuilder==null?null:responseDefinitionBuilder.build();
+        ExtendedStubMapping mapping = new ExtendedStubMapping(requestPattern, response);
         mapping.setLocalPriority(localPriority);
         mapping.setUuid(id);
         mapping.setName(name);
@@ -180,11 +179,11 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
     }
 
     private void registerTo(WireMockContext verificationContext) {
-        this.rootCorrelationPath = verificationContext.getCorrelationPath();
         verificationContext.register(this);
     }
 
     private void prepareForBuildWithin(WireMockContext verificationContext) {
+        getRequestPatternBuilder().setCorrelationPath(verificationContext.getCorrelationPath());
         if (responseDefinitionBuilder == null) {
             try {
                 responseDefinitionBuilder = responseStrategy.applyTo(this, verificationContext);

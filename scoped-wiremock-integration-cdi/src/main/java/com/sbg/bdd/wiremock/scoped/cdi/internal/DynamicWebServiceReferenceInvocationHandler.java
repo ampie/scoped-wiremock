@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 public class DynamicWebServiceReferenceInvocationHandler implements InvocationHandler {
     private static final Logger LOGGER = Logger.getLogger(DynamicWebServiceReferenceInvocationHandler.class.getName());
     private BindingProvider delegate;
-    private EndPointRegistry endPointRegistry;
+    private EndpointRegistry endpointRegistry;
     private MockableEndPoint mockableEndPoint;
 
     public DynamicWebServiceReferenceInvocationHandler(BindingProvider delegate, MockableEndPoint mockableEndPoint) {
@@ -52,7 +52,7 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
             if (method.isAnnotationPresent(WebMethod.class) && !isProbablyAlreadyMocked()) {
-                URL originalUrl = getEndPointRegistry().endpointUrlFor(mockableEndPoint.propertyName());
+                URL originalUrl = getEndpointRegistry().endpointUrlFor(mockableEndPoint.propertyName());
                 URL urlToUse = getUrlToUse(originalUrl);
                 if(mockableEndPoint.categories()!=null && mockableEndPoint.categories().length> 0) {
                     delegate.getRequestContext().put(HeaderName.ofTheEndpointCategory(), Arrays.asList(mockableEndPoint.categories()));
@@ -74,11 +74,11 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
         return originalUrl;
     }
 
-    private EndPointRegistry getEndPointRegistry() {
-        if (endPointRegistry == null) {
-            endPointRegistry = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
+    private EndpointRegistry getEndpointRegistry() {
+        if (endpointRegistry == null) {
+            endpointRegistry = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
         }
-        return endPointRegistry;
+        return endpointRegistry;
     }
 
     private boolean isProbablyAlreadyMocked() {

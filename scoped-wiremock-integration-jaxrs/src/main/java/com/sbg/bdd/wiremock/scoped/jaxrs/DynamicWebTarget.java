@@ -18,7 +18,7 @@ import java.net.URL;
 import java.util.Map;
 
 public class DynamicWebTarget implements WebTarget {
-    private final EndPointRegistry endpointRegistry;
+    private final EndpointRegistry endpointRegistry;
     private final WireMockCorrelationState currentCorrelationState;
     private WebTarget delegate;
     private final MockableEndPoint endPointProperty;

@@ -272,9 +272,6 @@ public class OkHttpAdminClient implements Admin {
         executeRequest(requestSpec, PathParams.empty(), null, Void.class, 200);
     }
 
-    protected <B, R> R executeRequest(RequestSpec requestSpec, B requestBody, Class<R> responseType) {
-        return executeRequest(requestSpec, PathParams.empty(), requestBody, responseType, 200);
-    }
 
     protected <B, R> R executeRequest(RequestSpec requestSpec, Class<R> responseType) {
         return executeRequest(requestSpec, PathParams.empty(), null, responseType, 200);

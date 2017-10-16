@@ -29,10 +29,11 @@ public class ScopeExtensionsOnClient implements AdminApiExtension{
         router.add(POST, "/resources/read", new ReadResourceTask(currentAdmin));
         router.add(POST, "/resources/write", new WriteResourceTask(currentAdmin));
         //Scope management
-        router.add(POST, "/scopes/join", new JoinKnownCorrelatedScopeTask(currentAdmin));
-        router.add(POST, "/scopes/new", new StartNewCorrelatedScopeTask(currentAdmin));
-        router.add(POST, "/scopes/sync", new SyncCorrelatedScopeTask(currentAdmin));
+        router.add(POST, "/global_scopes/new", new StartNewGlobalScopeTask(currentAdmin));
+        router.add(POST, "/global_scopes/stop",new StopGlobalScopeTask(currentAdmin));
         router.add(POST, "/scopes/stop",new  StopCorrelatedScopeTask(currentAdmin));
+        router.add(POST, "/scopes/join", new JoinKnownCorrelatedScopeTask(currentAdmin));
+        router.add(POST, "/scopes/sync", new SyncCorrelatedScopeTask(currentAdmin));
         router.add(POST, "/scopes/get",new  GetCorrelatedScopeTask(currentAdmin));
         //Step management
         router.add(POST, "/scopes/steps/start",new  StartStepTask(currentAdmin));
@@ -42,6 +43,8 @@ public class ScopeExtensionsOnClient implements AdminApiExtension{
         router.add(POST, "/scopes/mappings/find",new GetMappingsInScopeTask(currentAdmin));
         router.add(POST, "/scopes/exchanges/find",new  FindExchangesInScopeTask(currentAdmin));
         router.add(POST, "/scopes/exchanges/journal",new JournalTask(currentAdmin));
+        router.add(POST, "/extended_mappings",new CreateExtendedStubMappingTask(currentAdmin));
+        router.add(POST, "/extended_count",new CountByExtendedRequestPatternTask(currentAdmin));
     }
 
 
