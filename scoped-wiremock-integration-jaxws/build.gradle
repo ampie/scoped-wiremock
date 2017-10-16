@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-        mavenLocal()
         if (System.getProperty("runExternally") == 'true') {
             jcenter()
             maven {

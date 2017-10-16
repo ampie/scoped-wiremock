@@ -5,7 +5,7 @@ ext {
 }
 buildscript {
     repositories {
-        mavenLocal()
+//        mavenLocal()
         if ( true || System.getProperty("runExternally") == 'true') {
             maven { url "https://plugins.gradle.org/m2/" }
         } else {
@@ -50,7 +50,7 @@ subprojects {
     }
     artifacts.archives packageSources
     repositories {
-        mavenLocal()
+//        mavenLocal()
         if (true || System.getProperty("runExternally") =='true') {
             maven { url 'http://repository.jboss.org/nexus/content/groups/public' }
             maven { url 'http://repository.jboss.org/nexus/content/repositories/deprecated' }
