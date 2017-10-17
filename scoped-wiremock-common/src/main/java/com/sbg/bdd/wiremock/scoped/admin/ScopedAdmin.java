@@ -10,9 +10,9 @@ import java.util.List;
 
 public interface ScopedAdmin {
     //Recording management
-    void saveRecordingsForRequestPattern(RequestPattern pattern, ResourceContainer recordingDirectory);
+    void saveRecordingsForRequestPattern(ExtendedRequestPattern pattern, ResourceContainer recordingDirectory);
 
-    void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority);
+    void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, ExtendedRequestPattern requestPattern, int priority);
 
     //Scope management
     GlobalCorrelationState startNewGlobalScope(GlobalCorrelationState globalCorrelationState);
@@ -46,6 +46,6 @@ public interface ScopedAdmin {
 
     int count(ExtendedRequestPattern requestPattern);
 
-    List<RecordedExchange> findMatchingExchanges(RequestPattern requestPattern);
+    List<RecordedExchange> findMatchingExchanges(ExtendedRequestPattern requestPattern);
 
 }

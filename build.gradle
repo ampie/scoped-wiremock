@@ -1,12 +1,13 @@
+
 group = 'com.sbg.bdd'
-version = '0.2.0'
+version = '0.2.1'
 ext {
     WIREMOCK_VERSION = '2.6.0'
 }
 buildscript {
     repositories {
-//        mavenLocal()
-        if ( true || System.getProperty("runExternally") == 'true') {
+        if ('true'.equals(System.getProperty("runExternally"))) {
+            mavenLocal()
             maven { url "https://plugins.gradle.org/m2/" }
         } else {
             maven { url 'http://nexus.standardbank.co.za:8090/nexus/content/repositories/public/' }
@@ -50,8 +51,8 @@ subprojects {
     }
     artifacts.archives packageSources
     repositories {
-//        mavenLocal()
-        if (true || System.getProperty("runExternally") =='true') {
+        if ('true'.equals(System.getProperty("runExternally"))) {
+            mavenLocal()
             maven { url 'http://repository.jboss.org/nexus/content/groups/public' }
             maven { url 'http://repository.jboss.org/nexus/content/repositories/deprecated' }
             maven { url "http://repo.maven.apache.org/maven2" }

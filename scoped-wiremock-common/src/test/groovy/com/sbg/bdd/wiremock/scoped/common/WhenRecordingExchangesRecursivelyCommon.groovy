@@ -3,7 +3,9 @@ package com.sbg.bdd.wiremock.scoped.common
 import com.github.tomakehurst.wiremock.common.HttpClientUtils
 import com.github.tomakehurst.wiremock.http.HttpClientFactory
 import com.github.tomakehurst.wiremock.http.RequestMethod
+import com.github.tomakehurst.wiremock.matching.RequestPattern
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
+import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern
 import com.sbg.bdd.wiremock.scoped.admin.model.GlobalCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
 import org.apache.http.client.methods.CloseableHttpResponse
@@ -29,7 +31,8 @@ abstract class WhenRecordingExchangesRecursivelyCommon extends  ScopedWireMockCo
         assertThat(sendGet("/entry_point", userScope.correlationPath),is(IsEqual.equalTo("hello")))
         when:
         def exchangesAgainstStep = wireMock.findExchangesAgainstStep(stepContainingScope.getCorrelationPath(), "step1")
-        def exchangesAgainstScope = wireMock.findMatchingExchanges(matching(stepContainingScope.getCorrelationPath() +'.*'),new RequestPatternBuilder(RequestMethod.GET, urlMatching("/.*")).build())
+        def requestPattern = new ExtendedRequestPattern(stepContainingScope.correlationPath, new RequestPatternBuilder(RequestMethod.GET, urlMatching("/.*")).build())
+        def exchangesAgainstScope = wireMock.findMatchingExchanges(matching(stepContainingScope.getCorrelationPath() +'.*'), requestPattern)
         then:
         exchangesAgainstScope.size() == 4
         exchangesAgainstStep.size() == 1

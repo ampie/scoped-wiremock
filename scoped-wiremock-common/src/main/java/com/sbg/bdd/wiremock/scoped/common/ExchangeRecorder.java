@@ -17,9 +17,7 @@ import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.resource.ResourceFilter;
 import com.sbg.bdd.resource.file.ReadableFileResource;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
-import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
-import com.sbg.bdd.wiremock.scoped.admin.model.RecordedRequest;
-import com.sbg.bdd.wiremock.scoped.admin.model.RecordedResponse;
+import com.sbg.bdd.wiremock.scoped.admin.model.*;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 import org.apache.commons.codec.binary.Base64;
 
@@ -40,14 +38,13 @@ public class ExchangeRecorder {
         this.admin = admin;
     }
 
-    public void saveRecordingsForRequestPattern(RequestPattern pattern, ResourceContainer recordingDirectory) {
+    public void saveRecordingsForRequestPattern(ExtendedRequestPattern pattern, ResourceContainer recordingDirectory) {
         List<RecordedExchange> recordedExchanges = scopedAdmin.findMatchingExchanges(pattern);
         for (int i = 0; i < recordedExchanges.size(); i++) {
             writeFiles(recordingDirectory, recordedExchanges.get(i));
         }
     }
-
-    public List<MappingBuilder> serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
+    public List<MappingBuilder> serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, ExtendedRequestPattern requestPattern, int priority) {
         List<MappingBuilder> mappingBuilders = new ArrayList<>();
         List<String> baseNames = extractMappingFileBaseNames(directoryRecordedTo);
         Map<String, ReadableFileResource> mappingFiles = mappingFilesByBaseName(directoryRecordedTo, baseNames);
@@ -117,7 +114,7 @@ public class ExchangeRecorder {
     }
 
 
-    private MappingBuilder buildMappingIfPossible(ResourceContainer directoryRecordedTo, RequestPattern templateRequestPattern, Map.Entry<String, ReadableFileResource> entry) {
+    private MappingBuilder buildMappingIfPossible(ResourceContainer directoryRecordedTo, ExtendedRequestPattern templateRequestPattern, Map.Entry<String, ReadableFileResource> entry) {
         String body = new String(entry.getValue().read());
         ReadableResource headersResource = (ReadableResource) directoryRecordedTo.resolveExisting(entry.getKey() + ".headers.json");
         HttpHeaders headers = Json.read(new String(headersResource.read()), HttpHeaders.class);
@@ -134,7 +131,7 @@ public class ExchangeRecorder {
         }
     }
 
-    private void copyTemplateInto(RequestPattern templateRequestPattern, MappingBuilder mappingBuilder) {
+    private void copyTemplateInto(ExtendedRequestPattern templateRequestPattern, MappingBuilder mappingBuilder) {
         if (templateRequestPattern.getBodyPatterns() != null) {
             for (StringValuePattern pattern : templateRequestPattern.getBodyPatterns()) {
                 mappingBuilder.withRequestBody(pattern);
@@ -154,7 +151,7 @@ public class ExchangeRecorder {
         }
     }
 
-    private UrlPathPattern calculateRequestUrl(RequestPattern requestPattern, HttpHeaders headers, Matcher s) {
+    private UrlPathPattern calculateRequestUrl(ExtendedRequestPattern requestPattern, HttpHeaders headers, Matcher s) {
         if (headers.getHeader("requestedUrl").isPresent()) {
             return WireMock.urlPathEqualTo(headers.getHeader("requestedUrl").firstValue());
         } else {

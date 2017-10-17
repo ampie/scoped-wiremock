@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
 import com.sbg.bdd.resource.ReadableResource;
 import com.sbg.bdd.resource.file.DirectoryResourceRoot;
+import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedRequest;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedResponse;
@@ -51,7 +52,7 @@ abstract class WhenRecordingResponses extends ScopedWireMockTest {
 //        }
         getWireMock().saveRecordingsForRequestPattern(
                 matching("/scopepath/."),
-                WireMock.any(WireMock.urlPathMatching("/context.*")).build().getRequest(),
+                new ExtendedRequestPattern("/scope", WireMock.any(WireMock.urlPathMatching("/context.*")).build().getRequest()),
                 outputDir
         );
 

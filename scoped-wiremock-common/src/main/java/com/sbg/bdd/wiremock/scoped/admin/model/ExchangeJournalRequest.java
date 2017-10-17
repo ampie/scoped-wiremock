@@ -28,20 +28,20 @@ public class ExchangeJournalRequest {
     @XmlElement(
             nillable = false
     )
-    private RequestPattern requestPattern;
+    private ExtendedRequestPattern requestPattern;
     private Integer priority;
 
     public ExchangeJournalRequest() {
     }
 
-    public ExchangeJournalRequest(JournalMode mode, String resourceRoot, String path, RequestPattern requestPattern) {
+    public ExchangeJournalRequest(JournalMode mode, String resourceRoot, String path, ExtendedRequestPattern requestPattern) {
         this.mode = mode;
         this.resourceRoot = resourceRoot;
         this.path = path;
         this.requestPattern = requestPattern;
     }
 
-    public ExchangeJournalRequest(JournalMode mode, String rootName, String path, RequestPattern requestPattern, int priority) {
+    public ExchangeJournalRequest(JournalMode mode, String rootName, String path, ExtendedRequestPattern requestPattern, int priority) {
         this(mode,rootName,path,requestPattern);
         this.priority = priority;
     }
@@ -58,7 +58,7 @@ public class ExchangeJournalRequest {
         return path;
     }
 
-    public RequestPattern getRequestPattern() {
+    public ExtendedRequestPattern getRequestPattern() {
         return requestPattern;
     }
 

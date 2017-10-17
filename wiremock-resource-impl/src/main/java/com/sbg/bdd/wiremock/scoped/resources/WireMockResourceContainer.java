@@ -62,7 +62,7 @@ public class WireMockResourceContainer extends WireMockResource implements Resou
     @Override
     public WireMockResource[] list(ResourceFilter filter) {
         List<Resource> result = new ArrayList<>();
-        for (Map.Entry<String, ? extends Resource> entry : children.entrySet()) {
+        for (Map.Entry<String, ? extends Resource> entry : getChildren().entrySet()) {
             if (filter.accept(this, entry.getKey())) {
                 result.add(entry.getValue());
             }

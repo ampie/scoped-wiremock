@@ -10,7 +10,6 @@ import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.SortedConcurrentMappingSet;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.verification.InMemoryRequestJournal;
-import com.github.tomakehurst.wiremock.verification.VerificationResult;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.*;
@@ -125,12 +124,12 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
 
     //Recording Management
     @Override
-    public void saveRecordingsForRequestPattern(RequestPattern pattern, ResourceContainer recordingDirectory) {
+    public void saveRecordingsForRequestPattern(ExtendedRequestPattern pattern, ResourceContainer recordingDirectory) {
         new ExchangeRecorder(this, admin).saveRecordingsForRequestPattern(pattern, recordingDirectory);
     }
 
     @Override
-    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
+    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, ExtendedRequestPattern requestPattern, int priority) {
         new ExchangeRecorder(this, admin).serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
     }
 
@@ -161,13 +160,17 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
         }
     }
     public int count(ExtendedRequestPattern pattern){
-        ExtendedStubMappingCreator creator = new ExtendedStubMappingCreator(new ExtendedStubMapping(pattern,null), getCorrelatedScopeImpl(pattern.getCorrelationPath()));
-        return this.exchangeJournal.count(creator.createAllSupportingRequestPatterns());
+        return this.exchangeJournal.count(supportingRequestPatterns(pattern));
     }
 
+    private List<RequestPattern> supportingRequestPatterns(ExtendedRequestPattern pattern) {
+        ExtendedStubMappingCreator creator = new ExtendedStubMappingCreator(new ExtendedStubMapping(pattern,null), getCorrelatedScopeImpl(pattern.getCorrelationPath()));
+        return creator.createAllSupportingRequestPatterns();
+    }
 
-    public List<RecordedExchange> findMatchingExchanges(RequestPattern pattern) {
-        return exchangeJournal.findMatchingExchanges(pattern);
+    @Override
+    public List<RecordedExchange> findMatchingExchanges(ExtendedRequestPattern pattern) {
+        return exchangeJournal.findMatchingExchanges(supportingRequestPatterns(pattern));
     }
 
     public void resetAll() {

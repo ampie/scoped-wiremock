@@ -75,12 +75,12 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     }
 
     @Override
-    public void saveRecordingsForRequestPattern(RequestPattern pattern, ResourceContainer recordingDirectory) {
+    public void saveRecordingsForRequestPattern(ExtendedRequestPattern pattern, ResourceContainer recordingDirectory) {
         scopeAdmin.saveRecordingsForRequestPattern(pattern, recordingDirectory);
     }
 
     @Override
-    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
+    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, ExtendedRequestPattern requestPattern, int priority) {
         scopeAdmin.serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
     }
 
@@ -140,7 +140,7 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     }
 
     @Override
-    public List<RecordedExchange> findMatchingExchanges(RequestPattern pattern) {
+    public List<RecordedExchange> findMatchingExchanges(ExtendedRequestPattern pattern) {
         return scopeAdmin.findMatchingExchanges(pattern);
     }
 

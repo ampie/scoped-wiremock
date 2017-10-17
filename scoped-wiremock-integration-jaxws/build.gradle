@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        if (System.getProperty("runExternally") == 'true') {
+        if ('true'.equals(System.getProperty("runExternally"))) {
             jcenter()
             maven {
                 url "https://plugins.gradle.org/m2/"

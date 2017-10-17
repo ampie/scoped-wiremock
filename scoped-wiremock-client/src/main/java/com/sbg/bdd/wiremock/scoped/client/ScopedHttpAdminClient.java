@@ -87,7 +87,7 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
     }
 
     @Override
-    public void saveRecordingsForRequestPattern(RequestPattern pattern, ResourceContainer recordingDirectory) {
+    public void saveRecordingsForRequestPattern(ExtendedRequestPattern pattern, ResourceContainer recordingDirectory) {
         executeRequest(
                 scopedAdminRoutes.requestSpecForTask(JournalTask.class),
                 PathParams.empty(),
@@ -98,7 +98,7 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
     }
 
     @Override
-    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
+    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, ExtendedRequestPattern requestPattern, int priority) {
         executeRequest(
                 scopedAdminRoutes.requestSpecForTask(JournalTask.class),
                 PathParams.empty(),
@@ -185,7 +185,7 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
     }
 
     @Override
-    public List<RecordedExchange> findMatchingExchanges(RequestPattern requestPattern) {
+    public List<RecordedExchange> findMatchingExchanges(ExtendedRequestPattern requestPattern) {
         CollectionLikeType type = Json.getObjectMapper().getTypeFactory().constructCollectionType(List.class, RecordedExchange.class);
         return executeRequest(
                 scopedAdminRoutes.requestSpecForTask(FindExchangesInScopeTask.class),

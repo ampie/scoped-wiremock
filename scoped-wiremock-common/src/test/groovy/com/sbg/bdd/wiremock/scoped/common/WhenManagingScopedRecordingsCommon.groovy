@@ -1,19 +1,24 @@
 package com.sbg.bdd.wiremock.scoped.common
 
+import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.common.HttpClientUtils
 import com.github.tomakehurst.wiremock.http.HttpClientFactory
 import com.github.tomakehurst.wiremock.http.RequestMethod
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState
+import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern
 import com.sbg.bdd.wiremock.scoped.admin.model.GlobalCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
+import static org.hamcrest.core.IsEqual.equalTo
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import static com.github.tomakehurst.wiremock.client.WireMock.matching
+import static com.github.tomakehurst.wiremock.client.WireMock.get
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.core.Is.is
-import static org.hamcrest.core.IsEqual.equalTo
 
 abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTest {
 
@@ -29,12 +34,16 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
         assertThat(sendGet("/test/uri2", scope2.correlationPath), is(equalTo("hello2")))
 
         when:'I extract the matching exchanges in each scope'
-        def exchangesAgainstScope1 = wireMock.findMatchingExchanges(matching(scope1.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri1")).build());
-        def exchangesAgainstScope2 = wireMock.findMatchingExchanges(matching(scope2.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri2")).build());
+        def exchangesAgainstScope1 = wireMock.findMatchingExchanges(matching(scope1.correlationPath), buildRequestPattern("/test/uri1",scope1));
+        def exchangesAgainstScope2 = wireMock.findMatchingExchanges(matching(scope2.correlationPath), buildRequestPattern('/test/uri2', scope2));
 
         then:'the first scope reflects 2 exchanges and the second 1 exchange'
         exchangesAgainstScope1.size() == 2
         exchangesAgainstScope2.size() == 1
+    }
+
+    private ExtendedRequestPattern buildRequestPattern(String s,CorrelationState scope) {
+        return new ExtendedRequestPattern(scope.correlationPath, new RequestPatternBuilder(RequestMethod.GET, urlEqualTo(s)).build())
     }
 
     def 'shouldDiscardAnExchangeWhenTheScopeItOccurredInStops'(){
@@ -50,8 +59,8 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
 
         when:'I stop the first scope'
         wireMock.stopCorrelatedScope(scope1.correlationPath,Collections.emptyMap())
-        def exchangesAgainstScope1 = wireMock.findMatchingExchanges(matching(scope1.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri1")).build());
-        def exchangesAgainstScope2 = wireMock.findMatchingExchanges(matching(scope2.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri2")).build());
+        def exchangesAgainstScope1 = wireMock.findMatchingExchanges(matching(scope1.correlationPath), buildRequestPattern('/test/uri1', scope1));
+        def exchangesAgainstScope2 = wireMock.findMatchingExchanges(matching(scope2.correlationPath), buildRequestPattern('/test/uri2', scope2));
 
         then:'the first scope reflects 0 exchanges and the second 1 exchange'
         exchangesAgainstScope1.size() == 0
@@ -71,8 +80,8 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
 
         when:'I stop the parent scope scope'
         wireMock.stopCorrelatedScope(globalScope.correlationPath,Collections.emptyMap())
-        def exchangesAgainstScope1 = wireMock.findMatchingExchanges(matching(scope1.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri1")).build());
-        def exchangesAgainstScope2 = wireMock.findMatchingExchanges(matching(scope2.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri2")).build());
+        def exchangesAgainstScope1 = wireMock.findMatchingExchanges(matching(scope1.correlationPath), buildRequestPattern('/test/uri1', scope1));
+        def exchangesAgainstScope2 = wireMock.findMatchingExchanges(matching(scope2.correlationPath), buildRequestPattern('/test/uri2', scope2));
 
         then:'the first scope reflects 0 exchanges and the second 1 exchange'
         exchangesAgainstScope1.size() == 0
@@ -90,9 +99,9 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
         when:
         wireMock.stopCorrelatedScope(nestedScope.getCorrelationPath(),Collections.emptyMap())
         then:
-        def exchangesAgainstNestedScope = wireMock.findMatchingExchanges(matching(nestedScope.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri1")).build());
+        def exchangesAgainstNestedScope = wireMock.findMatchingExchanges(matching(nestedScope.correlationPath), buildRequestPattern('/test/uri1', nestedScope));
         exchangesAgainstNestedScope.size() == 0
-        def exchangesAgainstParentScope = wireMock.findMatchingExchanges(matching(globalScope.correlationPath), new RequestPatternBuilder(RequestMethod.GET, urlEqualTo("/test/uri1")).build());
+        def exchangesAgainstParentScope = wireMock.findMatchingExchanges(matching(globalScope.correlationPath), buildRequestPattern('/test/uri1', nestedScope));
         exchangesAgainstParentScope.size() == 1
     }
 

@@ -108,12 +108,12 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
     }
 
     //Recording management
-    public void saveRecordingsForRequestPattern(StringValuePattern scopePath, RequestPattern pattern, ResourceContainer recordingDirectory) {
+    public void saveRecordingsForRequestPattern(StringValuePattern scopePath, ExtendedRequestPattern pattern, ResourceContainer recordingDirectory) {
         addScopePathHeader(scopePath, pattern);
         admin.saveRecordingsForRequestPattern(pattern, recordingDirectory);
     }
 
-    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, RequestPattern requestPattern, int priority) {
+    public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, ExtendedRequestPattern requestPattern, int priority) {
         admin.serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
     }
 
@@ -137,7 +137,7 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
     }
 
     //Others
-    public List<RecordedExchange> findMatchingExchanges(StringValuePattern scopePath, RequestPattern pattern) {
+    public List<RecordedExchange> findMatchingExchanges(StringValuePattern scopePath, ExtendedRequestPattern pattern) {
         addScopePathHeader(scopePath, pattern);
         return admin.findMatchingExchanges(pattern);
     }

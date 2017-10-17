@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.core.Admin;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
+import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern;
 import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public class FindExchangesInScopeTask extends ScopeAdminTask {
 
     @Override
     public ResponseDefinition execute(Admin a, Request request, PathParams pathParams) {
-        RequestPattern requestPattern = Json.read(request.getBodyAsString(), RequestPattern.class);
+        ExtendedRequestPattern requestPattern = Json.read(request.getBodyAsString(), ExtendedRequestPattern.class);
         List<RecordedExchange> exchanges= admin.findMatchingExchanges(requestPattern);
         return responseDefinition()
                 .withStatus(HTTP_OK)

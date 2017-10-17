@@ -7,10 +7,8 @@ import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.Response;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
+import com.sbg.bdd.wiremock.scoped.admin.model.*;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
-import com.sbg.bdd.wiremock.scoped.admin.model.RecordedExchange;
-import com.sbg.bdd.wiremock.scoped.admin.model.RecordedRequest;
-import com.sbg.bdd.wiremock.scoped.admin.model.RecordedResponse;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,12 +61,15 @@ public class ExchangeJournal {
         return result;
     }
 
-    public List<RecordedExchange> findMatchingExchanges(RequestPattern pattern) {
+    public List<RecordedExchange> findMatchingExchanges(List<RequestPattern> patterns) {
         List<RecordedExchange> result = new ArrayList<>();
-        for (RecordedExchange recording : this.recordings) {
-            if (pattern.match(recording.getRequest()).isExactMatch()) {
-                result.add(new RecordedExchange(recording));
+        for (RequestPattern requestPattern : patterns) {
+            for (RecordedExchange recording : this.recordings) {
+                if (requestPattern.match(recording.getRequest()).isExactMatch()) {
+                    result.add(new RecordedExchange(recording));
+                }
             }
+
         }
         return result;
     }
