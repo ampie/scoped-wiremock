@@ -11,7 +11,7 @@
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Unauthenticated ServiceConfig</web-resource-name>
-            <url-pattern>/rest/Property/*</url-pattern>
+            <url-pattern>/rest/__EndpointConfig/*</url-pattern>
             <http-method>GET</http-method>
         </web-resource-collection>
     </security-constraint>

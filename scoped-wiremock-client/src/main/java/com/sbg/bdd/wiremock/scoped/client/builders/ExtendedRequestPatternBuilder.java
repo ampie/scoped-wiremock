@@ -57,6 +57,10 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
         return (T) this;
     }
 
+    public String getPathSuffix() {
+        return pathSuffix;
+    }
+
     public T toAny(String category) {
         return (T) toAnyKnownExternalService().ofCategory(category);
     }

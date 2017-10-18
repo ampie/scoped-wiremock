@@ -31,6 +31,7 @@ import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 public class OkHttpAdminClient implements Admin {
+
     public static final MediaType JSON
             = MediaType.parse("application/json; charset=utf-8");
     private static final String ADMIN_URL_PREFIX = "%s://%s:%d%s/__admin";

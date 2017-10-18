@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class EndpointConfig implements Comparable<EndpointConfig> {
-    public static final String ENDPOINT_CONFIG_PATH = "/MockableEndPoints/";
+    public static final String ENDPOINT_CONFIG_PATH = "/__EndpointConfig/";
     public static final String LOCAL_INTEGRATION_SCOPE = "local";
 
     private static final String FORMAT = "{\"propertyName\":\"%s\",\"url\":\"%s\",\"endpointType\":\"%s\",\"categories\":[%s],\"scopes\":[%s]}";
