@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.Admin;
 import com.github.tomakehurst.wiremock.matching.MultiValuePattern;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
-import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.sbg.bdd.resource.ResourceContainer;
@@ -38,6 +37,9 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
         if (admin instanceof CanStartAndStop) {
             ((CanStartAndStop) admin).stop();
         }
+    }
+    public ResourceContainer getResourceRoot(String name){
+        return admin.getResourceRoot(name);
     }
 
     public int port() {
@@ -74,8 +76,8 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
         return admin.stopGlobalScope(state);
     }
 
-    public CorrelationState joinCorrelatedScope(String knownScopePath, Map<String, Object> payload) {
-        return admin.startNestedScope(new CorrelationState(knownScopePath, payload));
+    public CorrelationState joinCorrelatedScope(String parentCorrelationPath, String name, Map<String, Object> payload) {
+        return admin.startNestedScope(new InitialScopeState(parentCorrelationPath,name, payload));
     }
 
     public List<String> stopCorrelatedScope(String knownScopePath, Map<String, Object> map) {
@@ -93,10 +95,16 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
     public List<StubMapping> getMappingsInScope(String scopePath) {
         return admin.getMappingsInScope(scopePath);
     }
-
+    //User scope mapping
+    public CorrelationState joinUserScope(String parentCorrelationPath, String userName, Map<String,Object> payload) {
+        return admin.joinUserScope(new InitialScopeState(parentCorrelationPath,userName, payload));
+    }
+    public CorrelationState stopUserScope(String knownScopePath, Map<String, Object> map) {
+        return admin.stopUserScope(new CorrelationState(knownScopePath, map));
+    }
     //Step management
-    public void startStep(String scopePath, String stepName, Map<String, Object> payload) {
-        admin.startStep(new CorrelationState(scopePath, stepName, payload));
+    public void startStep(String correlationPath, String stepName, Map<String, Object> payload) {
+        admin.startStep(new CorrelationState(correlationPath, stepName, payload));
     }
 
     public List<RecordedExchange> findExchangesAgainstStep(String scopePath, String stepName) {
@@ -157,5 +165,6 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
         }
         pattern.getHeaders().put(HeaderName.ofTheCorrelationKey(), new MultiValuePattern(scopePath));
     }
+
 
 }

@@ -10,8 +10,8 @@ abstract class WhenManagingScopedMappingsCommon extends ScopedWireMockCommonTest
         given: 'I have two scopes'
         def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), 'sutx'))
 
-        def scope1 = wireMock.joinCorrelatedScope(globalScope.correlationPath + '/scope1', Collections.emptyMap());
-        def scope2 = wireMock.joinCorrelatedScope(globalScope.correlationPath + '/scope2', Collections.emptyMap());
+        def scope1 = wireMock.joinCorrelatedScope(globalScope.correlationPath , 'scope1', Collections.emptyMap());
+        def scope2 = wireMock.joinCorrelatedScope(globalScope.correlationPath , 'scope2', Collections.emptyMap());
         when: 'I add a mapping to the first scope'
         wireMock.register(get(urlEqualTo("/test/uri")).withHeader(HeaderName.ofTheCorrelationKey(), matching( scope1.correlationPath +'.*')).willReturn(aResponse()).atPriority(1));
         then: 'the first scope should contain that mapping, not the second scope'
@@ -24,8 +24,8 @@ abstract class WhenManagingScopedMappingsCommon extends ScopedWireMockCommonTest
         given: 'I have two scopes and I have added a mapping to each'
         def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), 'sutx'))
 
-        def scope1 = wireMock.joinCorrelatedScope(globalScope.correlationPath + '/scope1', Collections.emptyMap());
-        def scope2 = wireMock.joinCorrelatedScope(globalScope.correlationPath + '/scope2', Collections.emptyMap());
+        def scope1 = wireMock.joinCorrelatedScope(globalScope.correlationPath , 'scope1', Collections.emptyMap());
+        def scope2 = wireMock.joinCorrelatedScope(globalScope.correlationPath , 'scope2', Collections.emptyMap());
         wireMock.register(get(urlEqualTo("/test/uri")).withHeader(HeaderName.ofTheCorrelationKey(), matching(scope1.correlationPath + '.*')).willReturn(aResponse()).atPriority(1));
         wireMock.register(get(urlEqualTo("/test/uri")).withHeader(HeaderName.ofTheCorrelationKey(), matching(scope2.correlationPath + '.*')).willReturn(aResponse()).atPriority(1));
         when: 'I stop the second scope'

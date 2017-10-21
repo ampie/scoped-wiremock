@@ -1,6 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
 import com.sbg.bdd.wiremock.scoped.filter.ServerSideEndPointConfigRegistry;
 
 import javax.enterprise.event.Observes;
@@ -24,14 +24,14 @@ public class DynamicWebServiceEndPointExtension implements Extension {
     }
 
     private void registerEndPoints(ProcessInjectionTarget<?> pit) {
-        Set<MockableEndPoint> webServiceRefs = new HashSet<>();
+        Set<EndpointInfo> webServiceRefs = new HashSet<>();
         for (AnnotatedField<?> annotatedField : pit.getAnnotatedType().getFields()) {
             Field declaredField = annotatedField.getJavaMember();
             if (isPortRef(declaredField)) {
-                MockableEndPoint annotation = declaredField.getAnnotation(MockableEndPoint.class);
+                EndpointInfo annotation = declaredField.getAnnotation(EndpointInfo.class);
                 ServerSideEndPointConfigRegistry.getInstance().registerSoapEndpoint(annotation.propertyName(), annotation.categories(), annotation.scopes());
-            } else if (declaredField.isAnnotationPresent(MockableEndPoint.class)) {
-                MockableEndPoint annotation = declaredField.getAnnotation(MockableEndPoint.class);
+            } else if (declaredField.isAnnotationPresent(EndpointInfo.class)) {
+                EndpointInfo annotation = declaredField.getAnnotation(EndpointInfo.class);
                 ServerSideEndPointConfigRegistry.getInstance().registerRestEndpoint(annotation.propertyName(), annotation.categories(), annotation.scopes());
             }
 
@@ -50,7 +50,7 @@ public class DynamicWebServiceEndPointExtension implements Extension {
     }
 
     private <X> boolean isPortRef(Field declaredField) {
-        return declaredField.isAnnotationPresent(WebServiceRef.class) && declaredField.isAnnotationPresent(MockableEndPoint.class) && declaredField.getType().isInterface();
+        return declaredField.isAnnotationPresent(WebServiceRef.class) && declaredField.isAnnotationPresent(EndpointInfo.class) && declaredField.getType().isInterface();
     }
 
 }

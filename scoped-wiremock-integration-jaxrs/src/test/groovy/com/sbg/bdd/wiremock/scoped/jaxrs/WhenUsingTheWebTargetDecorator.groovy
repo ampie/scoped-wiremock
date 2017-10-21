@@ -1,6 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.jaxrs
 
-import com.sbg.bdd.wiremock.scoped.cdi.internal.MockableEndPointLiteral
+import com.sbg.bdd.wiremock.scoped.cdi.internal.EndpointInfoLiteral
 import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
 import com.sbg.bdd.wiremock.scoped.integration.BaseWireMockCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
@@ -15,7 +15,7 @@ class WhenUsingTheWebTargetDecorator extends Specification {
         def state = BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState()
 //        state.set('localhost/8080/somepath', true)
         state.clear()
-        def decorator = new DynamicWebTarget(new KeyStoreHelper(),new MockableEndPointLiteral('prop1', 'cat1 cat2'.split(),new String[0]))
+        def decorator = new DynamicWebTarget(new KeyStoreHelper(),new EndpointInfoLiteral('prop1', 'cat1 cat2'.split(),new String[0]))
         when:
         def invocation=decorator.path("/last/segment").request().buildGet()
 
@@ -30,7 +30,7 @@ class WhenUsingTheWebTargetDecorator extends Specification {
         BaseDependencyInjectorAdaptor.PROPERTIES.put("prop1", "http://somehost:9090/some/base/path")
         def state = BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState()
         state.set('localhost/8080/somepath', true)
-        def decorator = new DynamicWebTarget(new KeyStoreHelper(),new MockableEndPointLiteral('prop1', 'cat1 cat2'.split(),new String[0]))
+        def decorator = new DynamicWebTarget(new KeyStoreHelper(),new EndpointInfoLiteral('prop1', 'cat1 cat2'.split(),new String[0]))
         when:
         def invocation=decorator.path("/last/segment").request().buildGet()
 

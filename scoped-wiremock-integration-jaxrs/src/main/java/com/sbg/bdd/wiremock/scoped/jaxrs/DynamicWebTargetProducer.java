@@ -1,6 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.jaxrs;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
 
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
@@ -11,9 +11,9 @@ public class DynamicWebTargetProducer {
     private KeyStoreHelper keystoreHelper;
 
     @Produces
-    @MockableEndPoint(propertyName = "")
+    @EndpointInfo(propertyName = "")
     public WebTarget produceIt(InjectionPoint ip) {
-        MockableEndPoint epp = ip.getAnnotated().getAnnotation(MockableEndPoint.class);
+        EndpointInfo epp = ip.getAnnotated().getAnnotation(EndpointInfo.class);
         return new DynamicWebTarget(keystoreHelper, epp);
     }
 

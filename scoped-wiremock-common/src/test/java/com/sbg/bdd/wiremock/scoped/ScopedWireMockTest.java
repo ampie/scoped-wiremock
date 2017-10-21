@@ -9,6 +9,7 @@ import org.junit.rules.TestRule;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.regex.Pattern;
 
 public abstract class ScopedWireMockTest {
     @Rule
@@ -28,5 +29,6 @@ public abstract class ScopedWireMockTest {
     public Integer getWireMockPort() {
         return ((HasBaseUrl) wireMockRule).port();
     }
+
 
 }

@@ -43,7 +43,7 @@ abstract class WhenWorkingWithScopesCommon extends ScopedWireMockCommonTest {
         def urlOfSut = new URL(wireMock.baseUrl() + EndpointConfig.ENDPOINT_CONFIG_PATH)
         def globalCorrelationPath = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), urlOfSut, 'componentx')).correlationPath
         when: 'I start a nested scope'
-        def resultScope = getWireMock().joinCorrelatedScope(globalCorrelationPath + '/my_nested_scope', Collections.singletonMap('someKey', 'someValue'))
+        def resultScope = getWireMock().joinCorrelatedScope(globalCorrelationPath, 'my_nested_scope', Collections.singletonMap('someKey', 'someValue'))
         then: 'the resulting correlation path should both the global scope path and the name of the nested scope and reflect the payload'
         resultScope.correlationPath == globalCorrelationPath + '/my_nested_scope'
         resultScope.payload['someKey'] == 'someValue'//Really? not sure
@@ -54,7 +54,7 @@ abstract class WhenWorkingWithScopesCommon extends ScopedWireMockCommonTest {
         given: 'I have started a nested scope with no service invocation counts'
         def urlOfSut = new URL(wireMock.baseUrl() + EndpointConfig.ENDPOINT_CONFIG_PATH)
         def globalCorrelationPath = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), urlOfSut, 'componentx')).correlationPath
-        wireMock.joinCorrelatedScope(globalCorrelationPath + '/my_nested_scope', Collections.singletonMap('someKey', 'someValue'))
+        wireMock.joinCorrelatedScope(globalCorrelationPath , 'my_nested_scope', Collections.singletonMap('someKey', 'someValue'))
 
         when: 'I update the service invocation counts for service1 to 2 and service2 to 1'
         def nestedScope = new CorrelationState(globalCorrelationPath + '/my_nested_scope')
@@ -72,7 +72,7 @@ abstract class WhenWorkingWithScopesCommon extends ScopedWireMockCommonTest {
         given: 'I have started a nested scope'
         def urlOfSut = new URL(wireMock.baseUrl() + EndpointConfig.ENDPOINT_CONFIG_PATH)
         def globalCorrelationPath = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), urlOfSut, 'componentx')).correlationPath
-        wireMock.joinCorrelatedScope(globalCorrelationPath + '/my_nested_scope', Collections.singletonMap('someKey', 'someValue'))
+        wireMock.joinCorrelatedScope(globalCorrelationPath , 'my_nested_scope', Collections.singletonMap('someKey', 'someValue'))
 
         when:
         def removedScopes = getWireMock().stopCorrelatedScope(globalCorrelationPath + '/my_nested_scope',Collections.emptyMap())
@@ -92,8 +92,8 @@ abstract class WhenWorkingWithScopesCommon extends ScopedWireMockCommonTest {
         given: 'I have started a nested scope'
         def urlOfSut = new URL(wireMock.baseUrl() + EndpointConfig.ENDPOINT_CONFIG_PATH)
         def globalCorrelationPath = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), urlOfSut, 'componentx')).correlationPath
-        wireMock.joinCorrelatedScope(globalCorrelationPath + '/my_nested_scope', Collections.singletonMap('someKey', 'someValue'))
-        wireMock.joinCorrelatedScope(globalCorrelationPath + '/my_nested_scope/nested_nested_scope', Collections.singletonMap('someKey', 'someValue'))
+        wireMock.joinCorrelatedScope(globalCorrelationPath, 'my_nested_scope', Collections.singletonMap('someKey', 'someValue'))
+        wireMock.joinCorrelatedScope(globalCorrelationPath + '/my_nested_scope', 'nested_nested_scope', Collections.singletonMap('someKey', 'someValue'))
 
         when:
         def removedScopes = getWireMock().stopCorrelatedScope(globalCorrelationPath + '/my_nested_scope',Collections.emptyMap())

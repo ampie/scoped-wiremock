@@ -64,9 +64,10 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     public void register(ExtendedStubMapping extendedStubMapping) {
         scopeAdmin.register(extendedStubMapping);
     }
+
     @Override
     public int count(ExtendedRequestPattern requestPattern) {
-       return scopeAdmin.count(requestPattern);
+        return scopeAdmin.count(requestPattern);
     }
 
     @Override
@@ -90,11 +91,6 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     }
 
     @Override
-    public CorrelationState startNestedScope(CorrelationState knownScope) {
-        return scopeAdmin.startNestedScope(knownScope);
-    }
-
-    @Override
     public List<String> stopCorrelatedScope(CorrelationState state) {
         return scopeAdmin.stopCorrelatedScope(state);
     }
@@ -107,6 +103,17 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     @Override
     public List<StubMapping> getMappingsInScope(String scopePath) {
         return scopeAdmin.getMappingsInScope(scopePath);
+    }
+
+    //User scope management
+    @Override
+    public CorrelationState joinUserScope(InitialScopeState initialScopeState) {
+        return scopeAdmin.joinUserScope(initialScopeState);
+    }
+
+    @Override
+    public CorrelationState stopUserScope(CorrelationState correlationState) {
+        return scopeAdmin.stopUserScope(correlationState);
     }
 
     @Override
@@ -122,6 +129,11 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     @Override
     public GlobalCorrelationState stopGlobalScope(GlobalCorrelationState globalCorrelationState) {
         return scopeAdmin.stopGlobalScope(globalCorrelationState);
+    }
+
+    @Override
+    public CorrelationState startNestedScope(InitialScopeState initialScopeState) {
+        return scopeAdmin.startNestedScope(initialScopeState);
     }
 
     @Override
@@ -165,6 +177,7 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     public String baseUrl() {
         return "http://" + host() + ":" + port();
     }
+
     private static Options withExtensions(Options options) {
         if (options instanceof WireMockConfiguration) {
             ((WireMockConfiguration) options).extensions(ProxyUrlTransformer.class);

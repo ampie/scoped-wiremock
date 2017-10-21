@@ -1,8 +1,8 @@
 package com.sbg.bdd.wiremock.scoped.resteasy;
 
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
-import com.sbg.bdd.wiremock.scoped.cdi.internal.MockableEndPointLiteral;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
+import com.sbg.bdd.wiremock.scoped.cdi.internal.EndpointInfoLiteral;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.jboss.resteasy.client.ClientRequestFactory;
@@ -20,17 +20,17 @@ public class DynamicClientRequestFactoryProducer {
     }
 
     @Produces
-    @MockableEndPoint(propertyName = "")
+    @EndpointInfo(propertyName = "")
     public ClientRequestFactory getClientRequestFactory(InjectionPoint ip) {
-        MockableEndPoint epp = ip.getAnnotated().getAnnotation(MockableEndPoint.class);
+        EndpointInfo epp = ip.getAnnotated().getAnnotation(EndpointInfo.class);
         return getClientRequestFactory(epp);
     }
 
     public static ClientRequestFactory newClientRequestFactory(String propertyName, String... categories) {
-        return getClientRequestFactory(new MockableEndPointLiteral(propertyName, categories, new String[0]));
+        return getClientRequestFactory(new EndpointInfoLiteral(propertyName, categories, new String[0]));
     }
 
-    private static ClientRequestFactory getClientRequestFactory(MockableEndPoint ep) {
+    private static ClientRequestFactory getClientRequestFactory(EndpointInfo ep) {
         CloseableHttpClient httpClient = HttpClients.createSystem();
         ApacheHttpClient4Executor clientExecutor = new ApacheHttpClient4Executor(httpClient);
         return new DynamicClientRequestFactory(clientExecutor, ep);

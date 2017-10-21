@@ -1,5 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.common;
 
+import com.github.tomakehurst.wiremock.http.ContentTypeHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import org.apache.commons.lang3.StringUtils;
 
@@ -9,7 +10,11 @@ import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 
 public class MimeTypeHelper {
     public static String calculateExtension(HttpHeaders headers) {
-        String contentType = headers.getContentTypeHeader().firstValue();
+        ContentTypeHeader contentTypeHeader = headers.getContentTypeHeader();
+        if(!contentTypeHeader.isPresent()){
+            return ".txt";
+        }
+        String contentType = contentTypeHeader.firstValue();
         ContentType type = ContentType.fromContentType(contentType);
         type = type == null ? ContentType.TEXT : type;
         String extension = ".any";

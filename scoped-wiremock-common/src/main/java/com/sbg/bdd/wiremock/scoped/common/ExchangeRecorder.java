@@ -107,10 +107,20 @@ public class ExchangeRecorder {
 
 
     private String buildBaseFileName(String requestedUrl, String sequenceNumber, String httpMethod) {
-        String[] segments = requestedUrl.split("/");
-        String serviceName = segments[segments.length - 2];
-        String operation = segments[segments.length - 1];
-        return serviceName + "_" + httpMethod + "_" + operation + "_" + sequenceNumber;
+        if(requestedUrl.endsWith("/")){
+            requestedUrl=requestedUrl.substring(0,requestedUrl.length() -1);
+        }
+        if(requestedUrl.startsWith("/")){
+            requestedUrl=requestedUrl.substring(1);
+        }
+        String[] split = requestedUrl.split("/");
+        String urlPart ="root";
+        if(split.length==1){
+            urlPart=split[0];
+        }else if(split.length>1){
+            urlPart=split[0] + "_" + split[1];
+        }
+        return httpMethod + "_" + urlPart + "_" + sequenceNumber;
     }
 
 
@@ -118,12 +128,12 @@ public class ExchangeRecorder {
         String body = new String(entry.getValue().read());
         ReadableResource headersResource = (ReadableResource) directoryRecordedTo.resolveExisting(entry.getKey() + ".headers.json");
         HttpHeaders headers = Json.read(new String(headersResource.read()), HttpHeaders.class);
-        Pattern compile = Pattern.compile("(.*)_(GET|PUT|POST|DELETE|HEADE|PATCH)_(.*)_(\\d+)");
+        Pattern compile = Pattern.compile("(GET|PUT|POST|DELETE|HEADE|PATCH)_(.*)_(\\d+)");
         Matcher s = compile.matcher(entry.getKey());
         if (s.find()) {
-            UrlPathPattern urlPattern = calculateRequestUrl(templateRequestPattern, headers, s);
-            MappingBuilder mappingBuilder = WireMock.request(s.group(2), urlPattern);
-            mappingBuilder.withHeader(HeaderName.ofTheSequenceNumber(), WireMock.equalTo(s.group(4)));
+            UrlPathPattern urlPattern = calculateRequestUrl(templateRequestPattern, headers);
+            MappingBuilder mappingBuilder = WireMock.request(s.group(1), urlPattern);
+            mappingBuilder.withHeader(HeaderName.ofTheSequenceNumber(), WireMock.equalTo(s.group(3)));
             copyTemplateInto(templateRequestPattern, mappingBuilder);
             return mappingBuilder.willReturn(WireMock.aResponse().withHeaders(headers).withBody(body).withStatus(calculateResponseCode(headers)));
         } else {
@@ -151,7 +161,7 @@ public class ExchangeRecorder {
         }
     }
 
-    private UrlPathPattern calculateRequestUrl(ExtendedRequestPattern requestPattern, HttpHeaders headers, Matcher s) {
+    private UrlPathPattern calculateRequestUrl(ExtendedRequestPattern requestPattern, HttpHeaders headers) {
         if (headers.getHeader("requestedUrl").isPresent()) {
             return WireMock.urlPathEqualTo(headers.getHeader("requestedUrl").firstValue());
         } else {

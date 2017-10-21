@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 @Qualifier
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
-public @interface MockableEndPoint {
+public @interface EndpointInfo {
     @Nonbinding String propertyName();
     @Nonbinding String[] categories() default {};
     @Nonbinding String[] scopes() default {};

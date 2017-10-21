@@ -4,6 +4,7 @@ package com.sbg.bdd.wiremock.scoped.client;
 import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.verification.NearMiss;
+import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.common.Reflection;
 import org.junit.rules.MethodRule;
 import org.junit.rules.TestRule;
@@ -16,7 +17,9 @@ import java.util.List;
 //TODO check if this is ued anywhere. From JUnit unit tests, we are more likely to use the ScopedWireMockServerRule
 public class ScopedWireMockClientRule extends ScopedWireMockClient implements TestRule, MethodRule {
     private boolean failOnUnmatchedStubs = false;
-
+    public ScopedWireMockClientRule(ScopedAdmin admin) {
+        super(admin);
+    }
     public ScopedWireMockClientRule(int port, boolean failOnUnmatchedStubs) {
         super(port);
         this.failOnUnmatchedStubs = failOnUnmatchedStubs;

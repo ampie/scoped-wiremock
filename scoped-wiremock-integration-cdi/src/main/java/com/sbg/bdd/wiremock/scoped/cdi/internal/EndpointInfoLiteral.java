@@ -1,17 +1,17 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
 
 import javax.enterprise.util.AnnotationLiteral;
 
-public class MockableEndPointLiteral extends AnnotationLiteral<MockableEndPoint> implements MockableEndPoint {
+public class EndpointInfoLiteral extends AnnotationLiteral<EndpointInfo> implements EndpointInfo {
 
     private String propertyName;
     private String[] categories;
     private String[] scopes;
 
-    public MockableEndPointLiteral(String propertyName, String[] categories, String[] scopes) {
+    public EndpointInfoLiteral(String propertyName, String[] categories, String[] scopes) {
         this.propertyName = propertyName;
         this.categories = categories;
         this.scopes = scopes;

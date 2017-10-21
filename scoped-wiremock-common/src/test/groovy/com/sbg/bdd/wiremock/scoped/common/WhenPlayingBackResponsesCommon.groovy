@@ -16,7 +16,7 @@ abstract class WhenPlayingBackResponsesCommon extends ScopedWireMockCommonTest {
     def 'should create a mapping for each non header file in the resource directory'() {
         given: 'a resource directory with 2 mapping files and 2 header files'
         def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), 'sutx'))
-        def nestedScope = wireMock.joinCorrelatedScope(globalScope.correlationPath +'/' + 'nestedScope', Collections.emptyMap())
+        def nestedScope = wireMock.joinCorrelatedScope(globalScope.correlationPath ,   'nestedScope', Collections.emptyMap())
 
         DirectoryResourceRoot root = getDirectoryResourceRoot();
         def someRecordingDir = (ResourceContainer) root.resolveExisting("some_recording_dir")

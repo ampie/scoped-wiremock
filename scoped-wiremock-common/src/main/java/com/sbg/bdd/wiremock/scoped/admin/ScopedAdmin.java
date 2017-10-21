@@ -19,7 +19,7 @@ public interface ScopedAdmin {
 
     GlobalCorrelationState stopGlobalScope(GlobalCorrelationState globalCorrelationState);
 
-    CorrelationState startNestedScope(CorrelationState knownScope);
+    CorrelationState startNestedScope(InitialScopeState initialScopeState);
 
     CorrelationState getCorrelatedScope(String scopePath);
 
@@ -28,6 +28,10 @@ public interface ScopedAdmin {
     void syncCorrelatedScope(CorrelationState correlationState);
 
     List<StubMapping> getMappingsInScope(String scopePath);
+
+    //User scope management
+    CorrelationState joinUserScope(InitialScopeState initialScopeState);
+    CorrelationState stopUserScope(CorrelationState correlationState);
 
     //Step Management
     void startStep(CorrelationState state);
@@ -47,5 +51,6 @@ public interface ScopedAdmin {
     int count(ExtendedRequestPattern requestPattern);
 
     List<RecordedExchange> findMatchingExchanges(ExtendedRequestPattern requestPattern);
+
 
 }

@@ -33,8 +33,22 @@ public class GlobalScope extends CorrelatedScope {
         return (GlobalCorrelationState) super.getCorrelationState();
     }
 
-    public CorrelatedScope findOrCreateNestedScope(String correlationPath) {
-        String[] split = correlationPath.split("\\/");
+    public CorrelatedScope findOrCreateNestedScope(String parentCorrelationPath, String name) {
+        CorrelatedScope previousScope = findOrCreateParentScope(parentCorrelationPath);
+        if (previousScope.getChild(name) == null) {
+            previousScope.addChild(new CorrelatedScope(previousScope, name, new CorrelationState(previousScope.getCorrelationPath() + "/" + name)));
+        }
+        return previousScope.getChild(name);
+    }
+    public CorrelatedScope findOrCreateUserScope(String parentCorrelationPath, String name) {
+        CorrelatedScope previousScope = findOrCreateParentScope(parentCorrelationPath);
+        if (previousScope.getChild(name) == null) {
+            previousScope.addChild(new CorrelatedScope(previousScope, name, new CorrelationState(previousScope.getCorrelationPath() + "/:" + name)));
+        }
+        return previousScope.getChild(name);
+    }
+    private CorrelatedScope findOrCreateParentScope(String parentCorrelationPath) {
+        String[] split = parentCorrelationPath.split("\\/");
         CorrelatedScope previousScope = this;
         StringBuilder currentPath = new StringBuilder();
         for (int i = 0; i < split.length; i++) {
@@ -53,17 +67,18 @@ public class GlobalScope extends CorrelatedScope {
     public CorrelatedScope findNestedScope(String correlationPath) {
         String[] split = correlationPath.split("\\/");
         CorrelatedScope previousScope = this;
-        StringBuilder currentPath = new StringBuilder();
         for (int i = 0; i < split.length; i++) {
-            currentPath.append(split[i]);
             if (i >= 4) {
-                if (previousScope.getChild(split[i]) == null) {
+                String name = split[i];
+                if(i==split.length-1 && name.startsWith(":")){
+                    name=name.substring(1);//user scope
+                }
+                if (previousScope.getChild(name) == null) {
                     return null;
                 } else {
-                    previousScope = previousScope.getChild(split[i]);
+                    previousScope = previousScope.getChild(name);
                 }
             }
-            currentPath.append('/');
         }
         return previousScope;
     }

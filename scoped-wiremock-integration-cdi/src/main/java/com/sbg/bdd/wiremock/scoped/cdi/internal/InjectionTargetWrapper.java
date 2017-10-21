@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
 
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.InjectionPoint;
@@ -57,7 +57,7 @@ class InjectionTargetWrapper<X> implements InjectionTarget<X> {
 
     private void wrapReference(X instance, Field webServiceRef, BindingProvider bp) throws IllegalAccessException {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        MockableEndPoint mep = webServiceRef.getAnnotation(MockableEndPoint.class);
+        EndpointInfo mep = webServiceRef.getAnnotation(EndpointInfo.class);
         DynamicWebServiceReferenceInvocationHandler ih = new DynamicWebServiceReferenceInvocationHandler(bp,mep);
         webServiceRef.set(instance, Proxy.newProxyInstance(cl, getInterfaces(webServiceRef), ih));
     }

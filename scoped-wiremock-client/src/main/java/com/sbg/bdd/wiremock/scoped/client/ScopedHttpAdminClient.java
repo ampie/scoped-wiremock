@@ -151,7 +151,7 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
     }
 
     @Override
-    public CorrelationState startNestedScope(CorrelationState knownScope) {
+    public CorrelationState startNestedScope(InitialScopeState knownScope) {
         return executeRequest(
                 scopedAdminRoutes.requestSpecForTask(JoinKnownCorrelatedScopeTask.class),
                 PathParams.empty(),
@@ -183,7 +183,27 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
         );
         return list;
     }
+    @Override
+    public CorrelationState joinUserScope(InitialScopeState knownScope) {
+        return executeRequest(
+                scopedAdminRoutes.requestSpecForTask(JoinUserScopeTask.class),
+                PathParams.empty(),
+                knownScope,
+                CorrelationState.class,
+                200
+        );
+    }
 
+    @Override
+    public CorrelationState stopUserScope(CorrelationState state) {
+        return executeRequest(
+                scopedAdminRoutes.requestSpecForTask(StopUserScopeTask.class),
+                PathParams.empty(),
+                state,
+                CorrelationState.class,
+                200
+        );
+    }
     @Override
     public List<RecordedExchange> findMatchingExchanges(ExtendedRequestPattern requestPattern) {
         CollectionLikeType type = Json.getObjectMapper().getTypeFactory().constructCollectionType(List.class, RecordedExchange.class);

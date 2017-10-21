@@ -1,6 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
 import com.sbg.bdd.wiremock.scoped.integration.*;
 import com.sbg.bdd.wiremock.scoped.jaxws.OutboundCorrelationPathSOAPHandler;
 
@@ -20,10 +20,10 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
     private static final Logger LOGGER = Logger.getLogger(DynamicWebServiceReferenceInvocationHandler.class.getName());
     private BindingProvider delegate;
     private EndpointRegistry endpointRegistry;
-    private MockableEndPoint mockableEndPoint;
+    private EndpointInfo endpointInfo;
 
-    public DynamicWebServiceReferenceInvocationHandler(BindingProvider delegate, MockableEndPoint mockableEndPoint) {
-        this.mockableEndPoint = mockableEndPoint;
+    public DynamicWebServiceReferenceInvocationHandler(BindingProvider delegate, EndpointInfo endpointInfo) {
+        this.endpointInfo = endpointInfo;
         this.delegate = delegate;
         attachInterceptor(delegate);
     }
@@ -52,10 +52,10 @@ public class DynamicWebServiceReferenceInvocationHandler implements InvocationHa
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
             if (method.isAnnotationPresent(WebMethod.class) && !isProbablyAlreadyMocked()) {
-                URL originalUrl = getEndpointRegistry().endpointUrlFor(mockableEndPoint.propertyName());
+                URL originalUrl = getEndpointRegistry().endpointUrlFor(endpointInfo.propertyName());
                 URL urlToUse = getUrlToUse(originalUrl);
-                if(mockableEndPoint.categories()!=null && mockableEndPoint.categories().length> 0) {
-                    delegate.getRequestContext().put(HeaderName.ofTheEndpointCategory(), Arrays.asList(mockableEndPoint.categories()));
+                if(endpointInfo.categories()!=null && endpointInfo.categories().length> 0) {
+                    delegate.getRequestContext().put(HeaderName.ofTheEndpointCategory(), Arrays.asList(endpointInfo.categories()));
                 }
                 delegate.getRequestContext().put(HeaderName.ofTheOriginalUrl(), originalUrl);
                 delegate.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, urlToUse.toExternalForm());

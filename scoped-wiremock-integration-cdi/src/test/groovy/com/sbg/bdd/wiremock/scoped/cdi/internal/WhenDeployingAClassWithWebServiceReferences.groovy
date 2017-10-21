@@ -44,10 +44,13 @@ class WhenDeployingAClassWithWebServiceReferences extends Specification{
         }
 
         when:
+        println 'processing injection target'
         new DynamicWebServiceEndPointExtension().processInjectionTarget(processInjectionTarget)
 
         then:
+        println 'getting client configs'
         ServerSideEndPointConfigRegistry.instance.allEndpointConfigs.size() == 2
+        println 'getting soap endpoint config configs'
         def soapConfig = ServerSideEndPointConfigRegistry.instance.getEndpointConfig('my.soap.endpoint.property')
         soapConfig.endpointType == EndpointConfig.EndpointType.SOAP
         soapConfig.url == new URL('http://some.soap.host.com')

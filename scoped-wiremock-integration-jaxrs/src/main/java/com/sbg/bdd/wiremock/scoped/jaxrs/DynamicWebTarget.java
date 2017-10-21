@@ -1,6 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.jaxrs;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
 import com.sbg.bdd.wiremock.scoped.integration.*;
 
 import javax.annotation.PreDestroy;
@@ -21,11 +21,11 @@ public class DynamicWebTarget implements WebTarget {
     private final EndpointRegistry endpointRegistry;
     private final WireMockCorrelationState currentCorrelationState;
     private WebTarget delegate;
-    private final MockableEndPoint endPointProperty;
+    private final EndpointInfo endPointProperty;
     private Client client;
     private URL originalUrl;
 
-    public DynamicWebTarget(KeyStoreHelper keystoreHelper, MockableEndPoint endPointProperty) {
+    public DynamicWebTarget(KeyStoreHelper keystoreHelper, EndpointInfo endPointProperty) {
         ClientBuilder builder = ClientBuilder.newBuilder().hostnameVerifier(new HostnameVerifier(){
             @Override
             public boolean verify(String hostname, SSLSession session) {

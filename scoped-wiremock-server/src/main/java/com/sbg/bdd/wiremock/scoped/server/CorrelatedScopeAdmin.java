@@ -65,10 +65,17 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     }
 
     @Override
-    public CorrelationState startNestedScope(CorrelationState knownScope) {
-        CorrelationState state = findOrCreateCorrelatedScope(knownScope);
-        scopeListeners.fireNestedStarted(knownScope);
-        return state;
+    public CorrelationState startNestedScope(InitialScopeState knownScope) {
+        CorrelationState result;
+        GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(knownScope.getParentCorrelationPath()));
+        if (globalScope == null) {
+            result = null;
+        } else {
+            result = globalScope.findOrCreateNestedScope(knownScope.getParentCorrelationPath(), knownScope.getName()).getCorrelationState();
+            result.setPayload(knownScope.getPayload());
+        }
+        scopeListeners.fireNestedStarted(result);
+        return result;
     }
 
     @Override
@@ -106,11 +113,29 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
         CorrelatedScope correlatedScope = getCorrelatedScopeImpl(correlationPath);
         return correlatedScope == null ? null : correlatedScope.getCorrelationState();
     }
+
     @Override
     public List<StubMapping> getMappingsInScope(String scopePath) {
         return stubMappingsMappings.findMappingsForScope(scopePath);
     }
 
+    //User scope management
+    @Override
+    public CorrelationState joinUserScope(InitialScopeState initialScopeState) {
+        GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(initialScopeState.getParentCorrelationPath()));
+        if (globalScope == null) {
+            return null;
+        } else {
+            CorrelationState state = globalScope.findOrCreateUserScope(initialScopeState.getParentCorrelationPath(), initialScopeState.getName()).getCorrelationState();
+            state.setPayload(initialScopeState.getPayload());
+            return state;
+        }
+    }
+    @Override
+    public CorrelationState stopUserScope(CorrelationState correlationState) {
+        this.stopCorrelatedScope(correlationState);
+        return correlationState;
+    }
     //Resources
     @Override
     public void registerResourceRoot(String name, ResourceContainer root) {
@@ -235,7 +260,10 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
 
     private String determineStep(String scopePath) {
         try {
-            String stepContainerPath = ParentPath.of(scopePath);
+            String stepContainerPath=scopePath;
+            if(scopePath.indexOf("/:")>0) {
+                stepContainerPath = ParentPath.of(scopePath);
+            }
             CorrelationState correlationState = getCorrelatedScope(stepContainerPath);
             //CorrelationState could be null if we are not using the scoped client, e.g. testing source systems....
             return correlationState == null ? null : correlationState.getCurrentStep();
@@ -252,17 +280,6 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
             return null;
         } else {
             return globalScope.findNestedScope(correlationPath);
-        }
-    }
-
-    private CorrelationState findOrCreateCorrelatedScope(CorrelationState correlationState) {
-        GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(correlationState.getCorrelationPath()));
-        if (globalScope == null) {
-            return null;
-        } else {
-            CorrelationState state = globalScope.findOrCreateNestedScope(correlationState.getCorrelationPath()).getCorrelationState();
-            state.setPayload(correlationState.getPayload());
-            return state;
         }
     }
 

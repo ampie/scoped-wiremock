@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.resteasy;
 
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.MockableEndPoint;
+import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
 import com.sbg.bdd.wiremock.scoped.integration.*;
 import org.jboss.resteasy.client.ClientExecutor;
 import org.jboss.resteasy.client.ClientRequest;
@@ -12,9 +12,9 @@ import java.net.URL;
 
 public class DynamicClientRequestFactory extends ClientRequestFactory {
     private final EndpointRegistry endpointRegistry;
-    private final MockableEndPoint endPointProperty;
+    private final EndpointInfo endPointProperty;
 
-    public DynamicClientRequestFactory(ClientExecutor executor, MockableEndPoint endPointProperty) {
+    public DynamicClientRequestFactory(ClientExecutor executor, EndpointInfo endPointProperty) {
         super(executor, (URI) null);
         this.endpointRegistry = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
         this.endPointProperty = endPointProperty;
