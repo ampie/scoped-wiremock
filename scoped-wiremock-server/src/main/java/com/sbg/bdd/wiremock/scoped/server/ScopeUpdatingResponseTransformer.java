@@ -22,12 +22,12 @@ public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
         CorrelationStateSynchronizer synchronizer = new CorrelationStateSynchronizer(admin, response.getHeaders());
         if (synchronizer.canProcess()) {
             synchronizer.synchronize();
+            response=synchronizer.synchronize(response);//just to fix possible incorrectly concatenated headers
         } else {
             synchronizer = new CorrelationStateSynchronizer(admin, request.getHeaders());
             if(synchronizer.canProcess()){
                 synchronizer.synchronize();
                 response=synchronizer.synchronize(response);
-
             }
         }
         return response;

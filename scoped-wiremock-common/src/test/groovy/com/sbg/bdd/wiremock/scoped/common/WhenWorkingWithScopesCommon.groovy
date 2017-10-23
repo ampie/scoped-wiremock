@@ -75,7 +75,7 @@ abstract class WhenWorkingWithScopesCommon extends ScopedWireMockCommonTest {
         wireMock.joinCorrelatedScope(globalCorrelationPath , 'my_nested_scope', Collections.singletonMap('someKey', 'someValue'))
 
         when:
-        def removedScopes = getWireMock().stopCorrelatedScope(globalCorrelationPath + '/my_nested_scope',Collections.emptyMap())
+        def removedScopes = getWireMock().stopNestedScope(globalCorrelationPath + '/my_nested_scope',Collections.emptyMap())
 
         then:
         removedScopes.size() == 1
@@ -96,7 +96,7 @@ abstract class WhenWorkingWithScopesCommon extends ScopedWireMockCommonTest {
         wireMock.joinCorrelatedScope(globalCorrelationPath + '/my_nested_scope', 'nested_nested_scope', Collections.singletonMap('someKey', 'someValue'))
 
         when:
-        def removedScopes = getWireMock().stopCorrelatedScope(globalCorrelationPath + '/my_nested_scope',Collections.emptyMap())
+        def removedScopes = getWireMock().stopNestedScope(globalCorrelationPath + '/my_nested_scope',Collections.emptyMap())
 
         then:
         removedScopes.size() == 2

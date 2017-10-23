@@ -9,6 +9,12 @@ import java.net.URL;
 import java.util.List;
 
 public interface ScopedAdmin {
+    String PERSONA_RESOURCE_ROOT = "personaResourceRoot";
+    String JOURNAL_RESOURCE_ROOT = "journalResourceRoot";
+    String OUTPUT_RESOURCE_ROOT = "outputResourceRoot";
+    String INPUT_RESOURCE_ROOT = "inputResourceRoot";
+    String GUEST = "guest";
+
     //Recording management
     void saveRecordingsForRequestPattern(ExtendedRequestPattern pattern, ResourceContainer recordingDirectory);
 
@@ -23,15 +29,14 @@ public interface ScopedAdmin {
 
     CorrelationState getCorrelatedScope(String scopePath);
 
-    List<String> stopCorrelatedScope(CorrelationState state);
+    //NB! we never remove user scopes directly, the get removed when the nested scope is removed
+    CorrelationState joinUserScope(InitialScopeState initialScopeState);
+
+    List<String> stopNestedScope(CorrelationState state);
 
     void syncCorrelatedScope(CorrelationState correlationState);
 
     List<StubMapping> getMappingsInScope(String scopePath);
-
-    //User scope management
-    CorrelationState joinUserScope(InitialScopeState initialScopeState);
-    CorrelationState stopUserScope(CorrelationState correlationState);
 
     //Step Management
     void startStep(CorrelationState state);

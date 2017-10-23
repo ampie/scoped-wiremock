@@ -16,14 +16,14 @@ abstract class WhenWorkingWithUserScopesCommon extends ScopedWireMockCommonTest 
         userScope.correlationPath == nestedScope.correlationPath +"/:user1"
         wireMock.getCorrelatedScope(userScope.correlationPath) != null
     }
-    def 'stop a user scope'() {
+    def 'stop a user scope when the parent scope is stoped'() {
         given: 'I start a global scope with a nested scope'
         def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + EndpointConfig.ENDPOINT_CONFIG_PATH), 'componentx'))
         def nestedScope = wireMock.joinCorrelatedScope(globalScope.correlationPath, 'nested',Collections.emptyMap())
         and: 'I start a scope within which a user will interact with the system'
         def userScope = wireMock.joinUserScope(nestedScope.correlationPath, 'user1',Collections.emptyMap())
-        when: 'I stop the resulting user scope'
-        wireMock.stopUserScope(userScope.correlationPath,Collections.emptyMap())
+        when: 'I stop the parent scope'
+        wireMock.stopNestedScope(nestedScope.correlationPath,Collections.emptyMap())
         then: 'the user scope must be removed'
         def scope = null
         try {

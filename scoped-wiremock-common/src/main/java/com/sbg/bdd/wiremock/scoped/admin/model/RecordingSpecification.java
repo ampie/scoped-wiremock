@@ -1,16 +1,36 @@
-package com.sbg.bdd.wiremock.scoped.client.builders;
+package com.sbg.bdd.wiremock.scoped.admin.model;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
 
-import com.sbg.bdd.wiremock.scoped.admin.model.JournalMode;
-
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(
+        name = "RecordingSpecification",
+        propOrder = {"recordToCurrentResourceDir", "enforceJournalModeInScope", "journalModeOverride", "recordingDirectory"}
+)
 public class RecordingSpecification {
-    private boolean recordToCurrentResourceDir = false;
+    @XmlElement(
+    )
+    private boolean recordToCurrentResourceDir;
+
+    @XmlElement(
+    )
     private boolean enforceJournalModeInScope = false;
+    @XmlElement(
+            nillable = true
+    )
     private JournalMode journalModeOverride;
+    @XmlElement(
+            nillable = true
+    )
     private String recordingDirectory;
-    public  RecordingSpecification(){
-        
+
+    public RecordingSpecification() {
+
     }
+
     public RecordingSpecification(RecordingSpecification source) {
         this.journalModeOverride = source.journalModeOverride;
         this.recordingDirectory = source.recordingDirectory;
@@ -73,5 +93,13 @@ public class RecordingSpecification {
         recordToCurrentResourceDir = true;
         enforceJournalModeInScope = true;
         return this;
+    }
+//For Jackson
+    public boolean isRecordToCurrentResourceDir() {
+        return recordToCurrentResourceDir;
+    }
+
+    public boolean isEnforceJournalModeInScope() {
+        return enforceJournalModeInScope;
     }
 }

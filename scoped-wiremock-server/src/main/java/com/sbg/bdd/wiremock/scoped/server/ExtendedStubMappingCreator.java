@@ -27,9 +27,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 public class ExtendedStubMappingCreator {
     private static final Logger LOGGER=Logger.getLogger(ExtendedStubMappingCreator.class.getName());
     private ExtendedStubMapping stubMapping;
-    private CorrelatedScope scope;
+    private AbstractCorrelatedScope scope;
 
-    public ExtendedStubMappingCreator(ExtendedStubMapping extendedStubMapping, CorrelatedScope scope) {
+    public ExtendedStubMappingCreator(ExtendedStubMapping extendedStubMapping, AbstractCorrelatedScope scope) {
         this.stubMapping = extendedStubMapping;
         this.scope = scope;
     }
@@ -112,12 +112,12 @@ public class ExtendedStubMappingCreator {
         childStubMapping.setPersistent(stubMapping.isPersistent());
         if(stubMapping.getLocalPriority()!=null) {
             //HACK  Could be build requestPatterns only
-            childStubMapping.setPriority(calculatePriority(stubMapping.getLocalPriority()));
+            childStubMapping.setPriority(calculatePriority(stubMapping.getLocalPriority(), this.scope));
         }
         return childStubMapping;
     }
 
-    private Integer calculatePriority(ScopeLocalPriority localPriority) {
+    public static Integer calculatePriority(ScopeLocalPriority localPriority, AbstractCorrelatedScope scope) {
         final int MAX_LEVELS=10;
         final int PRIORITIES_PER_LEVEL=10;
         return ((MAX_LEVELS - scope.getLevel())*PRIORITIES_PER_LEVEL)+localPriority.priority();

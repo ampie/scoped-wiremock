@@ -29,7 +29,7 @@ abstract class WhenManagingScopedMappingsCommon extends ScopedWireMockCommonTest
         wireMock.register(get(urlEqualTo("/test/uri")).withHeader(HeaderName.ofTheCorrelationKey(), matching(scope1.correlationPath + '.*')).willReturn(aResponse()).atPriority(1));
         wireMock.register(get(urlEqualTo("/test/uri")).withHeader(HeaderName.ofTheCorrelationKey(), matching(scope2.correlationPath + '.*')).willReturn(aResponse()).atPriority(1));
         when: 'I stop the second scope'
-        wireMock.stopCorrelatedScope(scope2.correlationPath,Collections.emptyMap())
+        wireMock.stopNestedScope(scope2.correlationPath,Collections.emptyMap())
         then: 'the first scope should still have its mapping'
         wireMock.getMappingsInScope(scope1.correlationPath).size() == 1
         wireMock.getMappingsInScope(scope2.correlationPath).size() == 0

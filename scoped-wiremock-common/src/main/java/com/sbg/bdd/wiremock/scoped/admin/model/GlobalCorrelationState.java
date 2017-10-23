@@ -32,6 +32,10 @@ public class GlobalCorrelationState extends CorrelationState{
             nillable = true
     )
     private String integrationScope;
+    @XmlElement(
+            nillable = true
+    )
+    private JournalMode globalJournaMode;
 
     public GlobalCorrelationState() {
     }
@@ -79,5 +83,13 @@ public class GlobalCorrelationState extends CorrelationState{
 
     public String getIntegrationScope() {
         return integrationScope;
+    }
+
+    public JournalMode getGlobalJournaMode() {
+        return globalJournaMode;
+    }
+
+    public void setGlobalJournaMode(JournalMode globalJournaMode) {
+        this.globalJournaMode = globalJournaMode;
     }
 }

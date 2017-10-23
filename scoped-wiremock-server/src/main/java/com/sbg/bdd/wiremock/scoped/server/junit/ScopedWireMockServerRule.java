@@ -5,11 +5,10 @@ import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.verification.NearMiss;
-import com.sbg.bdd.resource.ResourceRoot;
-import com.sbg.bdd.resource.file.DirectoryResourceRoot;
+import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.ScopedWireMock;
-import com.sbg.bdd.wiremock.scoped.server.ScopedWireMockServer;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
+import com.sbg.bdd.wiremock.scoped.server.ScopedWireMockServer;
 import org.junit.rules.MethodRule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -87,7 +86,7 @@ public class ScopedWireMockServerRule extends ScopedWireMock implements TestRule
 //            scopePath =scopePath +"/" + method.getName();
 //        }
 //        WireMockCorrelationState state = new WireMockCorrelationState();
-//        state.set(scopePath,false);//false because we don't want to have to register all the freakin mappings for unit tests.
+//        state.set(scopePath,false);//false because we don't want to have to processRecordingSpec all the freakin mappings for unit tests.
 //        WireMockCorrelationState.setCurrentWireMockCorrelationState(state);
     }
 
@@ -108,7 +107,7 @@ public class ScopedWireMockServerRule extends ScopedWireMock implements TestRule
         // NOOP
     }
 
-    public void registerResourceRoot(String root, ResourceRoot resourceRoot) {
+    public void registerResourceRoot(String root, ResourceContainer resourceRoot) {
         admin.registerResourceRoot(root, resourceRoot);
 
     }

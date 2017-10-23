@@ -5,6 +5,15 @@ import java.util.List;
 import java.util.Map;
 
 public class ResourceSupport {
+    public static void copy(ResourceContainer from, ResourceContainer to){
+        for (Resource resource : from.list()) {
+            if(resource instanceof ReadableResource){
+                to.resolvePotential(resource.getName()).write(((ReadableResource) resource).read());
+            }else if(resource instanceof ResourceContainer){
+                copy((ResourceContainer) resource, to.resolvePotentialContainer(resource.getName()));
+            }
+        }
+    }
     public static Resource[] list(ResourceFilter filter, Map<String, ? extends Resource> children, ResourceContainer container) {
         List<Resource> result = new ArrayList<>();
         for (Map.Entry<String, ? extends Resource> entry : children.entrySet()) {

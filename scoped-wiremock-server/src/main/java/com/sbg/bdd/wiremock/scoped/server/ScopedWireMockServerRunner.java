@@ -62,7 +62,7 @@ public class ScopedWireMockServerRunner {
                 i++;
             } else if (arg.equals("--extensions")) {
                 argList.add(arg);
-                argList.add(args[i+1] + "," + buildExtensionsString());
+                argList.add(args[i + 1] + "," + buildExtensionsString());
                 i++;
             } else {
                 argList.add(arg);
@@ -72,7 +72,7 @@ public class ScopedWireMockServerRunner {
             argList.add("--port");
             argList.add("0");
         }
-        if(!argList.contains("--extensions")) {
+        if (!argList.contains("--extensions")) {
             argList.add("--extensions");
             String extensions = buildExtensionsString();
             argList.add(extensions);
@@ -126,7 +126,10 @@ public class ScopedWireMockServerRunner {
     }
 
     private String buildExtensionsString() {
-        String extensions = ProxyUrlTransformer.class.getName() + "," + ScopeExtensions.class.getName() + "," + InvalidHeadersLoggingTransformer.class.getName();
+        String extensions = ProxyUrlTransformer.class.getName() + "," +
+                ScopeExtensions.class.getName() + "," +
+                InvalidHeadersLoggingTransformer.class.getName() + "," +
+                ScopeUpdatingResponseTransformer.class.getName();
         try {
             Class<?> cls = Class.forName("com.sbg.bdd.wiremock.scoped.integration.cucumber.CucumberFormattingScopeListener");
             extensions = extensions + "," + cls.getName();

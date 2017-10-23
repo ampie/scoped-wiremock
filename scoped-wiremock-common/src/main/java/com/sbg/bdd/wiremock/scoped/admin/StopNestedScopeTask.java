@@ -12,15 +12,15 @@ import java.util.List;
 import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
 import static java.net.HttpURLConnection.HTTP_OK;
 
-public class StopCorrelatedScopeTask extends ScopeAdminTask{
-    public StopCorrelatedScopeTask(ScopedAdmin scopedAdmin) {
+public class StopNestedScopeTask extends ScopeAdminTask{
+    public StopNestedScopeTask(ScopedAdmin scopedAdmin) {
         super(scopedAdmin);
     }
 
     @Override
     public ResponseDefinition execute(Admin a, Request request, PathParams pathParams) {
         CorrelationState correlationState = Json.read(request.getBodyAsString(), CorrelationState.class);
-        List<String> removedScopePaths= admin.stopCorrelatedScope(correlationState);
+        List<String> removedScopePaths= admin.stopNestedScope(correlationState);
         return responseDefinition()
                 .withStatus(HTTP_OK)
                 .withBody(Json.write(removedScopePaths))

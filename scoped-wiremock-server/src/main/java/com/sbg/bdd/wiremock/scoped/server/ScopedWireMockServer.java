@@ -4,6 +4,7 @@ package com.sbg.bdd.wiremock.scoped.server;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.http.HttpServer;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.sbg.bdd.resource.ResourceContainer;
@@ -53,7 +54,6 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
         this.options = options;
     }
 
-
     @Override
     public void resetAll() {
         super.resetAll();
@@ -91,8 +91,8 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     }
 
     @Override
-    public List<String> stopCorrelatedScope(CorrelationState state) {
-        return scopeAdmin.stopCorrelatedScope(state);
+    public List<String> stopNestedScope(CorrelationState state) {
+        return scopeAdmin.stopNestedScope(state);
     }
 
     @Override
@@ -105,16 +105,12 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
         return scopeAdmin.getMappingsInScope(scopePath);
     }
 
-    //User scope management
     @Override
     public CorrelationState joinUserScope(InitialScopeState initialScopeState) {
         return scopeAdmin.joinUserScope(initialScopeState);
     }
 
-    @Override
-    public CorrelationState stopUserScope(CorrelationState correlationState) {
-        return scopeAdmin.stopUserScope(correlationState);
-    }
+
 
     @Override
     public List<RecordedExchange> findExchangesAgainstStep(String scopePath, String stepName) {

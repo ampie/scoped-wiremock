@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.client.BasicCredentials;
 import com.github.tomakehurst.wiremock.http.RequestMethod;
 import com.github.tomakehurst.wiremock.matching.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +61,7 @@ public class ExtendedRequestPattern extends RequestPattern {
         super(
                 source.getUrlMatcher(),
                 source.getMethod(),
-                source.getHeaders(),
+                source.getHeaders() == null ? new HashMap<String, MultiValuePattern>() : source.getHeaders(),//because we always have headers and need to manipulate them outside of a RequestPatternBuilder
                 source.getQueryParameters(),
                 source.getCookies(),
                 source.getBasicAuthCredentials(),
@@ -68,8 +69,19 @@ public class ExtendedRequestPattern extends RequestPattern {
                 source.getCustomMatcher()
         );
         this.correlationPath = correlationPath;
-        if (source.getUrlMatcher() != null) {
-            setUrlInfo(source.getUrlMatcher().getExpected());
+        UrlPattern urlMatcher = source.getUrlMatcher();
+        if (source instanceof ExtendedRequestPattern) {
+            ExtendedRequestPattern extendedRequestPattern = (ExtendedRequestPattern) source;
+            this.urlInfo = extendedRequestPattern.getUrlInfo();
+            this.pathSuffix = extendedRequestPattern.getPathSuffix();
+            this.urlIsPattern=extendedRequestPattern.isUrlIsPattern();
+            this.toAllKnownExternalServices=extendedRequestPattern.isToAllKnownExternalServices();
+            this.endpointCategory=extendedRequestPattern.getEndpointCategory();
+        } else {
+            if (urlMatcher != null && (urlMatcher.getPattern() instanceof EqualToPattern || urlMatcher.getPattern() instanceof RegexPattern)) {
+                //try to reuse it where we can
+                setUrlInfo(urlMatcher.getExpected());
+            }
         }
     }
 

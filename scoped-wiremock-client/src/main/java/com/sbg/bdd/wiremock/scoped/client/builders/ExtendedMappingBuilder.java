@@ -5,11 +5,7 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.ScenarioMappingBuilder;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
-import com.github.tomakehurst.wiremock.stubbing.StubMapping;
-import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern;
-import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedResponseDefinition;
-import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedStubMapping;
-import com.sbg.bdd.wiremock.scoped.admin.model.ScopeLocalPriority;
+import com.sbg.bdd.wiremock.scoped.admin.model.*;
 import com.sbg.bdd.wiremock.scoped.client.WireMockContext;
 
 import java.util.*;
@@ -24,7 +20,6 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
     private String name;
     private UUID id = UUID.randomUUID();
     private Boolean persistent;
-    private String rootCorrelationPath;
     private ScopeLocalPriority localPriority;
 
     public ExtendedMappingBuilder(ExtendedRequestPatternBuilder requestPatternBuilder, ExtendedResponseDefinitionBuilder responseDefinitionBuilder, RecordingSpecification recordingSpecification) {
@@ -162,6 +157,7 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
         mapping.setUuid(id);
         mapping.setName(name);
         mapping.setPersistent(persistent);
+        mapping.setRecordingSpecification(recordingSpecification);
         return mapping;
     }
 

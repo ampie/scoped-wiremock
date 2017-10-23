@@ -31,11 +31,10 @@ public class ScopeExtensionsOnClient implements AdminApiExtension{
         //Scope management
         router.add(POST, "/global_scopes/new", new StartNewGlobalScopeTask(currentAdmin));
         router.add(POST, "/global_scopes/stop",new StopGlobalScopeTask(currentAdmin));
-        router.add(POST, "/scopes/stop",new  StopCorrelatedScopeTask(currentAdmin));
+        router.add(POST, "/scopes/stop",new StopNestedScopeTask(currentAdmin));
         router.add(POST, "/scopes/join", new JoinKnownCorrelatedScopeTask(currentAdmin));
         router.add(POST, "/scopes/sync", new SyncCorrelatedScopeTask(currentAdmin));
         router.add(POST, "/scopes/get",new  GetCorrelatedScopeTask(currentAdmin));
-        router.add(POST, "/user_scopes/stop",new StopUserScopeTask(currentAdmin));
         router.add(POST, "/user_scopes/join", new JoinUserScopeTask(currentAdmin));
         //Step management
         router.add(POST, "/scopes/steps/start",new  StartStepTask(currentAdmin));

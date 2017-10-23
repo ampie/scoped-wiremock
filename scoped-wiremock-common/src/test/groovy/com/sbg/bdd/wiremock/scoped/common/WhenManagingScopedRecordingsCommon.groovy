@@ -58,7 +58,7 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
         assertThat(sendGet("/test/uri2", scope2.correlationPath), is(equalTo("hello2")))
 
         when:'I stop the first scope'
-        wireMock.stopCorrelatedScope(scope1.correlationPath,Collections.emptyMap())
+        wireMock.stopNestedScope(scope1.correlationPath,Collections.emptyMap())
         def exchangesAgainstScope1 = wireMock.findMatchingExchanges(matching(scope1.correlationPath), buildRequestPattern('/test/uri1', scope1));
         def exchangesAgainstScope2 = wireMock.findMatchingExchanges(matching(scope2.correlationPath), buildRequestPattern('/test/uri2', scope2));
 
@@ -79,7 +79,7 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
         assertThat(sendGet("/test/uri2", scope2.correlationPath), is(equalTo("hello2")))
 
         when:'I stop the parent scope scope'
-        wireMock.stopCorrelatedScope(globalScope.correlationPath,Collections.emptyMap())
+        wireMock.stopGlobalScope(globalScope)
         def exchangesAgainstScope1 = wireMock.findMatchingExchanges(matching(scope1.correlationPath), buildRequestPattern('/test/uri1', scope1));
         def exchangesAgainstScope2 = wireMock.findMatchingExchanges(matching(scope2.correlationPath), buildRequestPattern('/test/uri2', scope2));
 
@@ -97,7 +97,7 @@ abstract class WhenManagingScopedRecordingsCommon extends ScopedWireMockCommonTe
         assertThat(sendGet("/test/uri1", nestedScope.getCorrelationPath()), is(equalTo("hello1")))
         assertThat(sendGet("/test/uri1", globalScope.getCorrelationPath()), is(equalTo("hello1")))
         when:
-        wireMock.stopCorrelatedScope(nestedScope.getCorrelationPath(),Collections.emptyMap())
+        wireMock.stopNestedScope(nestedScope.getCorrelationPath(),Collections.emptyMap())
         then:
         def exchangesAgainstNestedScope = wireMock.findMatchingExchanges(matching(nestedScope.correlationPath), buildRequestPattern('/test/uri1', nestedScope));
         exchangesAgainstNestedScope.size() == 0

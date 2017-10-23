@@ -25,9 +25,11 @@ public class WhenWorkingWithResources extends ScopedWireMockTest {
         //When
         WireMockResource[] list = root.list();
         //Then
-        assertThat(list.length,is(2));
-        assertThat(list[0].getName(),is("scoped-wiremock-common-marker.txt"));
-        assertThat(list[1].getName(),is("some_recording_dir"));
+        assertThat(list.length,is(4));
+        assertThat(list[0].getName(),is("example_journal"));
+        assertThat(list[1].getName(),is("personas"));
+        assertThat(list[2].getName(),is("scoped-wiremock-common-marker.txt"));
+        assertThat(list[3].getName(),is("some_recording_dir"));
     }
     @Test
     public void shouldListResourcesFromAGivenDirectory() throws IOException {

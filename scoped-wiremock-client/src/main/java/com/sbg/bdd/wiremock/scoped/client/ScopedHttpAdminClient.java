@@ -1,20 +1,16 @@
 package com.sbg.bdd.wiremock.scoped.client;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionLikeType;
 import com.github.tomakehurst.wiremock.admin.AdminRoutes;
 import com.github.tomakehurst.wiremock.admin.model.PathParams;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.extension.AdminApiExtension;
-import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.*;
 import com.sbg.bdd.wiremock.scoped.admin.model.*;
 import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
 
-import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -173,9 +169,9 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
     }
 
     @Override
-    public List<String> stopCorrelatedScope(CorrelationState state) {
+    public List<String> stopNestedScope(CorrelationState state) {
         List list = executeRequest(
-                scopedAdminRoutes.requestSpecForTask(StopCorrelatedScopeTask.class),
+                scopedAdminRoutes.requestSpecForTask(StopNestedScopeTask.class),
                 PathParams.empty(),
                 state,
                 List.class,
@@ -194,16 +190,7 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
         );
     }
 
-    @Override
-    public CorrelationState stopUserScope(CorrelationState state) {
-        return executeRequest(
-                scopedAdminRoutes.requestSpecForTask(StopUserScopeTask.class),
-                PathParams.empty(),
-                state,
-                CorrelationState.class,
-                200
-        );
-    }
+
     @Override
     public List<RecordedExchange> findMatchingExchanges(ExtendedRequestPattern requestPattern) {
         CollectionLikeType type = Json.getObjectMapper().getTypeFactory().constructCollectionType(List.class, RecordedExchange.class);

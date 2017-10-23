@@ -80,8 +80,8 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
         return admin.startNestedScope(new InitialScopeState(parentCorrelationPath,name, payload));
     }
 
-    public List<String> stopCorrelatedScope(String knownScopePath, Map<String, Object> map) {
-        return admin.stopCorrelatedScope(new CorrelationState(knownScopePath, map));
+    public List<String> stopNestedScope(String knownScopePath, Map<String, Object> map) {
+        return admin.stopNestedScope(new CorrelationState(knownScopePath, map));
     }
 
     public CorrelationState getCorrelatedScope(String scopePath) {
@@ -98,9 +98,6 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
     //User scope mapping
     public CorrelationState joinUserScope(String parentCorrelationPath, String userName, Map<String,Object> payload) {
         return admin.joinUserScope(new InitialScopeState(parentCorrelationPath,userName, payload));
-    }
-    public CorrelationState stopUserScope(String knownScopePath, Map<String, Object> map) {
-        return admin.stopUserScope(new CorrelationState(knownScopePath, map));
     }
     //Step management
     public void startStep(String correlationPath, String stepName, Map<String, Object> payload) {

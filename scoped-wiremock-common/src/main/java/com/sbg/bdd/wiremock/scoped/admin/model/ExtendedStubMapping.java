@@ -8,20 +8,35 @@ import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 
+import javax.xml.bind.annotation.XmlElement;
 import java.util.UUID;
 
 @JsonIgnoreProperties({"request", "response"})
 @JsonPropertyOrder({"id", "name", "extendedRequest", "extendedResponse", "uuid"})
 public class ExtendedStubMapping extends StubMapping {
     private ExtendedRequestPattern extendedRequest;
+    @XmlElement(
+            nillable = true
+    )
     private ExtendedResponseDefinition extendedResponse;
     private ScopeLocalPriority localPriority;
-
+    @XmlElement(
+            nillable = true
+    )
+    private RecordingSpecification recordingSpecification;
     public ExtendedStubMapping(){}
 
     public ExtendedStubMapping(ExtendedRequestPattern requestPattern, ExtendedResponseDefinition response) {
         setExtendedRequest(requestPattern);
         setExtendedResponse(response);
+    }
+
+    public void setRecordingSpecification(RecordingSpecification recordingSpecification) {
+        this.recordingSpecification = recordingSpecification;
+    }
+
+    public RecordingSpecification getRecordingSpecification() {
+        return recordingSpecification;
     }
 
     public ExtendedRequestPattern getExtendedRequest() {

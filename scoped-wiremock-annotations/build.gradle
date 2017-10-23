@@ -1,0 +1,3 @@
+dependencies {
+    compile('javax.enterprise:cdi-api:1.2')
+}

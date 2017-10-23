@@ -1,11 +1,10 @@
 1. Move the RecordingSpecification logic to the server side
 
-- make persona root available so that we can get all personas (legacy tests can use guest)
-- Add the recordingSpecification as a property on the Mapping json structure
-- Move the logic to determine which recording specifications are in scope to the server
+
 -- may want to make CorrelatedScopeAdmin a bit more clever and group mappings per scope,
             maybe even a hierarchical StubMappings implementation
-- Do the actual recording/playback on the server
+
+- sync the correlation state to the app when setting it may not be necessary as scenarioscope = userscope
 
 2. Cucumber in Ruby
 - implement plugin that creates
@@ -22,9 +21,13 @@
 
 I need:
 
-Darren
-Corne
-Baskhar or sugu
+Darren to do the backdoor build
+Corne to
+    annotate the relevant FEB services
+    get the ScopedWireMock image on the server with the right certificates
+    prepare a production build that excludes the runtime interceptor
+
+Baskhar or sugu to help with the cucumber/ruby stuff
 
 Done
 1.
@@ -32,5 +35,16 @@ Done
 - Implement the rest CRUD endpoint at a different url, e.g. /extended_mappings
 - We need awareness of user scopes on server because steps occur against execution scopes not user scopes
 - Implement startUserScope and stopUserScope and use the format /one/two/:user
+- make persona root available so that we can get all personas (legacy tests can use guest)
+- Add the recordingSpecification as a property on the Mapping json structure
+- Move the logic to determine which recording specifications are in scope to the server
+- Do the actual recording/playback on the server
 
 2. Extend the EndPointConfigRegistry to return all mockable Endpoints within a certain scope
+
+Approach
+1. Pick one feature file that we know should work
+2. Annotate the supporting services
+3. Hook in the cucumber plugin
+4. Prepare the journal
+5. Run the journal

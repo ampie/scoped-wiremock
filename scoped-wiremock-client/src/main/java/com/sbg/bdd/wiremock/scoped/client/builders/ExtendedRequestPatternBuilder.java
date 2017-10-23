@@ -38,6 +38,8 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
         this.pathSuffix = builder.pathSuffix;
         this.urlIsPattern = builder.urlIsPattern;
         this.toAllKnownExternalServices = builder.toAllKnownExternalServices;
+        this.endpointCategory=builder.endpointCategory;
+        this.correlationPath=builder.correlationPath;
         setValue(this, "method", getValue(builder, "method"));
         setValue(this, "headers", new HashMap<>((Map<? extends String, ? extends MultiValuePattern>) getValue(builder, "headers")));
         setValue(this, "queryParams", new HashMap<>((Map<? extends String, ? extends MultiValuePattern>) getValue(builder, "queryParams")));

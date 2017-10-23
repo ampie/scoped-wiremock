@@ -32,7 +32,7 @@ abstract class WhenInheritingAndOverridingRulesCommon extends ScopedWireMockComm
         wireMock.register(get(urlEqualTo("/test/uri")).withHeader(HeaderName.ofTheCorrelationKey(), matching(nestedScope.correlationPath + '.*')).willReturn(aResponse()).atPriority(1));
 
         when:'I stop the containing scope'
-        wireMock.stopCorrelatedScope(rootScope.correlationPath, Collections.emptyMap())
+        wireMock.stopGlobalScope(rootScope)
 
         then: 'the both scopes will have 0 mappings in scope'
         wireMock.getMappingsInScope(rootScope.correlationPath).size() == 0
