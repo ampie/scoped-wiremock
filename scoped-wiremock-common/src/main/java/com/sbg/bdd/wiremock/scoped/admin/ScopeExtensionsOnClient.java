@@ -9,6 +9,7 @@ import com.sbg.bdd.wiremock.scoped.common.Reflection;
 
 import java.util.Map;
 
+import static com.github.tomakehurst.wiremock.http.RequestMethod.DELETE;
 import static com.github.tomakehurst.wiremock.http.RequestMethod.POST;
 
 
@@ -29,13 +30,13 @@ public class ScopeExtensionsOnClient implements AdminApiExtension{
         router.add(POST, "/resources/read", new ReadResourceTask(currentAdmin));
         router.add(POST, "/resources/write", new WriteResourceTask(currentAdmin));
         //Scope management
-        router.add(POST, "/global_scopes/new", new StartNewGlobalScopeTask(currentAdmin));
+        router.add(POST, "/global_scopes/start", new StartNewGlobalScopeTask(currentAdmin));
         router.add(POST, "/global_scopes/stop",new StopGlobalScopeTask(currentAdmin));
+        router.add(POST, "/scopes/start", new StartNestedScope(currentAdmin));
         router.add(POST, "/scopes/stop",new StopNestedScopeTask(currentAdmin));
-        router.add(POST, "/scopes/join", new JoinKnownCorrelatedScopeTask(currentAdmin));
         router.add(POST, "/scopes/sync", new SyncCorrelatedScopeTask(currentAdmin));
         router.add(POST, "/scopes/get",new  GetCorrelatedScopeTask(currentAdmin));
-        router.add(POST, "/user_scopes/join", new JoinUserScopeTask(currentAdmin));
+        router.add(POST, "/user_scopes/start", new StartUserScopeTask(currentAdmin));
         //Step management
         router.add(POST, "/scopes/steps/start",new  StartStepTask(currentAdmin));
         router.add(POST, "/scopes/steps/stop",new StopStepTask(currentAdmin));
@@ -46,6 +47,7 @@ public class ScopeExtensionsOnClient implements AdminApiExtension{
         router.add(POST, "/scopes/exchanges/journal",new JournalTask(currentAdmin));
         router.add(POST, "/extended_mappings",new CreateExtendedStubMappingTask(currentAdmin));
         router.add(POST, "/extended_count",new CountByExtendedRequestPatternTask(currentAdmin));
+        router.add(DELETE, "/reset_all_scopes",new ResetAllScopesTask(currentAdmin));
     }
 
 

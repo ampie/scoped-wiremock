@@ -12,8 +12,8 @@ import org.apache.commons.lang3.time.StopWatch;
 import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
 import static java.net.HttpURLConnection.HTTP_OK;
 
-public class JoinUserScopeTask extends ScopeAdminTask{
-    public JoinUserScopeTask(ScopedAdmin scopedAdmin) {
+public class StartUserScopeTask extends ScopeAdminTask{
+    public StartUserScopeTask(ScopedAdmin scopedAdmin) {
         super(scopedAdmin);
     }
 
@@ -23,7 +23,7 @@ public class JoinUserScopeTask extends ScopeAdminTask{
         sw.start();
         try {
             InitialScopeState correlationState = Json.read(request.getBodyAsString(), InitialScopeState.class);
-            CorrelationState scope = admin.joinUserScope(correlationState);
+            CorrelationState scope = admin.startUserScope(correlationState);
             return responseDefinition()
                     .withStatus(HTTP_OK)
                     .withBody(Json.write(scope))

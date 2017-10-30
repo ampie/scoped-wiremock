@@ -14,7 +14,7 @@ import java.util.UUID;
 @JsonIgnoreProperties({"request", "response"})
 @JsonPropertyOrder({"id", "name", "extendedRequest", "extendedResponse", "uuid"})
 public class ExtendedStubMapping extends StubMapping {
-    private ExtendedRequestPattern extendedRequest;
+        private ExtendedRequestPattern extendedRequest;
     @XmlElement(
             nillable = true
     )

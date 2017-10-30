@@ -4,8 +4,6 @@ package com.sbg.bdd.wiremock.scoped.server;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.http.HttpServer;
-import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.model.*;
@@ -13,7 +11,6 @@ import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.common.CanStartAndStop;
 import com.sbg.bdd.wiremock.scoped.common.HasBaseUrl;
 
-import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -106,8 +103,8 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     }
 
     @Override
-    public CorrelationState joinUserScope(InitialScopeState initialScopeState) {
-        return scopeAdmin.joinUserScope(initialScopeState);
+    public CorrelationState startUserScope(InitialScopeState initialScopeState) {
+        return scopeAdmin.startUserScope(initialScopeState);
     }
 
 

@@ -10,7 +10,7 @@ abstract class WhenInheritingAndOverridingRulesCommon extends ScopedWireMockComm
         given: 'I have a new global scope with a nested scope'
         def urlOfSut = new URL(wireMock.baseUrl() + '/sut1')
         def rootScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), urlOfSut, 'componentx'))
-        def nestedScope = wireMock.joinCorrelatedScope(rootScope.correlationPath , 'nested_scope', Collections.emptyMap())
+        def nestedScope = wireMock.startNestedScope(rootScope.correlationPath , 'nested_scope', Collections.emptyMap())
 
         when: 'I register one mapping in each scope'
         wireMock.register(get(urlEqualTo("/test/uri")).withHeader(HeaderName.ofTheCorrelationKey(), matching(rootScope.correlationPath + '.*')).willReturn(aResponse()).atPriority(1));
@@ -27,7 +27,7 @@ abstract class WhenInheritingAndOverridingRulesCommon extends ScopedWireMockComm
         given:'I register one mapping each for a global and nested scope'
         def urlOfSut = new URL(wireMock.baseUrl() + '/sut1')
         def rootScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), urlOfSut, 'componentx'))
-        def nestedScope = wireMock.joinCorrelatedScope(rootScope.correlationPath , 'nested_scope', Collections.emptyMap())
+        def nestedScope = wireMock.startNestedScope(rootScope.correlationPath , 'nested_scope', Collections.emptyMap())
         wireMock.register(get(urlEqualTo("/test/uri")).withHeader(HeaderName.ofTheCorrelationKey(), matching(rootScope.correlationPath + '.*')).willReturn(aResponse()).atPriority(1));
         wireMock.register(get(urlEqualTo("/test/uri")).withHeader(HeaderName.ofTheCorrelationKey(), matching(nestedScope.correlationPath + '.*')).willReturn(aResponse()).atPriority(1));
 

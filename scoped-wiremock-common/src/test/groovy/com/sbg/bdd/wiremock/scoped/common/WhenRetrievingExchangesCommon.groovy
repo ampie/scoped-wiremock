@@ -3,7 +3,6 @@ package com.sbg.bdd.wiremock.scoped.common
 import com.github.tomakehurst.wiremock.common.HttpClientUtils
 import com.github.tomakehurst.wiremock.http.HttpClientFactory
 import com.github.tomakehurst.wiremock.http.RequestMethod
-import com.github.tomakehurst.wiremock.matching.RequestPattern
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern
 import com.sbg.bdd.wiremock.scoped.admin.model.GlobalCorrelationState
@@ -20,9 +19,9 @@ abstract class WhenRetrievingExchangesCommon extends  ScopedWireMockCommonTest {
     def 'Should retrieve root exchanges against a step, not nested exchanges'() {
         given:'I have a scope containing steps with a user scope'
         def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), 'sutx'))
-        def stepContainingScope = wireMock.joinCorrelatedScope(globalScope.correlationPath, 'stepContainingScope', Collections.emptyMap())
+        def stepContainingScope = wireMock.startNestedScope(globalScope.correlationPath, 'stepContainingScope', Collections.emptyMap())
         //NB!! THe assumption is that actual requests will always be performed on behalf of a user within a Scope
-        def userScope= wireMock.joinUserScope(stepContainingScope.correlationPath, 'user1',Collections.emptyMap())
+        def userScope= wireMock.startUserScope(stepContainingScope.correlationPath, 'user1',Collections.emptyMap())
         wireMock.startStep(stepContainingScope.getCorrelationPath(), 'step1',Collections.emptyMap())
         and: 'I have a service that depends on another service'
         wireMock.register(matching(stepContainingScope.correlationPath +'.*'), get(urlEqualTo("/entry_point")).willReturn(aResponse().proxiedFrom(wireMock.baseUrl()+"/proxied")).atPriority(1))
@@ -38,9 +37,9 @@ abstract class WhenRetrievingExchangesCommon extends  ScopedWireMockCommonTest {
     def 'Should retrieve all root exchanges and nested exchanges flattend to a list against the responsible user scope'() {
         given:'I have a scope containing steps with a nested (user) scope'
         def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), 'sutx'))
-        def stepContainingScope = wireMock.joinCorrelatedScope(globalScope.correlationPath, 'stepContainingScope', Collections.emptyMap())
+        def stepContainingScope = wireMock.startNestedScope(globalScope.correlationPath, 'stepContainingScope', Collections.emptyMap())
         //NB!! THe assumption is that actual requests will always be performed on behalf of a user within a Scope
-        def userScope= wireMock.joinUserScope(stepContainingScope.correlationPath, 'user1',Collections.emptyMap())
+        def userScope= wireMock.startUserScope(stepContainingScope.correlationPath, 'user1',Collections.emptyMap())
         wireMock.startStep(stepContainingScope.getCorrelationPath(), 'step1',Collections.emptyMap())
         and: 'I have a service that depends on another service'
         wireMock.register(matching(stepContainingScope.correlationPath +'.*'), get(urlEqualTo("/entry_point")).willReturn(aResponse().proxiedFrom(wireMock.baseUrl()+"/proxied")).atPriority(1))

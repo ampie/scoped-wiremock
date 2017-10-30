@@ -2,8 +2,6 @@ package com.sbg.bdd.wiremock.scoped.common
 
 import com.github.tomakehurst.wiremock.common.HttpClientUtils
 import com.github.tomakehurst.wiremock.http.HttpClientFactory
-import com.github.tomakehurst.wiremock.http.RequestMethod
-import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern
 import com.sbg.bdd.wiremock.scoped.admin.model.GlobalCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
@@ -20,9 +18,9 @@ abstract class WhenCountingExchangesCommon extends  ScopedWireMockCommonTest {
         //This is not an overly useful example, but it does test that counting works
         given:'I have a scope containing with a user scope that also contains steps'
         def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), 'sutx'))
-        def nestedScope = wireMock.joinCorrelatedScope(globalScope.correlationPath , 'nestedScope', Collections.emptyMap())
+        def nestedScope = wireMock.startNestedScope(globalScope.correlationPath , 'nestedScope', Collections.emptyMap())
         //NB!! THe assumption is that actual requests will always be performed on behalf of a user within a Scope
-        def userScope= wireMock.joinUserScope(nestedScope.correlationPath ,  'user1',Collections.emptyMap())
+        def userScope= wireMock.startUserScope(nestedScope.correlationPath ,  'user1',Collections.emptyMap())
         and: 'I have one service calling another service'
         wireMock.register(matching(nestedScope.correlationPath +'.*'), get(urlEqualTo("/entry_point")).willReturn(aResponse().proxiedFrom(wireMock.baseUrl()+"/proxied")).atPriority(1))
         wireMock.register(matching(nestedScope.correlationPath +'.*'), get(urlEqualTo("/proxied/entry_point")).willReturn(aResponse().withBody("hello")).atPriority(1))

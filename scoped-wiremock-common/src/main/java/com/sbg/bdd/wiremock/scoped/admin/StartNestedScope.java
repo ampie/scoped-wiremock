@@ -12,8 +12,8 @@ import org.apache.commons.lang3.time.StopWatch;
 import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.responseDefinition;
 import static java.net.HttpURLConnection.HTTP_OK;
 
-public class JoinKnownCorrelatedScopeTask extends ScopeAdminTask{
-    public JoinKnownCorrelatedScopeTask(ScopedAdmin scopedAdmin) {
+public class StartNestedScope extends ScopeAdminTask{
+    public StartNestedScope(ScopedAdmin scopedAdmin) {
         super(scopedAdmin);
     }
 

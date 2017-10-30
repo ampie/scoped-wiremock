@@ -30,7 +30,7 @@ public interface ScopedAdmin {
     CorrelationState getCorrelatedScope(String scopePath);
 
     //NB! we never remove user scopes directly, the get removed when the nested scope is removed
-    CorrelationState joinUserScope(InitialScopeState initialScopeState);
+    CorrelationState startUserScope(InitialScopeState initialScopeState);
 
     List<String> stopNestedScope(CorrelationState state);
 
@@ -57,5 +57,5 @@ public interface ScopedAdmin {
 
     List<RecordedExchange> findMatchingExchanges(ExtendedRequestPattern requestPattern);
 
-
+    void resetAll();
 }

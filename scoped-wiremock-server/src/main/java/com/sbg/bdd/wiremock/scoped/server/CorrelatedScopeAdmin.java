@@ -107,7 +107,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
 
     //User scope management
     @Override
-    public CorrelationState joinUserScope(InitialScopeState initialScopeState) {
+    public CorrelationState startUserScope(InitialScopeState initialScopeState) {
         GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(initialScopeState.getParentCorrelationPath()));
         UserScope userScope = globalScope.findOrCreateUserScope(initialScopeState.getParentCorrelationPath(), initialScopeState.getName());
         userScope.getCorrelationState().setPayload(initialScopeState.getPayload());
@@ -183,6 +183,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
         return exchangeJournal.findMatchingExchanges(supportingRequestPatterns(pattern));
     }
 
+    @Override
     public void resetAll() {
         this.exchangeJournal.reset();
         this.stubMappingsMappings.clear();

@@ -12,10 +12,11 @@ import com.sbg.bdd.wiremock.scoped.integration.HttpCommandExecutor
 import static com.github.tomakehurst.wiremock.client.WireMock.*
 
 abstract class WhenRegisteringExtendedStubMappingsCommon extends ScopedWireMockCommonTest {
+
     def 'ExtendedStubMappings are always registered at a specific scope which results in a specific priority '() {
         given: 'I have a new global scope with a nested scope'
         def rootScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), 'componentx'))
-        def nestedScope = wireMock.joinCorrelatedScope(rootScope.correlationPath, 'nested_scope', Collections.emptyMap())
+        def nestedScope = wireMock.startNestedScope(rootScope.correlationPath, 'nested_scope', Collections.emptyMap())
 
         when: 'I register one mapping in the nested scope at priority BODY_KNOWN'
         def originalMapping = get(urlEqualTo("/test/uri")).withHeader(HeaderName.ofTheCorrelationKey(), matching(nestedScope.correlationPath + '.*')).willReturn(aResponse()).build()
@@ -34,8 +35,8 @@ abstract class WhenRegisteringExtendedStubMappingsCommon extends ScopedWireMockC
     def 'ExtendedStubMappings that target the property name of a specific EndPointConfig will result in a StubMapping with the resolved path'() {
         given: 'I have a new global scope with a nested scope'
         def rootScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), null))
-        def nestedScope = wireMock.joinCorrelatedScope(rootScope.correlationPath, 'nested_scope', Collections.emptyMap())
-        and: "'an EndPointConfig for the property 'my.property.name'"
+        def nestedScope = wireMock.startNestedScope(rootScope.correlationPath, 'nested_scope', Collections.emptyMap())
+        and: "an EndPointConfig for the property 'my.property.name'"
         HttpCommandExecutor.INSTANCE = Mock(HttpCommandExecutor) {
             execute(_) >> { args ->
                 if (args[0].url.path == '/sut' + EndpointConfig.ENDPOINT_CONFIG_PATH+ 'all') {
@@ -60,10 +61,11 @@ abstract class WhenRegisteringExtendedStubMappingsCommon extends ScopedWireMockC
     }
 
 
+
     def 'ExtendedStubMappings that intercept requests targeting a specific EndPointConfig will result in a StubMapping with the resolved path of the EndPointConfig'() {
         given: 'I have a new global scope with a nested scope'
         def rootScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), null))
-        def nestedScope = wireMock.joinCorrelatedScope(rootScope.correlationPath, 'nested_scope', Collections.emptyMap())
+        def nestedScope = wireMock.startNestedScope(rootScope.correlationPath, 'nested_scope', Collections.emptyMap())
         and: "'an EndPointConfig for the property 'my.property.name'"
         HttpCommandExecutor.INSTANCE = Mock(HttpCommandExecutor) {
             execute(_) >> { args ->
@@ -95,7 +97,7 @@ abstract class WhenRegisteringExtendedStubMappingsCommon extends ScopedWireMockC
     def 'ExtendedStubMappings that target all known external services will result in a StubMapping with the resolved path for each known EndPointConfig'() {
         given: 'I have a new global scope with a nested scope'
         def rootScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), null))
-        def nestedScope = wireMock.joinCorrelatedScope(rootScope.correlationPath, 'nested_scope', Collections.emptyMap())
+        def nestedScope = wireMock.startNestedScope(rootScope.correlationPath, 'nested_scope', Collections.emptyMap())
         and: "four configured EndPointConfigs"
         HttpCommandExecutor.INSTANCE = Mock(HttpCommandExecutor) {
             execute(_) >> { args ->
@@ -132,7 +134,7 @@ abstract class WhenRegisteringExtendedStubMappingsCommon extends ScopedWireMockC
     def 'ExtendedStubMappings that target known external services of a specific category will result in StubMappings with the resolved path for each known EndPointConfig that belongs to that category'() {
         given: 'I have a new global scope with a nested scope'
         def rootScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('android_regression', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), null))
-        def nestedScope = wireMock.joinCorrelatedScope(rootScope.correlationPath, 'nested_scope', Collections.emptyMap())
+        def nestedScope = wireMock.startNestedScope(rootScope.correlationPath, 'nested_scope', Collections.emptyMap())
         and: "four configured EndPointConfigs"
         HttpCommandExecutor.INSTANCE = Mock(HttpCommandExecutor) {
             execute(_) >> { args ->

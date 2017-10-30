@@ -4,8 +4,6 @@ import com.github.tomakehurst.wiremock.common.HttpClientUtils
 import com.github.tomakehurst.wiremock.http.HttpClientFactory
 import com.github.tomakehurst.wiremock.http.RequestMethod
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
-import com.sbg.bdd.resource.file.DirectoryResource
-import com.sbg.bdd.resource.file.DirectoryResourceRoot
 import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern
 import com.sbg.bdd.wiremock.scoped.admin.model.GlobalCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
@@ -25,8 +23,8 @@ abstract class WhenRecordingResponsesCommon extends ScopedWireMockCommonTest{
     def 'Should record all exchanges and nested exchanges in a specified directory'() {
         given:'I have a scope containing steps with a nested (user) scope'
         def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), 'sutx'))
-        def stepContainingScope = wireMock.joinCorrelatedScope(globalScope.correlationPath, 'stepContainingScope', Collections.emptyMap())
-        def userScope= wireMock.joinUserScope(stepContainingScope.correlationPath, 'user1',Collections.emptyMap())
+        def stepContainingScope = wireMock.startNestedScope(globalScope.correlationPath, 'stepContainingScope', Collections.emptyMap())
+        def userScope= wireMock.startUserScope(stepContainingScope.correlationPath, 'user1',Collections.emptyMap())
         wireMock.startStep(stepContainingScope.getCorrelationPath(), 'step1',Collections.emptyMap())
         and: 'I have a service that depends on another service'
         wireMock.register(matching(stepContainingScope.correlationPath +'.*'), get(urlEqualTo("/entry_point")).willReturn(aResponse().proxiedFrom(wireMock.baseUrl()+"/proxied")).atPriority(1))

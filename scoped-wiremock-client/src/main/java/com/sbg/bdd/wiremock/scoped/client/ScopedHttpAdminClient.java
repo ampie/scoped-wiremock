@@ -149,7 +149,7 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
     @Override
     public CorrelationState startNestedScope(InitialScopeState knownScope) {
         return executeRequest(
-                scopedAdminRoutes.requestSpecForTask(JoinKnownCorrelatedScopeTask.class),
+                scopedAdminRoutes.requestSpecForTask(StartNestedScope.class),
                 PathParams.empty(),
                 knownScope,
                 CorrelationState.class,
@@ -180,9 +180,9 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
         return list;
     }
     @Override
-    public CorrelationState joinUserScope(InitialScopeState knownScope) {
+    public CorrelationState startUserScope(InitialScopeState knownScope) {
         return executeRequest(
-                scopedAdminRoutes.requestSpecForTask(JoinUserScopeTask.class),
+                scopedAdminRoutes.requestSpecForTask(StartUserScopeTask.class),
                 PathParams.empty(),
                 knownScope,
                 CorrelationState.class,
@@ -261,5 +261,10 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
         );
     }
 
-
+    @Override
+    public void resetAll() {
+        executeRequest(
+                scopedAdminRoutes.requestSpecForTask(ResetAllScopesTask.class),Void.class
+        );
+    }
 }

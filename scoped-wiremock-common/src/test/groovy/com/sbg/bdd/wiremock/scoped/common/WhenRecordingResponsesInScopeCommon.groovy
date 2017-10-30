@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.common.HttpClientUtils
 import com.github.tomakehurst.wiremock.http.HttpClientFactory
 import com.github.tomakehurst.wiremock.http.RequestMethod
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
-import com.sbg.bdd.resource.Resource
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin
 import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedRequestPattern
 import com.sbg.bdd.wiremock.scoped.admin.model.ExtendedStubMapping
@@ -24,8 +23,8 @@ abstract class WhenRecordingResponsesInScopeCommon extends ScopedWireMockCommonT
     def 'Should record all exchanges and nested exchanges in the directory specified by a recording mapping within a nested scope'() {
         given:'I have a nested scope containing a user scope for John Smith'
         def globalScope = wireMock.startNewGlobalScope(new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), 'sutx'))
-        def nestedRecordingScope = wireMock.joinCorrelatedScope(globalScope.correlationPath, 'nested1_recording_scope', Collections.emptyMap())
-        def userScope= wireMock.joinUserScope(nestedRecordingScope.correlationPath, 'John_Smith',Collections.emptyMap())
+        def nestedRecordingScope = wireMock.startNestedScope(globalScope.correlationPath, 'nested1_recording_scope', Collections.emptyMap())
+        def userScope= wireMock.startUserScope(nestedRecordingScope.correlationPath, 'John_Smith',Collections.emptyMap())
         and: 'I have a service that depends on another service'
         wireMock.register(matching(nestedRecordingScope.correlationPath +'.*'), get(urlEqualTo("/entry_point")).willReturn(aResponse().proxiedFrom(wireMock.baseUrl()+"/proxied")).atPriority(1))
         wireMock.register(matching(nestedRecordingScope.correlationPath +'.*'), get(urlEqualTo("/proxied/entry_point")).willReturn(aResponse().withBody("hello")).atPriority(1))
@@ -65,8 +64,8 @@ abstract class WhenRecordingResponsesInScopeCommon extends ScopedWireMockCommonT
         def globalCorrelationState = new GlobalCorrelationState('someRun', new URL(wireMock.baseUrl()), new URL(wireMock.baseUrl() + '/sut'), 'sutx')
         globalCorrelationState.globalJournaMode=JournalMode.RECORD
         def globalScope = wireMock.startNewGlobalScope(globalCorrelationState)
-        def nestedRecordingScope = wireMock.joinCorrelatedScope(globalScope.correlationPath, 'nested1_recording_scope', Collections.emptyMap())
-        def userScope= wireMock.joinUserScope(nestedRecordingScope.correlationPath, 'John_Smith',Collections.emptyMap())
+        def nestedRecordingScope = wireMock.startNestedScope(globalScope.correlationPath, 'nested1_recording_scope', Collections.emptyMap())
+        def userScope= wireMock.startUserScope(nestedRecordingScope.correlationPath, 'John_Smith',Collections.emptyMap())
         and: 'I have registered a global RecordingSpecification to save recordings to the subdirectory "journal1" in the journalRoot'
         def journalRoot = wireMock.getResourceRoot(ScopedAdmin.JOURNAL_RESOURCE_ROOT)
         def requestPattern = new ExtendedRequestPattern(globalScope.correlationPath, new RequestPatternBuilder(RequestMethod.GET, urlMatching("/.*")).build())
