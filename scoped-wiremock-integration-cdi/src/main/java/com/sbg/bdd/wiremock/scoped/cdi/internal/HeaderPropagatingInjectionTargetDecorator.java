@@ -15,14 +15,16 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class InjectionTargetWrapper<X> implements InjectionTarget<X> {
-    private static final Logger LOGGER = Logger.getLogger(InjectionTargetWrapper.class.getName());
+class HeaderPropagatingInjectionTargetDecorator<X> implements InjectionTarget<X> {
+    private static final Logger LOGGER = Logger.getLogger(HeaderPropagatingInjectionTargetDecorator.class.getName());
     private final InjectionTarget<X> it;
     private final Set<Field> webServiceRefs;
+    private Set<Field> asyncBeans;
 
-    public InjectionTargetWrapper(InjectionTarget<X> it, Set<Field> webServiceRefs) {
+    public HeaderPropagatingInjectionTargetDecorator(InjectionTarget<X> it, Set<Field> webServiceRefs, Set<Field> asyncBeans) {
         this.it = it;
         this.webServiceRefs = webServiceRefs;
+        this.asyncBeans = asyncBeans;
     }
 
     @Override
@@ -52,16 +54,22 @@ class InjectionTargetWrapper<X> implements InjectionTarget<X> {
                 LOGGER.log(Level.WARNING, "Could not inject:", e);
             }
         }
+        for (Field asyncBean : asyncBeans) {
+            try {
+                Object asyncObject = asyncBean.get(instance);
+                asyncBean.set(instance, AsyncInvocationHandler.create(asyncBean,asyncObject));
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Could not inject:", e);
+            }
+        }
     }
-
 
     private void wrapReference(X instance, Field webServiceRef, BindingProvider bp) throws IllegalAccessException {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         EndpointInfo mep = webServiceRef.getAnnotation(EndpointInfo.class);
-        DynamicWebServiceReferenceInvocationHandler ih = new DynamicWebServiceReferenceInvocationHandler(bp,mep);
+        WebServiceHeaderPropagatingHandler ih = new WebServiceHeaderPropagatingHandler(bp,mep);
         webServiceRef.set(instance, Proxy.newProxyInstance(cl, getInterfaces(webServiceRef), ih));
     }
-
 
     private Class<?>[] getInterfaces(Field webServiceRef) {
         return new Class<?>[]{BindingProvider.class, webServiceRef.getType()};

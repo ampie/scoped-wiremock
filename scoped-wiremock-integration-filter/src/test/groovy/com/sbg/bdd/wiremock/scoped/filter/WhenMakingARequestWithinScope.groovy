@@ -19,8 +19,8 @@ class WhenMakingARequestWithinScope extends Specification{
         def filter = new InboundCorrelationPathFilter()
         filter.init(null)
         def inputServiceInvocations= new Vector()
-        inputServiceInvocations << 'http://endpoint1/|5'
-        inputServiceInvocations << 'http://endpoint2/|3'
+        inputServiceInvocations << '1|http://endpoint1/|5'
+        inputServiceInvocations << '1|http://endpoint2/|3'
         def request = Mock(HttpServletRequest){
             getRequestURI() >> 'nada'
             getHeader(HeaderName.ofTheCorrelationKey()) >> 'localhost/8080/scopepath'

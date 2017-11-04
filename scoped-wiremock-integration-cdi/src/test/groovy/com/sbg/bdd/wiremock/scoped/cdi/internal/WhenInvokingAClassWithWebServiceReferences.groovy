@@ -6,6 +6,8 @@ import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.EndpointRegistry
 import com.sbg.bdd.wiremock.scoped.jaxws.OutboundCorrelationPathSOAPHandler
+import org.jboss.security.SecurityContext
+import org.jboss.security.SecurityContextAssociation
 import spock.lang.Specification
 
 import javax.enterprise.inject.spi.AnnotatedField
@@ -39,7 +41,7 @@ class WhenInvokingAClassWithWebServiceReferences extends Specification{
         }
 
         when:
-        new DynamicWebServiceEndPointExtension().processInjectionTarget(processInjectionTarget)
+        new HeaderPropagatingExtension().processInjectionTarget(processInjectionTarget)
         example.theWebService.sayHello('asdf')
 
 
@@ -57,7 +59,11 @@ class WhenInvokingAClassWithWebServiceReferences extends Specification{
             endpointUrlFor('my.soap.endpoint.property') >> new URL('http://some.soap.host.com')
         }
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new RequestScopedWireMockCorrelationState()
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.set("wiremock-host/8080/some/scope/path",false)
+        def securityContextData=new HashMap()
+        SecurityContextAssociation.setSecurityContext(Mock(SecurityContext){
+            getData() >> securityContextData
+        })
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.set("wiremock-host/8080/some/scope/path",1,false)
         def field = ExampleClass.class.getField('theWebService')
         def example = new ExampleClass(new DummyBinding())
         def annotatedField = Mock(AnnotatedField){
@@ -75,7 +81,7 @@ class WhenInvokingAClassWithWebServiceReferences extends Specification{
         }
 
         when:
-        new DynamicWebServiceEndPointExtension().processInjectionTarget(processInjectionTarget)
+        new HeaderPropagatingExtension().processInjectionTarget(processInjectionTarget)
         example.theWebService.sayHello('asdf')
 
 
@@ -85,6 +91,7 @@ class WhenInvokingAClassWithWebServiceReferences extends Specification{
         binding.handlerChain.get(0) instanceof OutboundCorrelationPathSOAPHandler
         def context = example.theWebService.requestContext
         context[BindingProvider.ENDPOINT_ADDRESS_PROPERTY] == 'http://wiremock-host:8080'
+        securityContextData.get('correlationState') !=null
     }
     def 'a WebService reference should be created automatically using the Service implementation in the WebService annotation if the reference is null' (){
         given:
@@ -110,7 +117,7 @@ class WhenInvokingAClassWithWebServiceReferences extends Specification{
         }
 
         when:
-        new DynamicWebServiceEndPointExtension().processInjectionTarget(processInjectionTarget)
+        new HeaderPropagatingExtension().processInjectionTarget(processInjectionTarget)
         example.theWebService.sayHello('asdf')
 
 
@@ -170,7 +177,7 @@ class WhenInvokingAClassWithWebServiceReferences extends Specification{
         }
 
         when:
-        new DynamicWebServiceEndPointExtension().processInjectionTarget(processInjectionTarget)
+        new HeaderPropagatingExtension().processInjectionTarget(processInjectionTarget)
         example.theWebService.sayHello('asdf')
 
 

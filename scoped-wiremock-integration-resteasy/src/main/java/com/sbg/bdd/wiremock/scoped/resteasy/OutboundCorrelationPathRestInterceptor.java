@@ -1,16 +1,12 @@
 package com.sbg.bdd.wiremock.scoped.resteasy;
 
 
-import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
-import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
-import com.sbg.bdd.wiremock.scoped.integration.URLHelper;
-import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
+import com.sbg.bdd.wiremock.scoped.integration.*;
 import org.jboss.resteasy.client.ClientResponse;
 import org.jboss.resteasy.spi.interception.ClientExecutionContext;
 import org.jboss.resteasy.spi.interception.ClientExecutionInterceptor;
 
 import javax.ws.rs.core.MultivaluedMap;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 import java.util.logging.Level;
@@ -33,11 +29,12 @@ class OutboundCorrelationPathRestInterceptor implements ClientExecutionIntercept
             headers.add(HeaderName.ofTheCorrelationKey(), currentCorrelationState.getCorrelationPath());
             headers.add(HeaderName.ofTheOriginalUrl(), originalUrl.toExternalForm());
             headers.add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
+            headers.add(HeaderName.ofTheThreadContextId(), currentCorrelationState.getCurrentThreadContextId());
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 headers.add(HeaderName.toProxyUnmappedEndpoints(), "true");
             }
-            for (Map.Entry<String, Integer> entry : currentCorrelationState.getSequenceNumbers().entrySet()) {
-                ctx.getRequest().header(HeaderName.ofTheServiceInvocationCount(), entry.getKey() + "|" + entry.getValue());
+            for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
+                ctx.getRequest().header(HeaderName.ofTheServiceInvocationCount(), entry.toString());
             }
         }
         ClientResponse response = ctx.proceed();
@@ -46,8 +43,7 @@ class OutboundCorrelationPathRestInterceptor implements ClientExecutionIntercept
             if (headers != null && headers.containsKey(HeaderName.ofTheServiceInvocationCount())) {
                 Iterable<String> o = (Iterable<String>) headers.get(HeaderName.ofTheServiceInvocationCount());
                 for (String s : o) {
-                    String[] split = s.split("\\|");
-                    currentCorrelationState.initSequenceNumberFor(split[0], Integer.valueOf(split[1]));
+                    currentCorrelationState.initSequenceNumberFor(new ServiceInvocationCount(s));
                 }
             }
         } catch (Exception e) {

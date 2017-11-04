@@ -3,6 +3,7 @@ package com.sbg.bdd.wiremock.scoped.common
 import com.github.tomakehurst.wiremock.client.VerificationException
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState
 import com.sbg.bdd.wiremock.scoped.admin.model.GlobalCorrelationState
+import com.sbg.bdd.wiremock.scoped.admin.model.ServiceInvocationCount
 import com.sbg.bdd.wiremock.scoped.integration.EndpointConfig
 
 import static org.spockframework.util.Assert.fail
@@ -58,14 +59,16 @@ abstract class WhenWorkingWithScopesCommon extends ScopedWireMockCommonTest {
 
         when: 'I update the service invocation counts for service1 to 2 and service2 to 1'
         def nestedScope = new CorrelationState(globalCorrelationPath + '/my_nested_scope')
-        nestedScope.serviceInvocationCounts['service1'] = 2
-        nestedScope.serviceInvocationCounts['service2'] = 1
+        nestedScope.serviceInvocationCounts[0] =new ServiceInvocationCount('1|service1|2')
+        nestedScope.serviceInvocationCounts[1] =new ServiceInvocationCount('1|service2|1')
         wireMock.syncCorrelatedScope(nestedScope)
 
         then: 'these new values should reflect'
         def responseToGet = wireMock.getCorrelatedScope(globalCorrelationPath + '/my_nested_scope')
-        responseToGet.serviceInvocationCounts['service1'] == 2
-        responseToGet.serviceInvocationCounts['service2'] == 1
+        responseToGet.serviceInvocationCounts[0].count == 2
+        responseToGet.serviceInvocationCounts[0].endpointIdentifier == 'service1'
+        responseToGet.serviceInvocationCounts[1].count == 1
+        responseToGet.serviceInvocationCounts[1].endpointIdentifier == 'service2'
     }
 
     def 'complete a nested scope'() {

@@ -7,6 +7,9 @@ public class HeaderName {
     public static String ofTheCorrelationKey() {
         return System.getProperty("scoped.wiremock.correllation.key.header", "x-sbg-messageTraceId");
     }
+    public static String ofTheThreadContextId() {
+        return System.getProperty("scoped.wiremock.thread.context.id", "x-sbg-thread-context-id");
+    }
     public static String ofTheSequenceNumber() {
         return System.getProperty("scoped.wiremock.sequence.number.header", "x-sbg-sequence-number");
     }

@@ -9,6 +9,7 @@ import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.Response;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
+import com.sbg.bdd.wiremock.scoped.admin.model.ServiceInvocationCount;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 
 import java.util.ArrayList;
@@ -69,10 +70,11 @@ public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
 
         public void synchronize() {
             List<String> invocationCountValues = extractAndFlattenInvocationCounts();
+            List<ServiceInvocationCount> serviceInvocationCounts=new ArrayList<>();
             for (String s : invocationCountValues) {
-                String[] split = s.split("\\|");
-                correlationState.getServiceInvocationCounts().put(split[0], Integer.valueOf(split[1]));
+                serviceInvocationCounts.add(new ServiceInvocationCount(s));
             }
+            correlationState.putServiceInvocationCounts(serviceInvocationCounts);
         }
 
         public Response synchronize(Response response) {

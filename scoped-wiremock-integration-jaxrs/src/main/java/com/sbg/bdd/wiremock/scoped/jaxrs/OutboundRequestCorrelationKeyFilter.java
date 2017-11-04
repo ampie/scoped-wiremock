@@ -1,9 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.jaxrs;
 
-import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
-import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
-import com.sbg.bdd.wiremock.scoped.integration.URLHelper;
-import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
+import com.sbg.bdd.wiremock.scoped.integration.*;
 
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
@@ -26,16 +23,16 @@ public class OutboundRequestCorrelationKeyFilter implements ClientRequestFilter 
             headers.remove(HeaderName.ofTheOriginalUrl());
             URL originalUrl= URLHelper.calculateOriginalUrl(currentUrl, originalHost);
             String key = URLHelper.identifier(originalUrl,ctx.getMethod());
-            String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(key).toString();
 
             headers.add(HeaderName.ofTheOriginalUrl(), originalUrl.toExternalForm());
-            headers.add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
+            headers.add(HeaderName.ofTheSequenceNumber(), currentCorrelationState.getNextSequenceNumberFor(key).toString());
+            headers.add(HeaderName.ofTheThreadContextId(), currentCorrelationState.getCurrentThreadContextId());
             headers.add(HeaderName.ofTheCorrelationKey(), currentCorrelationState.getCorrelationPath());
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 headers.add(HeaderName.toProxyUnmappedEndpoints(), "true");
             }
-            for (Map.Entry<String, Integer> entry : currentCorrelationState.getSequenceNumbers().entrySet()) {
-                headers.add(HeaderName.ofTheServiceInvocationCount(), entry.getKey() + "|" + entry.getValue());
+            for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
+                headers.add(HeaderName.ofTheServiceInvocationCount(), entry.toString());
             }
         }
     }

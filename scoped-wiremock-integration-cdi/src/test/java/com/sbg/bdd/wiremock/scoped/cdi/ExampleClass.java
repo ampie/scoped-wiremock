@@ -14,6 +14,8 @@ public class ExampleClass {
     @EndpointInfo(propertyName = "my.rest.endpoint.property",
             categories = {"cat1","cat2"},scopes ={"scope1","scope2"})
     public Object theRestService;//We don't care at this point what type it is, just that it has an EndPointProperty
+    @Inject
+    public AsyncBean asyncBean=new AsyncBean();
     public ExampleClass() {
 
     }

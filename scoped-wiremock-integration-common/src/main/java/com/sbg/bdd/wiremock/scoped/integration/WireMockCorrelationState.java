@@ -1,10 +1,12 @@
 package com.sbg.bdd.wiremock.scoped.integration;
 
 import java.net.URL;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface WireMockCorrelationState {
-    void set(String correlationPath, boolean proxyUnmappedEndpoints);
+    void set(String correlationPath, int threadContextId, boolean proxyUnmappedEndpoints);
 
     void clear();
 
@@ -12,13 +14,15 @@ public interface WireMockCorrelationState {
 
     String getCorrelationPath();
 
-    Map<String, Integer> getSequenceNumbers();
+    Collection<ServiceInvocationCount> getServiceInvocationCounts();
 
     URL getWireMockBaseUrl();
 
     Integer getNextSequenceNumberFor(String key);
 
-    void initSequenceNumberFor(String endPointIdentifier, int count);
+    void initSequenceNumberFor(ServiceInvocationCount serviceInvocationCount);
 
     boolean shouldProxyUnmappedEndpoints();
+
+    int getCurrentThreadContextId();
 }

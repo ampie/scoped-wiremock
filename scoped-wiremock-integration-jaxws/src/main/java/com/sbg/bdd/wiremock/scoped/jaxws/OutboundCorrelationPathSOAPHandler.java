@@ -1,10 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.jaxws;
 
 
-import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
-import com.sbg.bdd.wiremock.scoped.integration.URLHelper;
-import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
-import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
+import com.sbg.bdd.wiremock.scoped.integration.*;
 
 import javax.xml.namespace.QName;
 import javax.xml.ws.handler.MessageContext;
@@ -40,8 +37,7 @@ public class OutboundCorrelationPathSOAPHandler implements SOAPHandler {
         if (headers != null && headers.get(HeaderName.ofTheServiceInvocationCount()) != null) {
             List<String> sequenceNumbers = headers.get(HeaderName.ofTheServiceInvocationCount());
             for (String entry : sequenceNumbers) {
-                String[] split = entry.split("\\|");
-                currentCorrelationState.initSequenceNumberFor(split[0], Integer.valueOf(split[1]));
+                currentCorrelationState.initSequenceNumberFor(new ServiceInvocationCount(entry));
             }
         }
     }
@@ -60,13 +56,14 @@ public class OutboundCorrelationPathSOAPHandler implements SOAPHandler {
             headers.put(HeaderName.ofTheCorrelationKey(), Arrays.asList(currentCorrelationState.getCorrelationPath()));
             headers.put(HeaderName.ofTheOriginalUrl(), Arrays.asList(originalUrl.toExternalForm()));
             headers.put(HeaderName.ofTheSequenceNumber(), Arrays.asList(sequenceNumber));
+            headers.put(HeaderName.ofTheThreadContextId(), Arrays.asList(currentCorrelationState.getCurrentThreadContextId() + ""));
             List<String> categories= (List<String>) context.get(HeaderName.ofTheEndpointCategory());
             if(categories!=null){
                 headers.put(HeaderName.ofTheEndpointCategory(),categories);
             }
             List<String> sequenceNumbers = new ArrayList<>();
-            for (Map.Entry<String, Integer> entry : currentCorrelationState.getSequenceNumbers().entrySet()) {
-                sequenceNumbers.add(entry.getKey() + "|" + entry.getValue());
+            for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
+                sequenceNumbers.add(entry.toString());
             }
             headers.put(HeaderName.ofTheServiceInvocationCount(), sequenceNumbers);
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {

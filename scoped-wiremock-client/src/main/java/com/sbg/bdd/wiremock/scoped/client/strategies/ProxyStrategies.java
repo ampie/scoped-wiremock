@@ -1,6 +1,5 @@
 package com.sbg.bdd.wiremock.scoped.client.strategies;
 
-
 import com.sbg.bdd.wiremock.scoped.admin.model.ScopeLocalPriority;
 import com.sbg.bdd.wiremock.scoped.client.WireMockContext;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedMappingBuilder;
@@ -10,7 +9,6 @@ import com.sbg.bdd.wiremock.scoped.client.builders.ResponseStrategy;
 import static com.sbg.bdd.wiremock.scoped.client.strategies.ResponseBodyStrategies.aResponse;
 import static java.lang.String.format;
 
-
 public abstract class ProxyStrategies {
     public static ProxyMappingBuilder target(){
         return new ProxyMappingBuilder(null);
@@ -18,7 +16,6 @@ public abstract class ProxyStrategies {
     public static ProxyMappingBuilder target(final String baseUrl){
         return new ProxyMappingBuilder(baseUrl);
     }
-
 
     public static ResponseStrategy proxyTo(final String baseUrl) {
         return new ResponseStrategy() {
@@ -35,7 +32,6 @@ public abstract class ProxyStrategies {
         };
     }
 
-
     public static ResponseStrategy beIntercepted() {
         return new ResponseStrategy() {
             public ExtendedResponseDefinitionBuilder applyTo(ExtendedMappingBuilder builder, WireMockContext context) throws Exception {
@@ -47,9 +43,7 @@ public abstract class ProxyStrategies {
             public String getDescription() {
                 return format("be intercepted");
             }
-
         };
-
     }
 
     /**

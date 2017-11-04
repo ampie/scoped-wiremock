@@ -1,6 +1,8 @@
 0. Push the docker images for the testers to use and test
    --name them to fit in docker registry
    --instructions to stop and start step
+   --test recording mappings and body mappings
+   --
 
 1. Move the RecordingSpecification logic to the server side
 

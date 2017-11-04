@@ -48,15 +48,17 @@ abstract class WhenRecordingResponsesInScopeCommon extends ScopedWireMockCommonT
         outputRoot.clearCache()
         def outputDir = outputRoot.resolveExisting('John_Smith', 'nested1_recording_scope', 'recordings')
         outputDir !=null
-        outputDir.list().length == 8
-        outputDir.getChild('GET_entry_point_0.txt') != null
-        outputDir.getChild('GET_entry_point_0.headers.json') != null
-        outputDir.getChild('GET_entry_point_1.txt') != null
-        outputDir.getChild('GET_entry_point_1.headers.json') != null
-        outputDir.getChild('GET_proxied_entry_point_0.txt') != null
-        outputDir.getChild('GET_proxied_entry_point_0.headers.json') != null
-        outputDir.getChild('GET_proxied_entry_point_1.txt') != null
-        outputDir.getChild('GET_proxied_entry_point_1.headers.json') != null
+        outputDir.list().length == 16
+        outputDir.getChild('GET_entry_point_1_0.txt') != null
+        outputDir.getChild('GET_entry_point_1_0.headers.json') != null
+        outputDir.getChild('GET_entry_point_1_0.request_body.txt') != null
+        outputDir.getChild('GET_entry_point_1_0.request_headers.json') != null
+        outputDir.getChild('GET_entry_point_1_1.txt') != null
+        outputDir.getChild('GET_entry_point_1_1.headers.json') != null
+        outputDir.getChild('GET_proxied_entry_point_1_0.txt') != null
+        outputDir.getChild('GET_proxied_entry_point_1_0.headers.json') != null
+        outputDir.getChild('GET_proxied_entry_point_1_1.txt') != null
+        outputDir.getChild('GET_proxied_entry_point_1_1.headers.json') != null
 
     }
     def 'Should save all exchanges and nested exchanges in the journal directory specified by a recording mapping in the global scope as per the global journal mode'() {
@@ -91,21 +93,24 @@ abstract class WhenRecordingResponsesInScopeCommon extends ScopedWireMockCommonT
         journalRoot.clearCache()
         def outputDir = journalRoot.resolveExisting('journal1', 'nested1_recording_scope', 'John_Smith')
         outputDir !=null
-        outputDir.list().length == 8
-        outputDir.getChild('GET_entry_point_0.txt') != null
-        outputDir.getChild('GET_entry_point_0.headers.json') != null
-        outputDir.getChild('GET_entry_point_1.txt') != null
-        outputDir.getChild('GET_entry_point_1.headers.json') != null
-        outputDir.getChild('GET_proxied_entry_point_0.txt') != null
-        outputDir.getChild('GET_proxied_entry_point_0.headers.json') != null
-        outputDir.getChild('GET_proxied_entry_point_1.txt') != null
-        outputDir.getChild('GET_proxied_entry_point_1.headers.json') != null
+        outputDir.list().length == 16
+        outputDir.getChild('GET_entry_point_1_0.txt') != null
+        outputDir.getChild('GET_entry_point_1_0.headers.json') != null
+        outputDir.getChild('GET_entry_point_1_0.request_body.txt') != null
+        outputDir.getChild('GET_entry_point_1_0.request_headers.json') != null
+        outputDir.getChild('GET_entry_point_1_1.txt') != null
+        outputDir.getChild('GET_entry_point_1_1.headers.json') != null
+        outputDir.getChild('GET_proxied_entry_point_1_0.txt') != null
+        outputDir.getChild('GET_proxied_entry_point_1_0.headers.json') != null
+        outputDir.getChild('GET_proxied_entry_point_1_1.txt') != null
+        outputDir.getChild('GET_proxied_entry_point_1_1.headers.json') != null
 
     }
     private String sendGet(String path, String scopePath, int sequenceNumber) throws IOException {
         HttpGet get = new HttpGet("http://localhost:" + wireMock.port() + path)
         get.setHeader(HeaderName.ofTheCorrelationKey(), scopePath)
         get.setHeader(HeaderName.ofTheSequenceNumber(), sequenceNumber + '')
+        get.setHeader(HeaderName.ofTheThreadContextId(), '1')
         CloseableHttpResponse response = HttpClientFactory.createClient().execute(get)
         return HttpClientUtils.getEntityAsStringAndCloseStream(response)
     }

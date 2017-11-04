@@ -107,6 +107,10 @@ public class ExchangeJournal {
         if (sequenceNumber != null) {
             request.setSequenceNumber(Integer.parseInt(sequenceNumber));
         }
+        String threadContextId = inputRequest.getHeader(HeaderName.ofTheThreadContextId());
+        if (threadContextId != null) {
+            request.setThreadContextId(Integer.parseInt(threadContextId));
+        }
         return request;
     }
 

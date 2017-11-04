@@ -88,8 +88,8 @@
 //        state.initSequenceNumberFor("som-arb-service", 5);
 //        DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor());
 //        assertThat(consumer.callHello(), is(equalTo("matched!")));
-//        assertThat(state.getSequenceNumbers().get("{http://www.examples.com/wsdl/HelloService.wsdl}sayHello"), is(1));
-//        assertThat(state.getSequenceNumbers().get("som-arb-service"), is(12));
+//        assertThat(state.getServiceInvocationCounts().get("{http://www.examples.com/wsdl/HelloService.wsdl}sayHello"), is(1));
+//        assertThat(state.getServiceInvocationCounts().get("som-arb-service"), is(12));
 //    }
 //}
 //

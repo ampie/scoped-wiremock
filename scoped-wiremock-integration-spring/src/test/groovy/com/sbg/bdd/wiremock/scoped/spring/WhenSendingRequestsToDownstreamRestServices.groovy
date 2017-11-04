@@ -4,6 +4,7 @@ import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
 import com.sbg.bdd.wiremock.scoped.integration.BaseWireMockCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
+import com.sbg.bdd.wiremock.scoped.integration.ServiceInvocationCount
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpRequest
@@ -16,9 +17,9 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
         def state= BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseWireMockCorrelationState()
-        state.set('localhost/8080/somepath',true)
-        state.initSequenceNumberFor('endpoint1',6)
-        state.initSequenceNumberFor('endpoint2',8)
+        state.set('localhost/8080/somepath',1,true)
+        state.initSequenceNumberFor(new ServiceInvocationCount('1|endpoint1|6'))
+        state.initSequenceNumberFor(new ServiceInvocationCount('1|endpoint2|8'))
         def interceptor = new OutboundCorrelationKeyInterceptor()
         def headers = new HttpHeaders()
         headers.add(HeaderName.ofTheOriginalUrl(),'http://somehost.com')
@@ -42,17 +43,17 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         request.getHeaders().get(HeaderName.ofTheOriginalUrl())[0] == 'http://somehost.com/base'
         request.getHeaders().get(HeaderName.ofTheSequenceNumber())[0] == '1'
         request.getHeaders().get(HeaderName.toProxyUnmappedEndpoints())[0] == 'true'
-        request.getHeaders().get(HeaderName.ofTheServiceInvocationCount())[0] == 'endpoint1|6'
-        request.getHeaders().get(HeaderName.ofTheServiceInvocationCount())[1] == 'endpoint2|8'
-        request.getHeaders().get(HeaderName.ofTheServiceInvocationCount())[2] == 'http:GET://somehost.com/base|1'
+        request.getHeaders().get(HeaderName.ofTheServiceInvocationCount())[0] == '1|endpoint1|6'
+        request.getHeaders().get(HeaderName.ofTheServiceInvocationCount())[1] == '1|endpoint2|8'
+        request.getHeaders().get(HeaderName.ofTheServiceInvocationCount())[2] == '1|http:GET://somehost.com/base|1'
     }
     def 'it should extract all the correct incoming headers'(){
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
         def state= BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseWireMockCorrelationState()
-        state.set('localhost/8080/somepath',true)
-        state.initSequenceNumberFor('endpoint1',6)
-        state.initSequenceNumberFor('endpoint2',8)
+        state.set('localhost/8080/somepath',1,true)
+        state.initSequenceNumberFor(new ServiceInvocationCount('1|endpoint1|6'))
+        state.initSequenceNumberFor(new ServiceInvocationCount('1|endpoint2|8'))
         def interceptor = new OutboundCorrelationKeyInterceptor()
 
         def request = Mock(HttpRequest){
@@ -65,8 +66,8 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
             getHeaders() >> headers
         }
         response.getHeaders().add(HeaderName.ofTheCorrelationKey(),'localhost/8080/somepath')
-        response.getHeaders().add(HeaderName.ofTheServiceInvocationCount(),'endpoint1|9')
-        response.getHeaders().add(HeaderName.ofTheServiceInvocationCount(),'endpoint2|16')
+        response.getHeaders().add(HeaderName.ofTheServiceInvocationCount(),'1|endpoint1|9')
+        response.getHeaders().add(HeaderName.ofTheServiceInvocationCount(),'1|endpoint2|16')
         def ctx = Mock(ClientHttpRequestExecution){
             execute(_,_) >> response
         }
@@ -76,7 +77,7 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         interceptor.intercept(request,null,ctx)
 
         then:
-        state.getSequenceNumbers().get('endpoint1') == 9
-        state.getSequenceNumbers().get('endpoint2') == 16
+        state.getNextSequenceNumberFor('endpoint1') == 10
+        state.getNextSequenceNumberFor('endpoint2') == 17
     }
 }

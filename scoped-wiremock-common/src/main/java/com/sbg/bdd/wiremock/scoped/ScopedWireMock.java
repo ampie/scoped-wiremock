@@ -164,4 +164,7 @@ public abstract class ScopedWireMock extends WireMock implements HasBaseUrl {
     }
 
 
+    public void registerTemplateVariables(String correlationPath, Map<String, Object> variables) {
+        admin.registerTemplateVariables(new CorrelationState(correlationPath,variables));
+    }
 }

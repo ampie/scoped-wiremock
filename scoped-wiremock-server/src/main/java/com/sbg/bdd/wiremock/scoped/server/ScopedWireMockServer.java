@@ -135,6 +135,11 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
     }
 
     @Override
+    public void registerTemplateVariables(CorrelationState state) {
+        scopeAdmin.registerTemplateVariables(state);
+    }
+
+    @Override
     public void startStep(CorrelationState state) {
         scopeAdmin.startStep(state);
     }

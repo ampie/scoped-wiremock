@@ -22,7 +22,8 @@ abstract class WhenPlayingBackResponsesCommon extends ScopedWireMockCommonTest {
         when: 'I instruct WireMock to serve the record mappings using a template stubMapping'
         wireMock.serveRecordedMappingsAt(someRecordingDir, requestPattern, 4)
         then: 'exactly two stubMappings should be created'
-        wireMock.allStubMappings().getMappings().size() == 2
+        wireMock.allStubMappings().mappings.size() == 2
+
     }
 
 }

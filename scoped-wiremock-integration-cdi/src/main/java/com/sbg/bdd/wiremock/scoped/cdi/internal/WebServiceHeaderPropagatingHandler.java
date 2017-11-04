@@ -16,13 +16,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class DynamicWebServiceReferenceInvocationHandler implements InvocationHandler {
-    private static final Logger LOGGER = Logger.getLogger(DynamicWebServiceReferenceInvocationHandler.class.getName());
+public class WebServiceHeaderPropagatingHandler implements InvocationHandler {
+    private static final Logger LOGGER = Logger.getLogger(WebServiceHeaderPropagatingHandler.class.getName());
     private BindingProvider delegate;
     private EndpointRegistry endpointRegistry;
     private EndpointInfo endpointInfo;
 
-    public DynamicWebServiceReferenceInvocationHandler(BindingProvider delegate, EndpointInfo endpointInfo) {
+    public WebServiceHeaderPropagatingHandler(BindingProvider delegate, EndpointInfo endpointInfo) {
         this.endpointInfo = endpointInfo;
         this.delegate = delegate;
         attachInterceptor(delegate);

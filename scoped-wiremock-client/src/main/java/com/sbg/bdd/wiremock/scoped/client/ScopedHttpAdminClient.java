@@ -267,4 +267,16 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
                 scopedAdminRoutes.requestSpecForTask(ResetAllScopesTask.class),Void.class
         );
     }
+
+    @Override
+    public void registerTemplateVariables(CorrelationState state) {
+        executeRequest(
+                scopedAdminRoutes.requestSpecForTask(RegisterTemplateVariablesTask.class),
+                PathParams.empty(),
+                state,
+                Void.class,
+                204
+        );
+
+    }
 }

@@ -1,5 +1,7 @@
-package com.sbg.bdd.wiremock.scoped.common;
+package com.sbg.bdd.wiremock.scoped.server.recording;
 
+import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.Template;
 import com.github.tomakehurst.wiremock.client.BasicCredentials;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -8,7 +10,6 @@ import com.github.tomakehurst.wiremock.core.Admin;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.matching.MultiValuePattern;
-import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
 import com.sbg.bdd.resource.ReadableResource;
@@ -16,11 +17,15 @@ import com.sbg.bdd.resource.Resource;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.resource.ResourceFilter;
 import com.sbg.bdd.resource.file.ReadableFileResource;
-import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.*;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
+import com.sbg.bdd.wiremock.scoped.server.AbstractCorrelatedScope;
+import com.sbg.bdd.wiremock.scoped.server.CorrelatedScope;
+import com.sbg.bdd.wiremock.scoped.server.CorrelatedScopeAdmin;
+import com.sbg.bdd.wiremock.scoped.server.UserScope;
 import org.apache.commons.codec.binary.Base64;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,11 +36,14 @@ import java.util.regex.Pattern;
 import static com.sbg.bdd.wiremock.scoped.common.MimeTypeHelper.calculateExtension;
 
 public class ExchangeRecorder {
-    ScopedAdmin scopedAdmin;
+    private final Handlebars handlebars;
+    CorrelatedScopeAdmin scopedAdmin;
     Admin admin;
-    public ExchangeRecorder(ScopedAdmin scopedAdmin,Admin admin) {
+
+    public ExchangeRecorder(CorrelatedScopeAdmin scopedAdmin, Admin admin) {
         this.scopedAdmin = scopedAdmin;
         this.admin = admin;
+        this.handlebars = new Handlebars();
     }
 
     public void saveRecordingsForRequestPattern(ExtendedRequestPattern pattern, ResourceContainer recordingDirectory) {
@@ -44,6 +52,7 @@ public class ExchangeRecorder {
             writeFiles(recordingDirectory, recordedExchanges.get(i));
         }
     }
+
     public List<MappingBuilder> serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, ExtendedRequestPattern requestPattern, int priority) {
         List<MappingBuilder> mappingBuilders = new ArrayList<>();
         List<String> baseNames = extractMappingFileBaseNames(directoryRecordedTo);
@@ -63,7 +72,8 @@ public class ExchangeRecorder {
         Map<String, ReadableFileResource> mappingFiles = new HashMap<>();
         for (Resource file : directoryRecordedTo.list()) {
             for (String baseName : baseNames) {
-                if (file.getName().startsWith(baseName) && !file.getName().endsWith(".headers.json")) {
+                String fileName = file.getName();
+                if (fileName.substring(0, fileName.lastIndexOf('.')).equals(baseName)) {
                     mappingFiles.put(baseName, (ReadableFileResource) file);
                     break;
                 }
@@ -90,55 +100,119 @@ public class ExchangeRecorder {
     private void writeFiles(ResourceContainer dir, RecordedExchange recordedExchange) {
         RecordedRequest recordedRequest = recordedExchange.getRequest();
         RecordedResponse recordedResponse = recordedExchange.getResponse();
+        String baseFileName = buildBaseFileName(recordedRequest);
+        writeMessage(dir, baseFileName, recordedResponse);
+        writeResponseHeaders(dir, baseFileName, recordedExchange);
+        writeMessage(dir, baseFileName + ".request_body", recordedExchange.getRequest());
+        writeRequestHeaders(dir, baseFileName, recordedExchange.getRequest());
+    }
+
+    private String buildBaseFileName(RecordedRequest recordedRequest) {
         String requestedUrl = recordedRequest.getRequestedUrl();
-        String sequenceNumber = recordedRequest.getSequenceNumber() + "";
-        String httpMethod = recordedRequest.getMethod().value();
-        HttpHeaders headers = recordedResponse.getHeaders();
-        String extension = calculateExtension(headers);
-        String baseFileName = buildBaseFileName(requestedUrl, sequenceNumber, httpMethod);
-        String base64Body = recordedResponse.getBase64Body();
-        byte[] body = Base64.decodeBase64(base64Body.getBytes());
-        dir.resolvePotential(baseFileName + extension).write(body);
+        if (requestedUrl.endsWith("/")) {
+            requestedUrl = requestedUrl.substring(0, requestedUrl.length() - 1);
+        }
+        if (requestedUrl.startsWith("/")) {
+            requestedUrl = requestedUrl.substring(1);
+        }
+        String[] split = requestedUrl.split("/");
+        String urlPart = "root";
+        if (split.length == 1) {
+            urlPart = split[0];
+        } else if (split.length > 1) {
+            urlPart = split[0] + "_" + split[1];
+        }
+        String baseFileName = recordedRequest.getMethod().value() + "_" + urlPart + "_" + recordedRequest.getThreadContextId() + "_" + recordedRequest.getSequenceNumber();
+        return baseFileName;
+    }
+
+    private void writeResponseHeaders(ResourceContainer dir, String baseFileName, RecordedExchange exchange) {
+        HttpHeaders headers = exchange.getResponse().getHeaders();
         headers = headers.
-                plus(new HttpHeader("requestedUrl", requestedUrl)).
-                plus(new HttpHeader("responseCode", recordedResponse.getStatus() + ""));
+                plus(new HttpHeader("duration", String.valueOf(exchange.getDuration()))).
+                plus(new HttpHeader("requestedUrl", exchange.getRequest().getRequestedUrl())).
+                plus(new HttpHeader("responseCode", exchange.getResponse().getStatus() + ""));
         dir.resolvePotential(baseFileName + ".headers.json").write(Json.write(headers).getBytes());
     }
 
+    private void writeRequestHeaders(ResourceContainer dir, String baseFileName, RecordedRequest recordedRequest) {
+        HttpHeaders headers = recordedRequest.getHeaders();
+        dir.resolvePotential(baseFileName + ".request_headers.json").write(Json.write(headers).getBytes());
+    }
+
+    private void writeMessage(ResourceContainer dir, String baseFileName, RecordedMessage recordedResponse) {
+        String extension = calculateExtension(recordedResponse.getHeaders());
+        String base64Body = recordedResponse.getBase64Body();
+        byte[] body = Base64.decodeBase64(base64Body.getBytes());
+        dir.resolvePotential(baseFileName + extension).write(body);
+    }
 
     private String buildBaseFileName(String requestedUrl, String sequenceNumber, String httpMethod) {
-        if(requestedUrl.endsWith("/")){
-            requestedUrl=requestedUrl.substring(0,requestedUrl.length() -1);
+        if (requestedUrl.endsWith("/")) {
+            requestedUrl = requestedUrl.substring(0, requestedUrl.length() - 1);
         }
-        if(requestedUrl.startsWith("/")){
-            requestedUrl=requestedUrl.substring(1);
+        if (requestedUrl.startsWith("/")) {
+            requestedUrl = requestedUrl.substring(1);
         }
         String[] split = requestedUrl.split("/");
-        String urlPart ="root";
-        if(split.length==1){
-            urlPart=split[0];
-        }else if(split.length>1){
-            urlPart=split[0] + "_" + split[1];
+        String urlPart = "root";
+        if (split.length == 1) {
+            urlPart = split[0];
+        } else if (split.length > 1) {
+            urlPart = split[0] + "_" + split[1];
         }
         return httpMethod + "_" + urlPart + "_" + sequenceNumber;
     }
 
 
     private MappingBuilder buildMappingIfPossible(ResourceContainer directoryRecordedTo, ExtendedRequestPattern templateRequestPattern, Map.Entry<String, ReadableFileResource> entry) {
-        String body = new String(entry.getValue().read());
+        String body = buildBody(templateRequestPattern, entry);
         ReadableResource headersResource = (ReadableResource) directoryRecordedTo.resolveExisting(entry.getKey() + ".headers.json");
         HttpHeaders headers = Json.read(new String(headersResource.read()), HttpHeaders.class);
-        Pattern compile = Pattern.compile("(GET|PUT|POST|DELETE|HEADE|PATCH)_(.*)_(\\d+)");
+        Pattern compile = Pattern.compile("(GET|PUT|POST|DELETE|HEADE|PATCH)_(.*)_(\\d+)_(\\d+)");
         Matcher s = compile.matcher(entry.getKey());
         if (s.find()) {
             UrlPathPattern urlPattern = calculateRequestUrl(templateRequestPattern, headers);
             MappingBuilder mappingBuilder = WireMock.request(s.group(1), urlPattern);
-            mappingBuilder.withHeader(HeaderName.ofTheSequenceNumber(), WireMock.equalTo(s.group(3)));
+            mappingBuilder.withHeader(HeaderName.ofTheThreadContextId(), WireMock.equalTo(s.group(3)));
+            mappingBuilder.withHeader(HeaderName.ofTheSequenceNumber(), WireMock.equalTo(s.group(4)));
             copyTemplateInto(templateRequestPattern, mappingBuilder);
             return mappingBuilder.willReturn(WireMock.aResponse().withHeaders(headers).withBody(body).withStatus(calculateResponseCode(headers)));
         } else {
             return null;
         }
+    }
+
+    private String buildBody(ExtendedRequestPattern templateRequestPattern, Map.Entry<String, ReadableFileResource> entry) {
+        try {
+            Template template = handlebars.compileInline(new String(entry.getValue().read()));
+            AbstractCorrelatedScope scope = scopedAdmin.getAbstractCorrelatedScope(templateRequestPattern.getCorrelationPath());
+            return template.apply(aggregateTemplateVariables(scope));
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private Map<String, Object> aggregateTemplateVariables(AbstractCorrelatedScope scope) {
+        Map<String, Object> templateVariables = new HashMap<>();
+        if (scope instanceof CorrelatedScope) {
+            addTemplateVariablesFromAncestors((CorrelatedScope) scope, null, templateVariables);
+        } else if (scope instanceof UserScope) {
+            addTemplateVariablesFromAncestors(scope.getParent(), scope.getName(), templateVariables);
+        }
+        return templateVariables;
+    }
+
+    private void addTemplateVariablesFromAncestors(CorrelatedScope scope,String userScopeId, Map<String, Object> templateVariables) {
+        if (scope.getParent() != null) {
+            addTemplateVariablesFromAncestors(scope.getParent(), userScopeId, templateVariables);
+        }
+        templateVariables.putAll(scope.getTemplateVariables());
+        if(userScopeId!=null && scope.getUserScope(userScopeId)!=null){
+            //userscope overrides everybodyscope
+            templateVariables.putAll(scope.getUserScope(userScopeId).getTemplateVariables());
+        }
+
     }
 
     private void copyTemplateInto(ExtendedRequestPattern templateRequestPattern, MappingBuilder mappingBuilder) {

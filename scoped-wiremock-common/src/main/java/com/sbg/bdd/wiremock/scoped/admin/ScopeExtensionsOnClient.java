@@ -35,6 +35,7 @@ public class ScopeExtensionsOnClient implements AdminApiExtension{
         router.add(POST, "/scopes/start", new StartNestedScope(currentAdmin));
         router.add(POST, "/scopes/stop",new StopNestedScopeTask(currentAdmin));
         router.add(POST, "/scopes/sync", new SyncCorrelatedScopeTask(currentAdmin));
+        router.add(POST, "/scopes/template_variables", new RegisterTemplateVariablesTask(currentAdmin));
         router.add(POST, "/scopes/get",new  GetCorrelatedScopeTask(currentAdmin));
         router.add(POST, "/user_scopes/start", new StartUserScopeTask(currentAdmin));
         //Step management

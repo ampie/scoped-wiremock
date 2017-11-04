@@ -14,7 +14,7 @@ import com.sbg.bdd.wiremock.scoped.server.CorrelatedScope;
 import com.sbg.bdd.wiremock.scoped.server.UserScope;
 
 import java.util.*;
-
+//TODO find a better name
 public class RecordingManager {
 
     private ScopedAdmin scopedAdmin;
@@ -23,6 +23,19 @@ public class RecordingManager {
         this.scopedAdmin = scopedAdmin;
     }
 
+    public void saveRecordings(CorrelatedScope scene) {
+        for (RecordingMappingForUser m : getActiveRecordingOrPlaybackMappings(scene, JournalMode.RECORD)) {
+            if (scene.getUserScopes().containsKey(m.getUserInScopeId())) {
+                m.saveRecordings(scene);
+            }
+        }
+    }
+
+    public void loadRecordings(CorrelatedScope scene) {
+        for (RecordingMappingForUser m : getActiveRecordingOrPlaybackMappings(scene, JournalMode.PLAYBACK)) {
+            m.loadRecordings(scene);
+        }
+    }
 
     public void processRecordingSpec(ExtendedStubMapping builder, AbstractCorrelatedScope scope) {
         if (!shouldIgnoreMapping(builder, scope)) {
@@ -36,7 +49,7 @@ public class RecordingManager {
         }
     }
 
-    protected void processRecordingSpecs(ExtendedStubMapping builder, UserScope userInScope) {
+    private void processRecordingSpecs(ExtendedStubMapping builder, UserScope userInScope) {
         if (builder.getRecordingSpecification().getJournalModeOverride() == JournalMode.RECORD) {
             userInScope.addRecordingMapping(new RecordingMappingForUser(scopedAdmin, userInScope.getName(), builder));
         } else if (builder.getRecordingSpecification().getJournalModeOverride() == JournalMode.PLAYBACK) {
@@ -92,26 +105,13 @@ public class RecordingManager {
         return Optional.fromNullable(scope.getGlobalScope().getGlobalJournalMode()).or(JournalMode.NONE);
     }
 
-    public boolean shouldIgnoreMapping(ExtendedStubMapping stubMapping, AbstractCorrelatedScope scope) {
+    private boolean shouldIgnoreMapping(ExtendedStubMapping stubMapping, AbstractCorrelatedScope scope) {
         //In playback mode we ignore all builders, except those that enforce the journalModeInScope, which of course is playback
         return getJournalModeInScope(scope) == JournalMode.PLAYBACK && stubMapping.getRecordingSpecification() != null && !stubMapping.getRecordingSpecification().enforceJournalModeInScope();
     }
 
-    public void saveRecordings(CorrelatedScope scene) {
-        for (RecordingMappingForUser m : getActiveRecordingOrPlaybackMappings(scene, JournalMode.RECORD)) {
-            if (scene.getUserScopes().containsKey(m.getUserInScopeId())) {
-                m.saveRecordings(scene);
-            }
-        }
-    }
 
-    public void loadRecordings(CorrelatedScope scene) {
-        for (RecordingMappingForUser m : getActiveRecordingOrPlaybackMappings(scene, JournalMode.PLAYBACK)) {
-            m.loadRecordings(scene);
-        }
-    }
-
-    public List<RecordingMappingForUser> getActiveRecordingOrPlaybackMappings(CorrelatedScope scene, JournalMode journalMode) {
+    private List<RecordingMappingForUser> getActiveRecordingOrPlaybackMappings(CorrelatedScope scene, JournalMode journalMode) {
         List<RecordingMappingForUser> activeRecordings = new ArrayList<>();
         CorrelatedScope parentScene = scene.getParent();
         if (parentScene != null) {

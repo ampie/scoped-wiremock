@@ -18,7 +18,7 @@ import static com.github.tomakehurst.wiremock.common.Urls.splitQuery;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(
         name = "RecordedRequest",
-        propOrder = {"method", "requestedUrl", "sequenceNumber"}
+        propOrder = {"method", "requestedUrl", "threadContextId","sequenceNumber"}
 )
 public class RecordedRequest extends RecordedMessage implements Request {
     @XmlElement(
@@ -34,6 +34,10 @@ public class RecordedRequest extends RecordedMessage implements Request {
             nillable = false
     )
     private int sequenceNumber = 0;
+    @XmlElement(
+            nillable = false
+    )
+    private int threadContextId = 0;
     @XmlElement
     private Map<String, Cookie> cookies = new HashMap<>();
     @JsonIgnore
@@ -45,9 +49,9 @@ public class RecordedRequest extends RecordedMessage implements Request {
     @XmlElement
     private String url;
     @XmlElement
-    private byte[] body=new byte[0];
+    private byte[] body = new byte[0];
     @XmlElement
-    private boolean browserProxyRequest=false;
+    private boolean browserProxyRequest = false;
 
     @Override
     public String getUrl() {
@@ -99,14 +103,14 @@ public class RecordedRequest extends RecordedMessage implements Request {
 
     public void setCookies(Map<String, Cookie> cookies) {
         this.cookies.clear();
-        if(cookies!=null){
+        if (cookies != null) {
             this.cookies.putAll(cookies);
         }
     }
 
     public void setQueryParams(Map<String, QueryParameter> queryParams) {
         this.queryParams.clear();
-        if(queryParams!=null){
+        if (queryParams != null) {
             this.queryParams.putAll(queryParams);
         }
     }
@@ -149,8 +153,8 @@ public class RecordedRequest extends RecordedMessage implements Request {
     public void setRequestedUrl(String requestedUrl) {
         URI uri = URI.create(requestedUrl);
         this.queryParams = Urls.splitQuery(uri);
-        this.url=requestedUrl;
-        this.requestedUrl=uri.getPath();
+        this.url = requestedUrl;
+        this.requestedUrl = uri.getPath();
     }
 
     public int getSequenceNumber() {
@@ -164,11 +168,20 @@ public class RecordedRequest extends RecordedMessage implements Request {
     public void setAbsoluteUrl(String absoluteUrl) {
         this.absoluteUrl = absoluteUrl;
     }
+
     @JsonIgnore
     public Map<String, QueryParameter> getQueryParameters() {
-        if(queryParams==null){
-            queryParams= Urls.splitQuery(URI.create(getAbsoluteUrl()));
+        if (queryParams == null) {
+            queryParams = Urls.splitQuery(URI.create(getAbsoluteUrl()));
         }
         return queryParams;
+    }
+
+    public int getThreadContextId() {
+        return threadContextId;
+    }
+
+    public void setThreadContextId(int threadContextId) {
+        this.threadContextId = threadContextId;
     }
 }

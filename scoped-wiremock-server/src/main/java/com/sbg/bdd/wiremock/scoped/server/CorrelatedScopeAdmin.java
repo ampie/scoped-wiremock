@@ -2,9 +2,7 @@ package com.sbg.bdd.wiremock.scoped.server;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.Admin;
-import com.github.tomakehurst.wiremock.core.StubServer;
 import com.github.tomakehurst.wiremock.core.WireMockApp;
-import com.github.tomakehurst.wiremock.extension.PostServeAction;
 import com.github.tomakehurst.wiremock.http.*;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.github.tomakehurst.wiremock.stubbing.InMemoryStubMappings;
@@ -15,7 +13,7 @@ import com.github.tomakehurst.wiremock.verification.InMemoryRequestJournal;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.*;
-import com.sbg.bdd.wiremock.scoped.common.ExchangeRecorder;
+import com.sbg.bdd.wiremock.scoped.server.recording.ExchangeRecorder;
 import com.sbg.bdd.wiremock.scoped.common.ParentPath;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 import com.sbg.bdd.wiremock.scoped.server.extended.ServeEventsQueueDecorator;
@@ -81,7 +79,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     @Override
     public void syncCorrelatedScope(CorrelationState knownScope) {
         CorrelationState correlationState = getCorrelatedScope(knownScope.getCorrelationPath());
-        correlationState.getServiceInvocationCounts().putAll(knownScope.getServiceInvocationCounts());
+        correlationState.putServiceInvocationCounts(knownScope.getServiceInvocationCounts());
     }
 
     @Override
@@ -98,6 +96,11 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     public CorrelationState getCorrelatedScope(String correlationPath) {
         AbstractCorrelatedScope correlatedScope = getAbstractCorrelatedScope(correlationPath);
         return correlatedScope == null ? null : correlatedScope.getCorrelationState();
+    }
+
+    @Override
+    public void registerTemplateVariables(CorrelationState state) {
+        getAbstractCorrelatedScope(state.getCorrelationPath()).getTemplateVariables().putAll(state.getPayload());
     }
 
     @Override
@@ -262,7 +265,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     }
 
 
-    private AbstractCorrelatedScope getAbstractCorrelatedScope(String correlationPath) {
+    public AbstractCorrelatedScope getAbstractCorrelatedScope(String correlationPath) {
         GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(correlationPath));
         if (globalScope == null || globalScope.getCorrelationPath().equals(correlationPath)) {
             return globalScope;

@@ -4,6 +4,7 @@ import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
 import com.sbg.bdd.wiremock.scoped.integration.BaseWireMockCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
+import com.sbg.bdd.wiremock.scoped.integration.ServiceInvocationCount
 import spock.lang.Specification
 
 import javax.xml.ws.handler.MessageContext
@@ -15,15 +16,15 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState()
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.set('localhost/8080/myscope', true)
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.set('localhost/8080/myscope',1, true)
         def handler = new OutboundCorrelationPathSOAPHandler()
         def headers = null
         def endpointIdentifier = 'http://endpoint.com/context/service/operation'
         def endpoint1 = 'http://endpoint.com/context/service/operation1'
         def endpoint2 = 'http://endpoint.com/context/service/operation2'
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.initSequenceNumberFor(endpointIdentifier, 4)
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.initSequenceNumberFor(endpoint1, 8)
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.initSequenceNumberFor(endpoint2, 12)
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.initSequenceNumberFor(new ServiceInvocationCount("1|${endpointIdentifier}|4"))
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.initSequenceNumberFor(new ServiceInvocationCount("1|${endpoint1}|8"))
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.initSequenceNumberFor(new ServiceInvocationCount("1|${endpoint2}|12"))
         def messageContext = Mock(MessageContext) {
             put(_, _) >> { args ->
                 headers = args[1]
@@ -41,9 +42,9 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
         headers[HeaderName.ofTheCorrelationKey()][0] == 'localhost/8080/myscope'
         headers[HeaderName.ofTheSequenceNumber()][0] == '5'
         headers[HeaderName.ofTheOriginalUrl()][0] == 'http://endpoint.com/context/service/operation'
-        headers[HeaderName.ofTheServiceInvocationCount()][0] == endpoint1 + '|8'
-        headers[HeaderName.ofTheServiceInvocationCount()][1] == endpoint2 + '|12'
-        headers[HeaderName.ofTheServiceInvocationCount()][2] == 'http://endpoint.com/context/service/operation|5'
+        headers[HeaderName.ofTheServiceInvocationCount()][0] == '1|http://endpoint.com/context/service/operation|5'
+        headers[HeaderName.ofTheServiceInvocationCount()][1] == "1|${endpoint1}|8"
+        headers[HeaderName.ofTheServiceInvocationCount()][2] == "1|${endpoint2}|12"
         headers[HeaderName.toProxyUnmappedEndpoints()][0] == 'true'
         headers[HeaderName.ofTheEndpointCategory()][0] == 'category1'
     }
@@ -53,14 +54,14 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
         given:
         DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState()
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.set('localhost/8080/myscope', true)
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.set('localhost/8080/myscope',1, true)
         def handler = new OutboundCorrelationPathSOAPHandler()
         def endpointIdentifier = 'http://endpoint.com/context/service/operation'
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.initSequenceNumberFor(endpointIdentifier, 4)
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.initSequenceNumberFor(new ServiceInvocationCount("1|${endpointIdentifier}|4"))
         def endpoint1 = 'http://endpoint.com/context/service/operation1'
         def endpoint2 = 'http://endpoint.com/context/service/operation2'
         def headers = new HashMap()
-        headers[HeaderName.ofTheServiceInvocationCount()] = Arrays.asList(endpoint1 + '|11', endpoint2 + '|14')
+        headers[HeaderName.ofTheServiceInvocationCount()] = Arrays.asList('1|' + endpoint1 + '|11', '1|' + endpoint2 + '|14')
         def messageContext = Mock(MessageContext) {
             get(SOAPMessageContext.HTTP_RESPONSE_HEADERS) >> headers
             get(MessageContext.MESSAGE_OUTBOUND_PROPERTY) >> Boolean.FALSE

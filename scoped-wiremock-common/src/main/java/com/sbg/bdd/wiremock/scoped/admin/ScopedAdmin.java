@@ -29,6 +29,8 @@ public interface ScopedAdmin {
 
     CorrelationState getCorrelatedScope(String scopePath);
 
+    void registerTemplateVariables(CorrelationState state);
+
     //NB! we never remove user scopes directly, the get removed when the nested scope is removed
     CorrelationState startUserScope(InitialScopeState initialScopeState);
 

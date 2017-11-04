@@ -52,18 +52,31 @@ public class CorrelationStateSynchronizer {
         String correlationKey = request.getHeader(HeaderName.ofTheCorrelationKey());
         if (correlationKey != null && correlationKey.length() > 0) {
             boolean proxyUnMappedEndpoints = "true".equals(request.getHeader(HeaderName.toProxyUnmappedEndpoints()));
-            this.wireMockCorrelationState.set(correlationKey, proxyUnMappedEndpoints);
+            int threadContextId = determineThreadContextId(request);
+            this.wireMockCorrelationState.set(correlationKey, threadContextId, proxyUnMappedEndpoints);
             if (proxyUnMappedEndpoints && shouldRegisterDefaultEndpointMappings()) {
                 registerDefaultEndpointMappings();
             }
             Enumeration<String> headers = request.getHeaders(HeaderName.ofTheServiceInvocationCount());
             while (headers.hasMoreElements()) {
-                String[] split = headers.nextElement().split("\\|");
-                this.wireMockCorrelationState.initSequenceNumberFor(split[0], Integer.valueOf(split[1]));
+                this.wireMockCorrelationState.initSequenceNumberFor(new ServiceInvocationCount(headers.nextElement()));
             }
         } else {
             clearCorrelationSession();
         }
+    }
+
+    private int determineThreadContextId(HttpServletRequest request) {
+        String threadContextIdString = request.getHeader(HeaderName.ofTheThreadContextId());
+        int threadContextId=1;
+        if(threadContextIdString!=null) {
+            try {
+                threadContextId = Integer.parseInt(threadContextIdString);
+            } catch (NumberFormatException e) {
+
+            }
+        }
+        return threadContextId;
     }
 
     public void clearCorrelationSession() {
@@ -73,8 +86,8 @@ public class CorrelationStateSynchronizer {
 
     public void maybeWriteCorrelationSessionTo(HttpServletResponse response) {
         response.setHeader(HeaderName.ofTheCorrelationKey(), this.wireMockCorrelationState.getCorrelationPath());
-        for (Map.Entry<String, Integer> entry : this.wireMockCorrelationState.getSequenceNumbers().entrySet()) {
-            response.addHeader(HeaderName.ofTheServiceInvocationCount(), entry.getKey() + "|" + entry.getValue());
+        for (ServiceInvocationCount entry : this.wireMockCorrelationState.getServiceInvocationCounts()) {
+            response.addHeader(HeaderName.ofTheServiceInvocationCount(), entry.toString());
         }
     }
 }

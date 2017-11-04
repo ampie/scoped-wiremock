@@ -35,9 +35,9 @@ public class RecordingMappingForUser {
     }
 
     public void saveRecordings(CorrelatedScope scope) {
-        ExtendedRequestPattern requestPattern = new ExtendedRequestPattern(scope.getCorrelationPath() + "/:" + userInScopeId,stubMapping.getRequest());
+        ExtendedRequestPattern requestPattern = new ExtendedRequestPattern(scope.getCorrelationPath() + "/:" + userInScopeId, stubMapping.getRequest());
         ScopedAdmin wireMock = getWireMock();
-        requestPattern.getHeaders().put(HeaderName.ofTheCorrelationKey(),deriveCorrelationPath(scope));
+        requestPattern.getHeaders().put(HeaderName.ofTheCorrelationKey(), deriveCorrelationPath(scope));
         wireMock.saveRecordingsForRequestPattern(requestPattern, calculateRecordingDirectory(scope));
     }
 
@@ -58,7 +58,13 @@ public class RecordingMappingForUser {
     }
 
     private MultiValuePattern deriveCorrelationPath(CorrelatedScope scope) {
-        return  MultiValuePattern.of(WireMock.equalTo(scope.getCorrelationPath() + "/:" + userInScopeId));
+        if (stubMapping.getRecordingSpecification().enforceJournalModeInScope()) {
+            //Exact match because we want consistent journal behaviour reflecting the recording's exact location
+            return MultiValuePattern.of(WireMock.equalTo(scope.getCorrelationPath() + "/:" + userInScopeId));
+        } else {
+            //Pattern match because we may want to move the directory around
+            return MultiValuePattern.of(WireMock.matching(scope.getCorrelationPath() + "/.*:" + userInScopeId));
+        }
     }
 
     public boolean enforceJournalModeInScope() {
@@ -120,7 +126,7 @@ public class RecordingMappingForUser {
         } else if (getRecordingSpecification().getJournalModeOverride() == JournalMode.RECORD) {
             return getWireMock().getResourceRoot(ScopedAdmin.OUTPUT_RESOURCE_ROOT);
         } else {
-            return getWireMock().getResourceRoot(ScopedAdmin.INPUT_RESOURCE_ROOT);
+            return getWireMock().getResourceRoot(ScopedAdmin.PERSONA_RESOURCE_ROOT);
         }
     }
 

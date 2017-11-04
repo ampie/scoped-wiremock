@@ -1,9 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.spring;
 
-import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
-import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
-import com.sbg.bdd.wiremock.scoped.integration.URLHelper;
-import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
+import com.sbg.bdd.wiremock.scoped.integration.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
@@ -36,12 +33,13 @@ public class OutboundCorrelationKeyInterceptor implements ClientHttpRequestInter
             String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(key).toString();
             ctx.getHeaders().add(HeaderName.ofTheOriginalUrl(), originalUrl.toExternalForm());
             ctx.getHeaders().add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
+            ctx.getHeaders().add(HeaderName.ofTheThreadContextId(), currentCorrelationState.getCurrentThreadContextId() + "");
             ctx.getHeaders().add(HeaderName.ofTheCorrelationKey(), currentCorrelationState.getCorrelationPath());
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 ctx.getHeaders().add(HeaderName.toProxyUnmappedEndpoints(), "true");
             }
-            for (Map.Entry<String, Integer> entry : currentCorrelationState.getSequenceNumbers().entrySet()) {
-                ctx.getHeaders().add(HeaderName.ofTheServiceInvocationCount(), entry.getKey() + "|" + entry.getValue());
+            for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
+                ctx.getHeaders().add(HeaderName.ofTheServiceInvocationCount(), entry.toString());
             }
         }
         //TODO experiment and see if we can change the URL here to point to WireMock. THen we can include the original URL in the header
@@ -52,8 +50,7 @@ public class OutboundCorrelationKeyInterceptor implements ClientHttpRequestInter
                 if (headers != null && headers.containsKey(HeaderName.ofTheServiceInvocationCount())) {
                     Iterable<String> o = headers.get(HeaderName.ofTheServiceInvocationCount());
                     for (String s : o) {
-                        String[] split = s.split("\\|");
-                        currentCorrelationState.initSequenceNumberFor(split[0], Integer.valueOf(split[1]));
+                        currentCorrelationState.initSequenceNumberFor(new ServiceInvocationCount(s));
                     }
                 }
             }

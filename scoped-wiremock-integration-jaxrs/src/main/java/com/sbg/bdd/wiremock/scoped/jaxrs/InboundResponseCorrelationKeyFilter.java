@@ -2,6 +2,7 @@ package com.sbg.bdd.wiremock.scoped.jaxrs;
 
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
+import com.sbg.bdd.wiremock.scoped.integration.ServiceInvocationCount;
 import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
 
 import javax.ws.rs.client.ClientRequestContext;
@@ -26,8 +27,7 @@ public class InboundResponseCorrelationKeyFilter implements ClientResponseFilter
                 if (headers != null && headers.containsKey(HeaderName.ofTheServiceInvocationCount())) {
                     Iterable<String> o = (Iterable<String>) headers.get(HeaderName.ofTheServiceInvocationCount());
                     for (String s : o) {
-                        String[] split = s.split("\\|");
-                        currentCorrelationState.initSequenceNumberFor(split[0], Integer.valueOf(split[1]));
+                        currentCorrelationState.initSequenceNumberFor(new ServiceInvocationCount(s));
                     }
                 }
             }

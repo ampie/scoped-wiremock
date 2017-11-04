@@ -45,7 +45,7 @@ class WhenDeployingAClassWithWebServiceReferences extends Specification{
 
         when:
         println 'processing injection target'
-        new DynamicWebServiceEndPointExtension().processInjectionTarget(processInjectionTarget)
+        new HeaderPropagatingExtension().processInjectionTarget(processInjectionTarget)
 
         then:
         println 'getting client configs'
