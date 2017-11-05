@@ -1,3 +1,4 @@
+see if we can add some principal to the Subject, or proxy any existing principal
 0. Push the docker images for the testers to use and test
    --name them to fit in docker registry
    --instructions to stop and start step

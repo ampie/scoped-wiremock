@@ -62,6 +62,7 @@ public class BaseWireMockCorrelationState implements WireMockCorrelationState {
     }
 
     //Call this method once a new thread context is started and running
+    @Override
     public void setCurrentThreadCorrelationContext(Method method, Object[] parameters) {
         ThreadCorrelationContext correlationContext = this.contextsByInvocationKey.get(new InvocationKey(method, parameters));
         this.currentThreadCorrelationContext.set(correlationContext);

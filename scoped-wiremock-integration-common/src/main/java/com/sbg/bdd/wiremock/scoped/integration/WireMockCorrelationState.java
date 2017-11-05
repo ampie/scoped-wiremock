@@ -1,5 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.integration;
 
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
@@ -18,6 +19,9 @@ public interface WireMockCorrelationState {
 
     URL getWireMockBaseUrl();
 
+    //Call this method once a new thread context is started and running
+    void setCurrentThreadCorrelationContext(Method method, Object[] parameters);
+
     Integer getNextSequenceNumberFor(String key);
 
     void initSequenceNumberFor(ServiceInvocationCount serviceInvocationCount);
@@ -25,4 +29,8 @@ public interface WireMockCorrelationState {
     boolean shouldProxyUnmappedEndpoints();
 
     int getCurrentThreadContextId();
+
+    void newChildContext(Method method, Object[] parameters);
+
+    void clearCurrentThreadCorrelationContext(Method method, Object[] parameters);
 }

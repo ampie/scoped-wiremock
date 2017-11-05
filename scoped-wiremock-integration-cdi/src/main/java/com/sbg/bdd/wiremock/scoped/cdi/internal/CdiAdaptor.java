@@ -3,6 +3,8 @@ package com.sbg.bdd.wiremock.scoped.cdi.internal;
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectorAdaptor;
 import com.sbg.bdd.wiremock.scoped.integration.EndpointRegistry;
 import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
+import org.jboss.security.SecurityContext;
+import org.jboss.security.SecurityContextAssociation;
 
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.Bean;
@@ -12,7 +14,7 @@ import javax.naming.InitialContext;
 public class CdiAdaptor implements DependencyInjectorAdaptor {
     @Override
     public WireMockCorrelationState getCurrentCorrelationState() {
-        return resolveBean(WireMockCorrelationState.class);
+        return AsyncInvocationHandler.getCurrentCorrelationState();
     }
 
     @Override
@@ -20,7 +22,7 @@ public class CdiAdaptor implements DependencyInjectorAdaptor {
         return resolveBean(EndpointRegistry.class);
     }
 
-    private <T> T resolveBean(Class<T> clss) {
+    public static <T> T resolveBean(Class<T> clss) {
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         try {
             InitialContext initialContext = new InitialContext();

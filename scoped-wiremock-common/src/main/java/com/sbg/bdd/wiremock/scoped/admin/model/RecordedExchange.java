@@ -74,12 +74,6 @@ public class RecordedExchange {
         duration=response.getDate().getTime()-request.getDate().getTime();
 
     }
-    @JsonIgnore
-    public String getStepContainerPath(){
-        //Chop of the segment represent the current user
-        return  ParentPath.of(this.scopePath);
-
-    }
 
 
     public RecordedRequest getRequest() {
@@ -112,20 +106,6 @@ public class RecordedExchange {
 
     public void setDuration(long duration) {
         this.duration = duration;
-    }
-
-    @JsonIgnore
-    public RecordedExchange getInnerMostActiveExchange() {
-        if(nestedExchanges.isEmpty()){
-            return this;
-        }else {
-            RecordedExchange exchange = nestedExchanges.get(nestedExchanges.size() - 1);
-            if(exchange.getResponse()==null){
-                return exchange.getInnerMostActiveExchange();
-            }else{
-                return this;
-            }
-        }
     }
 
     public void recordNestedExchange(RecordedExchange exchange) {

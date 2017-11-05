@@ -128,6 +128,7 @@ public class ExchangeRecorder {
 
     private void writeResponseHeaders(ResourceContainer dir, String baseFileName, RecordedExchange exchange) {
         HttpHeaders headers = exchange.getResponse().getHeaders();
+        headers=filterHeaders(headers);
         headers = headers.
                 plus(new HttpHeader("duration", String.valueOf(exchange.getDuration()))).
                 plus(new HttpHeader("requestedUrl", exchange.getRequest().getRequestedUrl())).
@@ -137,7 +138,21 @@ public class ExchangeRecorder {
 
     private void writeRequestHeaders(ResourceContainer dir, String baseFileName, RecordedRequest recordedRequest) {
         HttpHeaders headers = recordedRequest.getHeaders();
+        headers=filterHeaders(headers);
         dir.resolvePotential(baseFileName + ".request_headers.json").write(Json.write(headers).getBytes());
+    }
+
+    private HttpHeaders filterHeaders(HttpHeaders headers) {
+        HttpHeaders result = new HttpHeaders();
+        for (HttpHeader httpHeader : headers.all()) {
+            if(shouldRetain(httpHeader))
+            result=result.plus(httpHeader);
+        }
+        return result;
+    }
+
+    private boolean shouldRetain(HttpHeader httpHeader) {
+        return !(httpHeader.key().equals(HeaderName.ofTheCorrelationKey()) || httpHeader.key().equals(HeaderName.ofTheServiceInvocationCount()));
     }
 
     private void writeMessage(ResourceContainer dir, String baseFileName, RecordedMessage recordedResponse) {

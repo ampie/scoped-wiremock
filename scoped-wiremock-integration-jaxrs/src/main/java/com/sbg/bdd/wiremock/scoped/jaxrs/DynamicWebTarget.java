@@ -19,7 +19,6 @@ import java.util.Map;
 
 public class DynamicWebTarget implements WebTarget {
     private final EndpointRegistry endpointRegistry;
-    private final WireMockCorrelationState currentCorrelationState;
     private WebTarget delegate;
     private final EndpointInfo endPointProperty;
     private Client client;
@@ -38,7 +37,6 @@ public class DynamicWebTarget implements WebTarget {
         client = builder.build();
         this.endpointRegistry = DependencyInjectionAdaptorFactory.getAdaptor().getEndpointRegistry();
         this.endPointProperty = endPointProperty;
-        currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
     }
     @PreDestroy
     public void closeClient(){
@@ -49,6 +47,7 @@ public class DynamicWebTarget implements WebTarget {
         if (delegate == null) {
             try {
                 originalUrl = endpointRegistry.endpointUrlFor(endPointProperty.propertyName());
+                WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
                 if (currentCorrelationState.isSet()) {
                     URL url = URLHelper.replaceBaseUrl(originalUrl, currentCorrelationState.getWireMockBaseUrl());
                     delegate = client.target(url.toURI());
@@ -69,7 +68,7 @@ public class DynamicWebTarget implements WebTarget {
             Invocation.Builder request = getDelegate().request();
             //This is still wrong, but the filter will fix it
             request=request.header(HeaderName.ofTheOriginalUrl(), URLHelper.hostOnly(originalUrl).toExternalForm());
-            if (endPointProperty.categories() != null && currentCorrelationState.isSet() ) {
+            if (endPointProperty.categories() != null && DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState().isSet() ) {
                 for (String s : endPointProperty.categories()) {
                     request=request.header(HeaderName.ofTheEndpointCategory(), s);
                 }

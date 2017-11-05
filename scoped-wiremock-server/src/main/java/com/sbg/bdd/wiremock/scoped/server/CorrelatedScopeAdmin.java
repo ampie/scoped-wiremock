@@ -237,6 +237,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
                         exchangeJournal.responseReceived(exchange, response);
                         return response;
                     } catch (RuntimeException e) {
+                        e.printStackTrace();
                         exchangeJournal.responseReceived(exchange, Response.notConfigured());
                         throw e;
                     }
