@@ -4,14 +4,13 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-public class BaseWireMockCorrelationState implements WireMockCorrelationState {
-    private static final Logger LOGGER = Logger.getLogger(WireMockCorrelationState.class.getName());
+public class BaseRuntimeCorrelationState implements RuntimeCorrelationState {
+    private static final Logger LOGGER = Logger.getLogger(RuntimeCorrelationState.class.getName());
     //TODO reevaluate if this is still necessary
     private static String wireMockInternalHostName;//the hostname this process uses to talk to WireMock (e.g. Android: 10.0.2.2)
     private Map<InvocationKey, ThreadCorrelationContext> contextsByInvocationKey = new ConcurrentHashMap<>();
@@ -23,7 +22,7 @@ public class BaseWireMockCorrelationState implements WireMockCorrelationState {
     private String wireMockHost;
     private Map<String, ServiceInvocationCount> allSequenceNumbersInScope = new ConcurrentHashMap<>();
 
-    public BaseWireMockCorrelationState() {
+    public BaseRuntimeCorrelationState() {
     }
     @Override
     public void set(String correlationPath, int threadContext, boolean proxyUnmappedEndpoints) {
@@ -40,7 +39,7 @@ public class BaseWireMockCorrelationState implements WireMockCorrelationState {
     }
 
     public static void connectToWireMockOn(String wireMockInternalHostName) {
-        BaseWireMockCorrelationState.wireMockInternalHostName = wireMockInternalHostName;
+        BaseRuntimeCorrelationState.wireMockInternalHostName = wireMockInternalHostName;
     }
 
     @Override

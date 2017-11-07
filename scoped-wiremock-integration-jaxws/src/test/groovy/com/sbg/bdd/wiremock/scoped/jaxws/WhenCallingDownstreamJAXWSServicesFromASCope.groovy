@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.jaxws
 
 import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
-import com.sbg.bdd.wiremock.scoped.integration.BaseWireMockCorrelationState
+import com.sbg.bdd.wiremock.scoped.integration.BaseRuntimeCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
 import com.sbg.bdd.wiremock.scoped.integration.ServiceInvocationCount
@@ -14,8 +14,8 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
     def 'the outgoing message should have the correlationPath, the sequence number and service invocation counts headers'() {
 
         given:
-        DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState()
+        DependencyInjectionAdaptorFactory.useAdaptor(new BaseDependencyInjectorAdaptor())
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseRuntimeCorrelationState()
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.set('localhost/8080/myscope',1, true)
         def handler = new OutboundCorrelationPathSOAPHandler()
         def headers = null
@@ -52,8 +52,8 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
     def 'the service invocation counts header of the incoming response should be reflected in the current correlation state'() {
 
         given:
-        DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState()
+        DependencyInjectionAdaptorFactory.useAdaptor(new BaseDependencyInjectorAdaptor())
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseRuntimeCorrelationState()
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.set('localhost/8080/myscope',1, true)
         def handler = new OutboundCorrelationPathSOAPHandler()
         def endpointIdentifier = 'http://endpoint.com/context/service/operation'

@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public interface WireMockCorrelationState {
+public interface RuntimeCorrelationState {
     void set(String correlationPath, int threadContextId, boolean proxyUnmappedEndpoints);
 
     void clear();

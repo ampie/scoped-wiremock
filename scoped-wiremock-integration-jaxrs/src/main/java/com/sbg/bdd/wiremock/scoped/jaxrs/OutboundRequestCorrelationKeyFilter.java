@@ -8,14 +8,13 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Map;
 
 @Provider
 public class OutboundRequestCorrelationKeyFilter implements ClientRequestFilter {
 
     @Override
     public void filter(ClientRequestContext ctx) throws IOException {
-        WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+        RuntimeCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
         if (currentCorrelationState.isSet()) {
             MultivaluedMap<String, Object> headers = ctx.getHeaders();
             URL currentUrl = ctx.getUri().toURL();

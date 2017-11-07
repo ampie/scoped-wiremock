@@ -2,8 +2,8 @@ package com.sbg.bdd.wiremock.scoped.jaxrs;
 
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
+import com.sbg.bdd.wiremock.scoped.integration.RuntimeCorrelationState;
 import com.sbg.bdd.wiremock.scoped.integration.ServiceInvocationCount;
-import com.sbg.bdd.wiremock.scoped.integration.WireMockCorrelationState;
 
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientResponseContext;
@@ -21,7 +21,7 @@ public class InboundResponseCorrelationKeyFilter implements ClientResponseFilter
     @Override
     public void filter(ClientRequestContext requestContext, ClientResponseContext response) throws IOException {
         try {
-            WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+            RuntimeCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
             if (currentCorrelationState.isSet()) {
                 MultivaluedMap headers = response.getHeaders();
                 if (headers != null && headers.containsKey(HeaderName.ofTheServiceInvocationCount())) {

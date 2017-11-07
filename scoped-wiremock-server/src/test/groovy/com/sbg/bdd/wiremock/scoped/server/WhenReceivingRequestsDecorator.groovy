@@ -13,7 +13,7 @@ import com.sbg.bdd.wiremock.scoped.integration.HeaderName
 import com.sbg.bdd.wiremock.scoped.server.junit.WireMockRuleConfiguration
 import spock.lang.Specification
 
-class WhenReceivingScopedRequests extends Specification {
+class WhenReceivingRequestsDecorator extends Specification {
     ScopedWireMockServer server
     def setup(){
         this.server = new ScopedWireMockServer(WireMockRuleConfiguration.DYNAMIC_PORT)

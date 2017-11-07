@@ -7,18 +7,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.net.URL;
 import java.util.Enumeration;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class CorrelationStateSynchronizer {
     private static final Logger LOGGER = Logger.getLogger(CorrelationStateSynchronizer.class.getName());
-    private WireMockCorrelationState wireMockCorrelationState;
+    private RuntimeCorrelationState runtimeCorrelationState;
 
 
     public CorrelationStateSynchronizer() {
-        this.wireMockCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+        this.runtimeCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
     }
 
     private void registerDefaultEndpointMappings() {
@@ -26,18 +25,18 @@ public class CorrelationStateSynchronizer {
         for (EndpointConfig config : allEndpointConfigs) {
             registerProxyMappingForEndpoint(config);
         }
-        ServerSideEndPointConfigRegistry.getInstance().registerWireMockBaseUrl(this.wireMockCorrelationState.getWireMockBaseUrl());
+        ServerSideEndPointConfigRegistry.getInstance().registerWireMockBaseUrl(this.runtimeCorrelationState.getWireMockBaseUrl());
     }
 
 
     private boolean shouldRegisterDefaultEndpointMappings() {
-        return ServerSideEndPointConfigRegistry.getInstance().isNewWireMock(this.wireMockCorrelationState.getWireMockBaseUrl());
+        return ServerSideEndPointConfigRegistry.getInstance().isNewWireMock(this.runtimeCorrelationState.getWireMockBaseUrl());
     }
     @Deprecated
     //Move to wiremock on the server
     private void registerProxyMappingForEndpoint(EndpointConfig config) {
         try {
-            URL wireMockBaseUrl = new URL(this.wireMockCorrelationState.getWireMockBaseUrl() + "/__admin/mappings");
+            URL wireMockBaseUrl = new URL(this.runtimeCorrelationState.getWireMockBaseUrl() + "/__admin/mappings");
             String object = ProxyMappingBuilder.buildMapping(config);
             HttpCommandExecutor.INSTANCE.execute(new HttpCommand(wireMockBaseUrl, "POST", object));
 
@@ -53,13 +52,13 @@ public class CorrelationStateSynchronizer {
         if (correlationKey != null && correlationKey.length() > 0) {
             boolean proxyUnMappedEndpoints = "true".equals(request.getHeader(HeaderName.toProxyUnmappedEndpoints()));
             int threadContextId = determineThreadContextId(request);
-            this.wireMockCorrelationState.set(correlationKey, threadContextId, proxyUnMappedEndpoints);
+            this.runtimeCorrelationState.set(correlationKey, threadContextId, proxyUnMappedEndpoints);
             if (proxyUnMappedEndpoints && shouldRegisterDefaultEndpointMappings()) {
                 registerDefaultEndpointMappings();
             }
             Enumeration<String> headers = request.getHeaders(HeaderName.ofTheServiceInvocationCount());
             while (headers.hasMoreElements()) {
-                this.wireMockCorrelationState.initSequenceNumberFor(new ServiceInvocationCount(headers.nextElement()));
+                this.runtimeCorrelationState.initSequenceNumberFor(new ServiceInvocationCount(headers.nextElement()));
             }
         } else {
             clearCorrelationSession();
@@ -80,13 +79,13 @@ public class CorrelationStateSynchronizer {
     }
 
     public void clearCorrelationSession() {
-        this.wireMockCorrelationState.clear();
+        this.runtimeCorrelationState.clear();
 
     }
 
     public void maybeWriteCorrelationSessionTo(HttpServletResponse response) {
-        response.setHeader(HeaderName.ofTheCorrelationKey(), this.wireMockCorrelationState.getCorrelationPath());
-        for (ServiceInvocationCount entry : this.wireMockCorrelationState.getServiceInvocationCounts()) {
+        response.setHeader(HeaderName.ofTheCorrelationKey(), this.runtimeCorrelationState.getCorrelationPath());
+        for (ServiceInvocationCount entry : this.runtimeCorrelationState.getServiceInvocationCounts()) {
             response.addHeader(HeaderName.ofTheServiceInvocationCount(), entry.toString());
         }
     }

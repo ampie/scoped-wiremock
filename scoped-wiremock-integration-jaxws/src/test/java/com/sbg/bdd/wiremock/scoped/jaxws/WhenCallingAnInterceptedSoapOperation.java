@@ -68,9 +68,9 @@
 //                .addClass(DependencyInjectorAdaptor.class)
 //                .addClass(HeaderName.class)
 //                .addClass(BaseDependencyInjectorAdaptor.class)
-//                .addClass(BaseWireMockCorrelationState.class)
+//                .addClass(BaseRuntimeCorrelationState.class)
 //                .addClass(EndpointRegistry.class)
-//                .addClass(WireMockCorrelationState.class)
+//                .addClass(RuntimeCorrelationState.class)
 //                .addAsResource(new StringAsset("my.endpoint=http://localhost:" + wireMock.port() + "/dummy"), "endpoints.properties")
 //                .addAsManifestResource(new ClassLoaderAsset("HelloService.wsdl"), "HelloService.wsdl")
 //                .addClass(HelloPortType.class)
@@ -83,10 +83,10 @@
 ////    @Test
 //    public void itShouldIncrementTheInvocationCount() throws Exception {
 //
-//        WireMockCorrelationState state = BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState();
+//        RuntimeCorrelationState state = BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseRuntimeCorrelationState();
 //        state.set("localhost/9999/myscope", false);
 //        state.initSequenceNumberFor("som-arb-service", 5);
-//        DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor());
+//        DependencyInjectionAdaptorFactory.useAdaptor(new BaseDependencyInjectorAdaptor());
 //        assertThat(consumer.callHello(), is(equalTo("matched!")));
 //        assertThat(state.getServiceInvocationCounts().get("{http://www.examples.com/wsdl/HelloService.wsdl}sayHello"), is(1));
 //        assertThat(state.getServiceInvocationCounts().get("som-arb-service"), is(12));

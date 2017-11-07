@@ -82,7 +82,16 @@ public class CorrelationState {
         this.payload = payload;
     }
 
-    public void putServiceInvocationCounts(List<ServiceInvocationCount> serviceInvocationCounts) {
+    /**
+     * Can be updated from multiple concurrent threads. Updates need to be sequential for consistency
+     * Alternatives:
+     * map of lists by threadContextId's
+     * map by keys
+     *
+     *
+     * @param serviceInvocationCounts
+     */
+    public synchronized void putServiceInvocationCounts(List<ServiceInvocationCount> serviceInvocationCounts) {
         for (ServiceInvocationCount serviceInvocationCount : serviceInvocationCounts) {
             ServiceInvocationCount found = getServiceInvocationCount(serviceInvocationCount.getKey());
             if (found == null) {

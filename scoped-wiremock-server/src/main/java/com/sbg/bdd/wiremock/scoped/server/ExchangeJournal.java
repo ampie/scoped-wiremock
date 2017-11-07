@@ -18,30 +18,44 @@ import java.util.regex.Pattern;
 
 import static com.sbg.bdd.wiremock.scoped.server.ScopePathMatcher.matches;
 
-//NB!! necessary because the normal InMemoryRequestJournal only stores the request with the responseDefinition, not the actual response
+// WAS necessary because the normal InMemoryRequestJournal only stored the request with the responseDefinition, not the actual response
+//TODO merge with InMemoryRequestJournalDecorator. Would have to make RecordedExchange extend ServeEvent
 public class ExchangeJournal {
     private ConcurrentLinkedQueue<RecordedExchange> recordings = new ConcurrentLinkedQueue<>();
     private Map<String, Collection<RecordedExchange>> exchangesByStep = new ConcurrentHashMap<>();
 
     public RecordedExchange requestReceived(String scopePath, String step, Request request) {
-        RecordedExchange exchange = new RecordedExchange(buildRecordedRequest(request), scopePath, step);
-        Collection<RecordedExchange> exchangesInStep = findActiveExchangesInStep(scopePath, step);
-        if (exchangesInStep.isEmpty()) {
-            exchange.setRootExchange(true);
-        } else {
-            addToMostRecentParentExchange(exchange, exchangesInStep);
+        try {
+            RecordedExchange exchange = new RecordedExchange(buildRecordedRequest(request), scopePath, step);
+            String sequenceNumber = request.getHeader(HeaderName.ofTheSequenceNumber());
+            if (sequenceNumber != null) {
+                exchange.setSequenceNumber(Integer.parseInt(sequenceNumber));
+            }
+            String threadContextId = request.getHeader(HeaderName.ofTheThreadContextId());
+            if (threadContextId != null) {
+                exchange.setThreadContextId(Integer.parseInt(threadContextId));
+            }
+            Collection<RecordedExchange> exchangesInStep = findActiveExchangesInStep(scopePath, step);
+            if (exchangesInStep.isEmpty()) {
+                exchange.setRootExchange(true);
+            } else {
+                addToMostRecentParentExchange(exchange, exchangesInStep);
+            }
+            exchangesInStep.add(exchange);
+            this.recordings.add(exchange);
+            return exchange;
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            throw e;
         }
-        exchangesInStep.add(exchange);
-        this.recordings.add(exchange);
-        return exchange;
     }
 
     private void addToMostRecentParentExchange(RecordedExchange exchange, Collection<RecordedExchange> exchangesInStep) {
         RecordedExchange mostRecentParentExchange = null;
-        String currentThreadContextId = String.valueOf(exchange.getRequest().getThreadContextId());
+        String currentThreadContextId = String.valueOf(exchange.getThreadContextId());
         int offset = currentThreadContextId.length();
         for (RecordedExchange potentialParentExchange : exchangesInStep) {
-            String potentialParentThreadContextId = String.valueOf(potentialParentExchange.getRequest().getThreadContextId());
+            String potentialParentThreadContextId = String.valueOf(potentialParentExchange.getThreadContextId());
             if (currentThreadContextId.startsWith(potentialParentThreadContextId) && offset > potentialParentThreadContextId.length() - currentThreadContextId.length()) {
                 mostRecentParentExchange = potentialParentExchange;
                 offset = potentialParentThreadContextId.length() - currentThreadContextId.length();
@@ -118,16 +132,8 @@ public class ExchangeJournal {
         request.setMethod(inputRequest.getMethod());
         request.setClientIp(inputRequest.getClientIp());
         request.setCookies(inputRequest.getCookies());
-        request.setRequestedUrl(inputRequest.getUrl());
+        request.setPath(inputRequest.getUrl());
         request.setAbsoluteUrl(inputRequest.getAbsoluteUrl());
-        String sequenceNumber = inputRequest.getHeader(HeaderName.ofTheSequenceNumber());
-        if (sequenceNumber != null) {
-            request.setSequenceNumber(Integer.parseInt(sequenceNumber));
-        }
-        String threadContextId = inputRequest.getHeader(HeaderName.ofTheThreadContextId());
-        if (threadContextId != null) {
-            request.setThreadContextId(Integer.parseInt(threadContextId));
-        }
         return request;
     }
 

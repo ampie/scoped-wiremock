@@ -2,6 +2,7 @@ package com.sbg.bdd.wiremock.scoped.server.recording;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.matching.MultiValuePattern;
+import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.resource.file.DirectoryResourceRoot;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
@@ -9,64 +10,29 @@ import com.sbg.bdd.wiremock.scoped.admin.model.*;
 
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 import com.sbg.bdd.wiremock.scoped.server.CorrelatedScope;
-import com.sbg.bdd.wiremock.scoped.server.ExtendedStubMappingCreator;
+import com.sbg.bdd.wiremock.scoped.server.ExtendedStubMappingTranslator;
+import com.sbg.bdd.wiremock.scoped.server.UserScope;
 
 import java.io.File;
 
 
-//TODO move to server
+//TODO refactor out of existence Move logic to AbstractCorrelatedScope and ExchangeRecorder
 public class RecordingMappingForUser {
-    private static final String EVERYBODY = "everybody";
+    private UserScope userScope;
     private ExtendedStubMapping stubMapping;
-    private String userInScopeId;
-    private ScopedAdmin scopedAdmin;
 
-    public RecordingMappingForUser(ScopedAdmin scopedAdmin, String userScopeName, ExtendedStubMapping stubMapping) {
-        this.scopedAdmin = scopedAdmin;
-        if (userScopeName.equals(EVERYBODY)) {
-            throw new IllegalArgumentException();
-        }
-        this.userInScopeId = userScopeName;
+
+    public RecordingMappingForUser(UserScope userScope, ExtendedStubMapping stubMapping) {
+        this.userScope = userScope;
         this.stubMapping = stubMapping;
     }
 
     public String getUserInScopeId() {
-        return userInScopeId;
+        return userScope.getName();
     }
-
-    public void saveRecordings(CorrelatedScope scope) {
-        ExtendedRequestPattern requestPattern = new ExtendedRequestPattern(scope.getCorrelationPath() + "/:" + userInScopeId, stubMapping.getRequest());
-        ScopedAdmin wireMock = getWireMock();
-        requestPattern.getHeaders().put(HeaderName.ofTheCorrelationKey(), deriveCorrelationPath(scope));
-        wireMock.saveRecordingsForRequestPattern(requestPattern, calculateRecordingDirectory(scope));
+    public RecordingSpecification getRecordingSpecification() {
+        return this.stubMapping.getRecordingSpecification();
     }
-
-
-    public ScopedAdmin getWireMock() {
-        return this.scopedAdmin;
-    }
-
-    public void loadRecordings(CorrelatedScope scope) {
-        ResourceContainer recordingDirectory = calculateRecordingDirectory(scope, userInScopeId);
-        if (recordingDirectory != null) {
-            //may not exist
-            ScopedAdmin wireMock = getWireMock();
-            ExtendedRequestPattern requestPattern = new ExtendedRequestPattern(scope.getCorrelationPath() + "/:" + userInScopeId, stubMapping.getRequest());
-            requestPattern.getHeaders().put(HeaderName.ofTheCorrelationKey(), deriveCorrelationPath(scope));
-            wireMock.serveRecordedMappingsAt(recordingDirectory, requestPattern, ExtendedStubMappingCreator.calculatePriority(priority(), scope.findOrCreateUserScope(userInScopeId)));
-        }
-    }
-
-    private MultiValuePattern deriveCorrelationPath(CorrelatedScope scope) {
-        if (stubMapping.getRecordingSpecification().enforceJournalModeInScope()) {
-            //Exact match because we want consistent journal behaviour reflecting the recording's exact location
-            return MultiValuePattern.of(WireMock.equalTo(scope.getCorrelationPath() + "/:" + userInScopeId));
-        } else {
-            //Pattern match because we may want to move the directory around
-            return MultiValuePattern.of(WireMock.matching(scope.getCorrelationPath() + "/.*:" + userInScopeId));
-        }
-    }
-
     public boolean enforceJournalModeInScope() {
         return getRecordingSpecification().enforceJournalModeInScope();
     }
@@ -76,66 +42,26 @@ public class RecordingMappingForUser {
     }
 
 
-    private ScopeLocalPriority priority() {
+    public ScopeLocalPriority priority() {
         return getRecordingSpecification().enforceJournalModeInScope() ? ScopeLocalPriority.JOURNAL : ScopeLocalPriority.RECORDINGS;
     }
 
-    public ResourceContainer calculateRecordingDirectory(CorrelatedScope scope) {
-        return calculateRecordingDirectory(scope, this.userInScopeId);
-    }
-
-    private ResourceContainer calculateRecordingDirectory(CorrelatedScope scope, String userScopeIdToUse) {
-        if (getRecordingSpecification().enforceJournalModeInScope()) {
-            //scoped based journalling is assumed to be an automated process where potentially huge amounts of exchanges are recorded and never checked it.
-            //if we wanted to investigate what went wrong, we are more interested in the run scope than the persona
-            //hence runscope1/runscope1.1/scenarioscope1.1.1/userInScopeId
-            if (getRecordingSpecification().recordToCurrentResourceDir()) {
-                //Record to journalRoot in scope
-                return toFile(getResourceRoot(), scope.getRelativePath(), userScopeIdToUse);
-            } else if (!getResourceRoot().fallsWithin(getRecordingSpecification().getRecordingDirectory())) {
-                return toFile(getAbsoluteRecordingDir(), scope.getRelativePath(), userScopeIdToUse);
-            } else {
-                return toFile(getResourceRoot(), getRecordingSpecification().getRecordingDirectory(), scope.getRelativePath(), userScopeIdToUse);
-            }
+    public MultiValuePattern deriveCorrelationPath(CorrelatedScope scope) {
+        if (stubMapping.getRecordingSpecification().enforceJournalModeInScope()) {
+            //Exact match because we want consistent journal behaviour reflecting the recording's exact location
+            return MultiValuePattern.of(WireMock.equalTo(scope.getCorrelationPath() + "/:" + userScope.getName()));
         } else {
-            //explicit recording mapping is assumed to be a more manual process during development, fewer exchanges will
-            //be recorded, possibly manually modified or converted to
-            //templates, and then eventually be checked in
-            //process where we are more interested in the persona associated with the exchanges
-            //hence userScope_id/runscope1 / runscope1 .1 / scenarioscope1 .1 .1
-            if (getRecordingSpecification().recordToCurrentResourceDir()) {
-                return toFile(getResourceRoot(), userScopeIdToUse, scope.getRelativePath());
-            } else if (!getResourceRoot().fallsWithin(getRecordingSpecification().getRecordingDirectory())) {
-                //unlikely to be used this way
-                return toFile(getAbsoluteRecordingDir(), userScopeIdToUse, scope.getRelativePath());
-            } else {
-                //somewhere in the checked in persona dir, relative to the current resource dir
-                return toFile(getResourceRoot(), userScopeIdToUse, scope.getRelativePath(), getRecordingSpecification().getRecordingDirectory());
-            }
+            //Pattern match because we may want to move the directory around
+            return MultiValuePattern.of(WireMock.matching(scope.getCorrelationPath() + "/.*:" + userScope.getName()));
         }
     }
 
-    private DirectoryResourceRoot getAbsoluteRecordingDir() {
-        return new DirectoryResourceRoot("absoluteDir", new File(getRecordingSpecification().getRecordingDirectory()));
+
+    public RequestPattern getRequest() {
+        return stubMapping.getRequest();
     }
 
-
-    private ResourceContainer getResourceRoot() {
-        if (getRecordingSpecification().enforceJournalModeInScope()) {
-            return getWireMock().getResourceRoot(ScopedAdmin.JOURNAL_RESOURCE_ROOT);
-        } else if (getRecordingSpecification().getJournalModeOverride() == JournalMode.RECORD) {
-            return getWireMock().getResourceRoot(ScopedAdmin.OUTPUT_RESOURCE_ROOT);
-        } else {
-            return getWireMock().getResourceRoot(ScopedAdmin.PERSONA_RESOURCE_ROOT);
-        }
+    public UserScope getUserScope() {
+        return userScope;
     }
-
-    private RecordingSpecification getRecordingSpecification() {
-        return this.stubMapping.getRecordingSpecification();
-    }
-
-    private ResourceContainer toFile(ResourceContainer root, String... trailingSegments) {
-        return root.resolvePotentialContainer(trailingSegments);
-    }
-
 }

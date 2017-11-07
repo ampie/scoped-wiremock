@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.filter
 
 import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
-import com.sbg.bdd.wiremock.scoped.integration.BaseWireMockCorrelationState
+import com.sbg.bdd.wiremock.scoped.integration.BaseRuntimeCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
 import spock.lang.Specification
@@ -13,8 +13,8 @@ import javax.servlet.http.HttpServletResponse
 class WhenMakingARequestWithinScope extends Specification{
     def 'it should respond with the updated service invocation counts'(){
         given:
-        DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseWireMockCorrelationState()
+        DependencyInjectionAdaptorFactory.useAdaptor(new BaseDependencyInjectorAdaptor())
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseRuntimeCorrelationState()
         System.setProperty(InboundCorrelationPathFilter.SCOPED_WIREMOCK_ENABLED, "true")
         def filter = new InboundCorrelationPathFilter()
         filter.init(null)

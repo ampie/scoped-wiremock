@@ -24,12 +24,15 @@ import java.util.logging.Logger;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
-public class ExtendedStubMappingCreator {
-    private static final Logger LOGGER=Logger.getLogger(ExtendedStubMappingCreator.class.getName());
+/**
+ * Interprets ExtendedStubMapping and translates them to standard StubMappings and RequestPatterns
+ */
+public class ExtendedStubMappingTranslator {
+    private static final Logger LOGGER=Logger.getLogger(ExtendedStubMappingTranslator.class.getName());
     private ExtendedStubMapping stubMapping;
     private AbstractCorrelatedScope scope;
 
-    public ExtendedStubMappingCreator(ExtendedStubMapping extendedStubMapping, AbstractCorrelatedScope scope) {
+    public ExtendedStubMappingTranslator(ExtendedStubMapping extendedStubMapping, AbstractCorrelatedScope scope) {
         this.stubMapping = extendedStubMapping;
         this.scope = scope;
     }

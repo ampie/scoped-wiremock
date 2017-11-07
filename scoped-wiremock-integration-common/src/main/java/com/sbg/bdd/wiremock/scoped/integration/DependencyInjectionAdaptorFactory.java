@@ -8,11 +8,11 @@ public class DependencyInjectionAdaptorFactory {
     private static DependencyInjectorAdaptor adaptor;
 
     //For tests
-    public static void useAdapter(DependencyInjectorAdaptor a) {
+    public static void useAdaptor(DependencyInjectorAdaptor a) {
         adaptor = a;
     }
 
-    public static WireMockCorrelationState getCurrentCorrelationState() {
+    public static RuntimeCorrelationState getCurrentCorrelationState() {
         return getAdaptor().getCurrentCorrelationState();
     }
 

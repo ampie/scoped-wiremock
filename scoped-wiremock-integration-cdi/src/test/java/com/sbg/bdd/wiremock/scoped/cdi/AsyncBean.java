@@ -13,6 +13,7 @@ import java.util.concurrent.Future;
 public class AsyncBean implements IAsyncBean {
     @Asynchronous
     public Future<String> doStuff() {
+
         return new AsyncResult<>("stuffs");
     }
 

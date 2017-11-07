@@ -2,11 +2,11 @@ package com.sbg.bdd.wiremock.scoped.server;
 
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
 
-import javax.management.openmbean.TabularData;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AbstractCorrelatedScope {
+
+public abstract class AbstractCorrelatedScope {
     protected CorrelatedScope parent;
     protected String name;
     protected CorrelationState correlationState;
@@ -44,4 +44,18 @@ public class AbstractCorrelatedScope {
     public Map<String, Object> getTemplateVariables() {
         return templateVariables;
     }
+
+    protected void addTemplateVariablesFromAncestors(CorrelatedScope scope, String userScopeId, Map<String, Object> templateVariables) {
+        if (scope.getParent() != null) {
+            addTemplateVariablesFromAncestors(scope.getParent(), userScopeId, templateVariables);
+        }
+        templateVariables.putAll(scope.getTemplateVariables());
+        if (userScopeId != null && scope.getUserScope(userScopeId) != null) {
+            //userscope overrides everybodyscope
+            templateVariables.putAll(scope.getUserScope(userScopeId).getTemplateVariables());
+        }
+
+    }
+
+    public abstract Map<String, Object>  aggregateTemplateVariables() ;
 }

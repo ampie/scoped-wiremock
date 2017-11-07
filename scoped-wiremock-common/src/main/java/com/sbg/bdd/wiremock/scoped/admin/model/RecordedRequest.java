@@ -18,7 +18,7 @@ import static com.github.tomakehurst.wiremock.common.Urls.splitQuery;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(
         name = "RecordedRequest",
-        propOrder = {"method", "requestedUrl", "threadContextId","sequenceNumber"}
+        propOrder = {"method", "path"}
 )
 public class RecordedRequest extends RecordedMessage implements Request {
     @XmlElement(
@@ -28,16 +28,8 @@ public class RecordedRequest extends RecordedMessage implements Request {
     @XmlElement(
             nillable = false
     )
-    //TODO rename to PATH
-    private String requestedUrl;
-    @XmlElement(
-            nillable = false
-    )
-    private int sequenceNumber = 0;
-    @XmlElement(
-            nillable = false
-    )
-    private int threadContextId = 0;
+    private String path;
+
     @XmlElement
     private Map<String, Cookie> cookies = new HashMap<>();
     @JsonIgnore
@@ -146,24 +138,17 @@ public class RecordedRequest extends RecordedMessage implements Request {
         this.method = method;
     }
 
-    public String getRequestedUrl() {
-        return requestedUrl;
+    public String getPath() {
+        return path;
     }
 
-    public void setRequestedUrl(String requestedUrl) {
-        URI uri = URI.create(requestedUrl);
+    public void setPath(String path) {
+        URI uri = URI.create(path);
         this.queryParams = Urls.splitQuery(uri);
-        this.url = requestedUrl;
-        this.requestedUrl = uri.getPath();
+        this.url = path;
+        this.path = uri.getPath();
     }
 
-    public int getSequenceNumber() {
-        return sequenceNumber;
-    }
-
-    public void setSequenceNumber(int sequenceNumber) {
-        this.sequenceNumber = sequenceNumber;
-    }
 
     public void setAbsoluteUrl(String absoluteUrl) {
         this.absoluteUrl = absoluteUrl;
@@ -177,11 +162,5 @@ public class RecordedRequest extends RecordedMessage implements Request {
         return queryParams;
     }
 
-    public int getThreadContextId() {
-        return threadContextId;
-    }
 
-    public void setThreadContextId(int threadContextId) {
-        this.threadContextId = threadContextId;
-    }
 }

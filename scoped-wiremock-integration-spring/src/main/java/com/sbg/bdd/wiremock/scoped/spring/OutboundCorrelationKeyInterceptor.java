@@ -9,7 +9,6 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -19,7 +18,7 @@ public class OutboundCorrelationKeyInterceptor implements ClientHttpRequestInter
 
     @Override
     public ClientHttpResponse intercept(HttpRequest ctx, byte[] bytes, ClientHttpRequestExecution clientHttpRequestExecution) throws IOException {
-        WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+        RuntimeCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
         if (currentCorrelationState.isSet()) {
             URL originalHost = null;
             if(ctx.getHeaders().containsKey(HeaderName.ofTheOriginalUrl())) {

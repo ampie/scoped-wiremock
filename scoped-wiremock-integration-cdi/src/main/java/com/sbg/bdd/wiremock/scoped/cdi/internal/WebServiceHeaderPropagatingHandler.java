@@ -67,7 +67,7 @@ public class WebServiceHeaderPropagatingHandler implements InvocationHandler {
     }
 
     private URL getUrlToUse(URL originalUrl) throws MalformedURLException {
-        WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+        RuntimeCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
         if (currentCorrelationState.isSet()) {
             return URLHelper.replaceBaseUrl(originalUrl, currentCorrelationState.getWireMockBaseUrl());
         }

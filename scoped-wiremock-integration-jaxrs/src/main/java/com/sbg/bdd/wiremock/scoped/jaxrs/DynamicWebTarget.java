@@ -47,7 +47,7 @@ public class DynamicWebTarget implements WebTarget {
         if (delegate == null) {
             try {
                 originalUrl = endpointRegistry.endpointUrlFor(endPointProperty.propertyName());
-                WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+                RuntimeCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
                 if (currentCorrelationState.isSet()) {
                     URL url = URLHelper.replaceBaseUrl(originalUrl, currentCorrelationState.getWireMockBaseUrl());
                     delegate = client.target(url.toURI());

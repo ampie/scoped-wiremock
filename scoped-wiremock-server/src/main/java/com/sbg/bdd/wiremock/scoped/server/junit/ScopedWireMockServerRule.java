@@ -85,9 +85,9 @@ public class ScopedWireMockServerRule extends ScopedWireMock implements TestRule
 //        if(method!=null){
 //            scopePath =scopePath +"/" + method.getName();
 //        }
-//        WireMockCorrelationState state = new WireMockCorrelationState();
+//        RuntimeCorrelationState state = new RuntimeCorrelationState();
 //        state.set(scopePath,false);//false because we don't want to have to processRecordingSpec all the freakin mappings for unit tests.
-//        WireMockCorrelationState.setCurrentWireMockCorrelationState(state);
+//        RuntimeCorrelationState.setCurrentWireMockCorrelationState(state);
     }
 
     private void checkForUnmatchedRequests() {

@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.filter
 
 import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
-import com.sbg.bdd.wiremock.scoped.integration.BaseWireMockCorrelationState
+import com.sbg.bdd.wiremock.scoped.integration.BaseRuntimeCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.EndpointConfig
 import com.sbg.bdd.wiremock.scoped.integration.EndpointRegistry
@@ -16,8 +16,8 @@ import javax.servlet.http.HttpServletResponse
 class WhenRequestingEndpointConfigs extends Specification {
     def 'it should respond with al endpoints when requested'() {
         given:
-        DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState()
+        DependencyInjectionAdaptorFactory.useAdaptor(new BaseDependencyInjectorAdaptor())
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE = new BaseRuntimeCorrelationState()
         ServerSideEndPointConfigRegistry.clear()
         ServerSideEndPointConfigRegistry.getInstance().registerRestEndpoint('endpoint1', 'category1')
         ServerSideEndPointConfigRegistry.getInstance().registerSoapEndpoint('endpoint2', 'category1')

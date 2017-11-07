@@ -6,12 +6,10 @@ import com.sbg.bdd.resource.file.DirectoryResourceRoot;
 import com.sbg.bdd.resource.file.ReadableFileResource;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedMappingBuilder;
 import com.sbg.bdd.wiremock.scoped.client.builders.ExtendedRequestPatternBuilder;
-import com.sbg.bdd.wiremock.scoped.admin.endpointconfig.RemoteEndpointConfigRegistry;
 import com.sbg.bdd.wiremock.scoped.server.CorrelatedScope;
-import com.sbg.bdd.wiremock.scoped.server.ExtendedStubMappingCreator;
+import com.sbg.bdd.wiremock.scoped.server.ExtendedStubMappingTranslator;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +65,7 @@ public class WireMockContextStub implements WireMockContext {
         if (mapping.getResponseDefinitionBuilder() == null) {
             recordingMappingBuilders.add(mapping);
         } else {
-            List<StubMapping> list = new ExtendedStubMappingCreator(mapping.build(), scope).createAllSupportingStubMappings();
+            List<StubMapping> list = new ExtendedStubMappingTranslator(mapping.build(), scope).createAllSupportingStubMappings();
             for (StubMapping child : list) {
                 mappings.add(child);
             }

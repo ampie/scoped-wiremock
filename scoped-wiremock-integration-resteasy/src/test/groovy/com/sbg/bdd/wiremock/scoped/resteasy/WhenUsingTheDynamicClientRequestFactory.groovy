@@ -10,7 +10,7 @@ class WhenUsingTheDynamicClientRequestFactory extends Specification {
     def 'it should resolve the correct url and'() {
 
         given:
-        DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
+        DependencyInjectionAdaptorFactory.useAdaptor(new BaseDependencyInjectorAdaptor())
         BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.clear()
         BaseDependencyInjectorAdaptor.PROPERTIES.put('prop1','http://somehost:999/base')
         def epp = new EndpointInfoLiteral('prop1','cat1 cat2'.split(), )

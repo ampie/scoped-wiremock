@@ -8,15 +8,15 @@ import java.util.Properties;
 public class BaseDependencyInjectorAdaptor implements DependencyInjectorAdaptor {
     public static final Properties PROPERTIES = new Properties();
     public static EndpointRegistry ENDPOINT_REGISTRY = new PropertiesEndpointRegistry(PROPERTIES);
-    public static WireMockCorrelationState CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState();
+    public static RuntimeCorrelationState CURRENT_CORRELATION_STATE = new BaseRuntimeCorrelationState();
 
     public BaseDependencyInjectorAdaptor() {
         ENDPOINT_REGISTRY = new PropertiesEndpointRegistry(PROPERTIES);
-        CURRENT_CORRELATION_STATE = new BaseWireMockCorrelationState();
+        CURRENT_CORRELATION_STATE = new BaseRuntimeCorrelationState();
     }
 
     @Override
-    public WireMockCorrelationState getCurrentCorrelationState() {
+    public RuntimeCorrelationState getCurrentCorrelationState() {
         return CURRENT_CORRELATION_STATE;
     }
 

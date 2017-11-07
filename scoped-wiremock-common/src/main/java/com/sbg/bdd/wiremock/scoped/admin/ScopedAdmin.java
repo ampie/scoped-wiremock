@@ -16,8 +16,12 @@ public interface ScopedAdmin {
     String GUEST = "guest";
 
     //Recording management
+    @Deprecated
+    //TODO look at the latest WireMock's recording and snapshots
     void saveRecordingsForRequestPattern(ExtendedRequestPattern pattern, ResourceContainer recordingDirectory);
 
+    @Deprecated
+    //TODO the use of a requestPattern and priority here is just wrong!
     void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, ExtendedRequestPattern requestPattern, int priority);
 
     //Scope management
@@ -54,6 +58,8 @@ public interface ScopedAdmin {
 
     //Others
     void register(ExtendedStubMapping extendedStubMapping);
+
+    void addStubMapping(StubMapping stubMapping);
 
     int count(ExtendedRequestPattern requestPattern);
 

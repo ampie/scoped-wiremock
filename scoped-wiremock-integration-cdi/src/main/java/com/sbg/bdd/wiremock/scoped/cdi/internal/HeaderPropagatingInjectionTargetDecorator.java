@@ -57,7 +57,7 @@ class HeaderPropagatingInjectionTargetDecorator<X> implements InjectionTarget<X>
         for (Field asyncBean : asyncBeans) {
             try {
                 Object asyncObject = asyncBean.get(instance);
-                asyncBean.set(instance, AsyncInvocationHandler.create(asyncBean,asyncObject));
+                asyncBean.set(instance, AsyncHeaderPropagatingHandler.create(asyncBean,asyncObject));
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "Could not inject:", e);
             }

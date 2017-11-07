@@ -15,6 +15,7 @@ import java.util.List;
         name = "RecordedExchange",
         propOrder = {"request","response","scopePath","step","duration"}
 )
+//TODO extend ServeEvent. The problem is the LoggedResponse field that can't be set
 public class RecordedExchange {
     @XmlElement(
             nillable = false
@@ -27,6 +28,15 @@ public class RecordedExchange {
     @XmlElement(
             nillable = false
     )
+    private int sequenceNumber = 0;
+    @XmlElement(
+            nillable = false
+    )
+    private int threadContextId = 0;
+    @XmlElement(
+            nillable = false
+    )
+
     private RecordedRequest request;
     @XmlElement(
             nillable = false
@@ -63,6 +73,8 @@ public class RecordedExchange {
         this.scopePath=recordedExchange.getScopePath();
         this.duration=recordedExchange.getDuration();
         this.step = recordedExchange.getStep();
+        this.threadContextId=recordedExchange.getThreadContextId();
+        this.sequenceNumber=recordedExchange.getSequenceNumber();
     }
 
     public RecordedResponse getResponse() {
@@ -114,6 +126,22 @@ public class RecordedExchange {
 
     public void recordResponse(RecordedResponse response) {
         this.response=response;
+    }
+
+    public int getSequenceNumber() {
+        return sequenceNumber;
+    }
+
+    public void setSequenceNumber(int sequenceNumber) {
+        this.sequenceNumber = sequenceNumber;
+    }
+
+    public int getThreadContextId() {
+        return threadContextId;
+    }
+
+    public void setThreadContextId(int threadContextId) {
+        this.threadContextId = threadContextId;
     }
 
     public List<RecordedExchange> getNestedExchanges() {

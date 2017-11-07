@@ -8,7 +8,6 @@ import org.jboss.resteasy.spi.interception.ClientExecutionInterceptor;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.net.URL;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,19 +16,19 @@ class OutboundCorrelationPathRestInterceptor implements ClientExecutionIntercept
     Logger LOGGER = Logger.getLogger(OutboundCorrelationPathRestInterceptor.class.getName());
     @Override
     public ClientResponse execute(ClientExecutionContext ctx) throws Exception {
-        WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+        RuntimeCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
         if (currentCorrelationState.isSet()) {
             MultivaluedMap<String, Object> headers = ctx.getRequest().getHeadersAsObjects();
             URL originalHost=(URL) headers.getFirst(HeaderName.ofTheOriginalUrl());
             headers.remove(HeaderName.ofTheOriginalUrl());
             URL originalUrl = URLHelper.calculateOriginalUrl(new URL(ctx.getRequest().getUri()),originalHost);
             String key = URLHelper.identifier(originalUrl,ctx.getRequest().getHttpMethod());
-            String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(key).toString();
-
             headers.add(HeaderName.ofTheCorrelationKey(), currentCorrelationState.getCorrelationPath());
             headers.add(HeaderName.ofTheOriginalUrl(), originalUrl.toExternalForm());
-            headers.add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
             headers.add(HeaderName.ofTheThreadContextId(), currentCorrelationState.getCurrentThreadContextId());
+            //TODO move to CorrelatedScopeAdmin
+            String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(key).toString();
+            headers.add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 headers.add(HeaderName.toProxyUnmappedEndpoints(), "true");
             }

@@ -8,7 +8,7 @@ import java.util.concurrent.Future
 class WhenMaintainingTheCorrelationState extends Specification {
     def 'it should extract the WireMock host and port from the correlation path'() {
         given:
-        def state = new BaseWireMockCorrelationState()
+        def state = new BaseRuntimeCorrelationState()
 
         when:
 
@@ -21,7 +21,7 @@ class WhenMaintainingTheCorrelationState extends Specification {
 
     def 'it should keep track of the number of times a certain service was called'() {
         given:
-        def state = new BaseWireMockCorrelationState()
+        def state = new BaseRuntimeCorrelationState()
         state.set('some.host/9090/scope1/scope1_1',3,true)
         state.initSequenceNumberFor(new ServiceInvocationCount('3|my.endpoint|6'))
 
@@ -31,7 +31,7 @@ class WhenMaintainingTheCorrelationState extends Specification {
     }
     def 'it should keep track of the number of times a certain service was called from different threads'() {
         given:
-        def state = new BaseWireMockCorrelationState()
+        def state = new BaseRuntimeCorrelationState()
         state.set('some.host/9090/scope1/scope1_1',1,true)
         state.initSequenceNumberFor(new ServiceInvocationCount('1|my.endpoint|1'))
 
@@ -53,8 +53,8 @@ class WhenMaintainingTheCorrelationState extends Specification {
 
     }
     class ExampleAsync{
-        BaseWireMockCorrelationState correlationState;
-        ExampleAsync(BaseWireMockCorrelationState correlationState) {
+        BaseRuntimeCorrelationState correlationState;
+        ExampleAsync(BaseRuntimeCorrelationState correlationState) {
             this.correlationState = correlationState
         }
         public Future<String> doAsync(String message, int number){

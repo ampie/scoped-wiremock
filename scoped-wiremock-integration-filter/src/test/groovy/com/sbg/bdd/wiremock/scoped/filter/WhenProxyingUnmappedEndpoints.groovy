@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.filter
 
 import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
-import com.sbg.bdd.wiremock.scoped.integration.BaseWireMockCorrelationState
+import com.sbg.bdd.wiremock.scoped.integration.BaseRuntimeCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
 import com.sbg.bdd.wiremock.scoped.integration.HttpCommandExecutor
@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse
 
 class WhenProxyingUnmappedEndpoints extends Specification{
     def 'it should proxy all known endpoints when switched on'(){
-        DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
+        DependencyInjectionAdaptorFactory.useAdaptor(new BaseDependencyInjectorAdaptor())
         given:
         ServerSideEndPointConfigRegistry.clear()
         System.setProperty(InboundCorrelationPathFilter.SCOPED_WIREMOCK_ENABLED, "true")
@@ -24,7 +24,7 @@ class WhenProxyingUnmappedEndpoints extends Specification{
                 commands << args[0]
             }
         }
-        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseWireMockCorrelationState()
+        BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseRuntimeCorrelationState()
         ServerSideEndPointConfigRegistry.getInstance().registerRestEndpoint('endpoint1','category1')
         ServerSideEndPointConfigRegistry.getInstance().registerSoapEndpoint('endpoint2','category1')
         ServerSideEndPointConfigRegistry.getInstance().registerRestEndpoint('endpoint3','category2')

@@ -21,7 +21,7 @@ public class OutboundCorrelationPathSOAPHandler implements SOAPHandler {
 
     @Override
     public boolean handleMessage(MessageContext context) {
-        WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getCurrentCorrelationState();
+        RuntimeCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getCurrentCorrelationState();
         if (currentCorrelationState.isSet()) {
             if (Boolean.TRUE.equals(context.get(MessageContext.MESSAGE_OUTBOUND_PROPERTY))) {
                 prepareOutgoingCall(context, currentCorrelationState);
@@ -32,7 +32,7 @@ public class OutboundCorrelationPathSOAPHandler implements SOAPHandler {
         return true;
     }
 
-    private void processIncomingResponse(MessageContext context, WireMockCorrelationState currentCorrelationState) {
+    private void processIncomingResponse(MessageContext context, RuntimeCorrelationState currentCorrelationState) {
         Map<String, List<String>> headers = (Map<String, List<String>>) context.get(SOAPMessageContext.HTTP_RESPONSE_HEADERS);
         if (headers != null && headers.get(HeaderName.ofTheServiceInvocationCount()) != null) {
             List<String> sequenceNumbers = headers.get(HeaderName.ofTheServiceInvocationCount());
@@ -42,7 +42,7 @@ public class OutboundCorrelationPathSOAPHandler implements SOAPHandler {
         }
     }
 
-    private void prepareOutgoingCall(MessageContext context, WireMockCorrelationState currentCorrelationState) {
+    private void prepareOutgoingCall(MessageContext context, RuntimeCorrelationState currentCorrelationState) {
         Map<String, List<String>> headers = (Map<String, List<String>>) context.get(SOAPMessageContext.HTTP_REQUEST_HEADERS);
         if (headers == null) {
             headers = new HashMap<>();

@@ -2,11 +2,10 @@ package com.sbg.bdd.wiremock.scoped.server;
 
 import com.google.common.base.Optional;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
+import com.sbg.bdd.wiremock.scoped.admin.model.JournalMode;
+import com.sbg.bdd.wiremock.scoped.server.recording.RecordingMappingForUser;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CorrelatedScope extends AbstractCorrelatedScope {
     private Map<String, CorrelatedScope> nestedScopes = new HashMap<>();
@@ -23,7 +22,7 @@ public class CorrelatedScope extends AbstractCorrelatedScope {
 
     public static String globalScopeKey(String correlationPath) {
         String[] split = correlationPath.split("\\/");
-        if(split.length<4){
+        if (split.length < 4) {
             throw new IllegalArgumentException(correlationPath + " is not a valid correlation path");
         }
         StringBuilder sb = new StringBuilder();
@@ -46,28 +45,30 @@ public class CorrelatedScope extends AbstractCorrelatedScope {
         }
         return result;
     }
-    public UserScope findOrCreateUserScope(String name){
+
+    public UserScope findOrCreateUserScope(String name) {
         UserScope userScope = userScopes.get(name);
-        if(userScope ==null){
-            userScopes.put(name,userScope=new UserScope(this,name,new CorrelationState(getCorrelationPath() + "/:" + name)));
+        if (userScope == null) {
+            userScopes.put(name, userScope = new UserScope(this, name, new CorrelationState(getCorrelationPath() + "/:" + name)));
         }
         return userScope;
     }
-    public CorrelatedScope findOrCreateNestedScope(String name){
+
+    public CorrelatedScope findOrCreateNestedScope(String name) {
         CorrelatedScope nestedScope = nestedScopes.get(name);
-        if(nestedScope ==null){
-            nestedScopes.put(name,nestedScope=new CorrelatedScope(this,name,new CorrelationState(getCorrelationPath() + "/" + name)));
+        if (nestedScope == null) {
+            nestedScopes.put(name, nestedScope = new CorrelatedScope(this, name, new CorrelationState(getCorrelationPath() + "/" + name)));
         }
         return nestedScope;
     }
+
     public AbstractCorrelatedScope getChild(String name) {
         AbstractCorrelatedScope scope = nestedScopes.get(name);
         if (scope == null) {
-            scope=userScopes.get(name);
+            scope = userScopes.get(name);
         }
         return scope;
     }
-
 
 
     public List<String> removeNestedScope(CorrelatedScope nestedScope) {
@@ -79,9 +80,9 @@ public class CorrelatedScope extends AbstractCorrelatedScope {
 
 
     public String getRelativePath() {
-        if(getParent() instanceof GlobalScope){
+        if (getParent() instanceof GlobalScope) {
             return getName();
-        }else{
+        } else {
             return getParent().getRelativePath() + "/" + getName();
         }
     }
@@ -92,5 +93,48 @@ public class CorrelatedScope extends AbstractCorrelatedScope {
 
     public CorrelatedScope getNestedScope(String name) {
         return nestedScopes.get(name);
+    }
+
+    public List<RecordingMappingForUser> getActiveRecordingOrPlaybackMappings(JournalMode playback) {
+        return getActiveRecordingOrPlaybackMappings(this, playback);
+    }
+
+    //TODO move this to AbstractCorrelatedScope
+    private List<RecordingMappingForUser> getActiveRecordingOrPlaybackMappings(CorrelatedScope scene, JournalMode journalMode) {
+        List<RecordingMappingForUser> activeRecordings = new ArrayList<>();
+        CorrelatedScope parentScene = scene.getParent();
+        if (parentScene != null) {
+            activeRecordings.addAll(getActiveRecordingOrPlaybackMappings(parentScene, journalMode));
+        }
+        for (String personaId : getGlobalScope().allPersonaIds()) {
+            UserScope userScope = scene.getUserScope(personaId);
+            if (userScope != null) {
+                activeRecordings.addAll(getRecordingOrPlaybackMappings(userScope, journalMode));
+            }
+        }
+        return activeRecordings;
+    }
+
+    private List<RecordingMappingForUser> getRecordingOrPlaybackMappings(UserScope userInScope, JournalMode journalMode) {
+        List<RecordingMappingForUser> result = new ArrayList<>();
+        List<RecordingMappingForUser> requestsToRecordOrPlayback = userInScope.getRecordingMappingsForUser();
+        if (requestsToRecordOrPlayback != null) {
+            for (RecordingMappingForUser r : requestsToRecordOrPlayback) {
+                if (r.getJournalModeOverride() == journalMode || (r.enforceJournalModeInScope() && getJournalModeInScope(userInScope) == journalMode)) {
+                    result.add(r);
+                }
+            }
+        }
+        return result;
+    }
+
+    private JournalMode getJournalModeInScope(UserScope userInScope) {
+        return Optional.fromNullable(userInScope.getGlobalScope().getGlobalJournalMode()).or(JournalMode.NONE);
+    }
+
+    public Map<String, Object> aggregateTemplateVariables() {
+        Map<String, Object> result = new HashMap<>();
+        addTemplateVariablesFromAncestors(this, null, result);
+        return result;
     }
 }

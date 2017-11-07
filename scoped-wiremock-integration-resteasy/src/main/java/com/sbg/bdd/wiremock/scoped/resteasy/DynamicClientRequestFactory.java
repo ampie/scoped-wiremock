@@ -24,7 +24,7 @@ public class DynamicClientRequestFactory extends ClientRequestFactory {
     @Override
     public ClientRequest createRelativeRequest(String uriTemplate) {
         URL originalUrl = endpointRegistry.endpointUrlFor(endPointProperty.propertyName());
-        WireMockCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
+        RuntimeCorrelationState currentCorrelationState = DependencyInjectionAdaptorFactory.getAdaptor().getCurrentCorrelationState();
         URL url = originalUrl;
         if (currentCorrelationState.isSet()) {
             url = URLHelper.replaceBaseUrl(originalUrl, currentCorrelationState.getWireMockBaseUrl());

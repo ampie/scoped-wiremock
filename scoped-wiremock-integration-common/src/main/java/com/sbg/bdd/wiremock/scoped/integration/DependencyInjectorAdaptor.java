@@ -5,6 +5,6 @@ package com.sbg.bdd.wiremock.scoped.integration;
  * from the underlying DI framework
  */
 public interface DependencyInjectorAdaptor {
-    WireMockCorrelationState getCurrentCorrelationState();
+    RuntimeCorrelationState getCurrentCorrelationState();
     EndpointRegistry getEndpointRegistry();
 }

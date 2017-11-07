@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.spring
 
 import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
-import com.sbg.bdd.wiremock.scoped.integration.BaseWireMockCorrelationState
+import com.sbg.bdd.wiremock.scoped.integration.BaseRuntimeCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
 import com.sbg.bdd.wiremock.scoped.integration.ServiceInvocationCount
@@ -15,8 +15,8 @@ import spock.lang.Specification
 class WhenSendingRequestsToDownstreamRestServices extends Specification{
     def 'it should serialize all the correct outgoing headers'(){
         given:
-        DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        def state= BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseWireMockCorrelationState()
+        DependencyInjectionAdaptorFactory.useAdaptor(new BaseDependencyInjectorAdaptor())
+        def state= BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseRuntimeCorrelationState()
         state.set('localhost/8080/somepath',1,true)
         state.initSequenceNumberFor(new ServiceInvocationCount('1|endpoint1|6'))
         state.initSequenceNumberFor(new ServiceInvocationCount('1|endpoint2|8'))
@@ -49,8 +49,8 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
     }
     def 'it should extract all the correct incoming headers'(){
         given:
-        DependencyInjectionAdaptorFactory.useAdapter(new BaseDependencyInjectorAdaptor())
-        def state= BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseWireMockCorrelationState()
+        DependencyInjectionAdaptorFactory.useAdaptor(new BaseDependencyInjectorAdaptor())
+        def state= BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE=new BaseRuntimeCorrelationState()
         state.set('localhost/8080/somepath',1,true)
         state.initSequenceNumberFor(new ServiceInvocationCount('1|endpoint1|6'))
         state.initSequenceNumberFor(new ServiceInvocationCount('1|endpoint2|8'))

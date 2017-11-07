@@ -1,9 +1,17 @@
-see if we can add some principal to the Subject, or proxy any existing principal
 0. Push the docker images for the testers to use and test
    --name them to fit in docker registry
    --instructions to stop and start step
    --test recording mappings and body mappings
-   --
+
+0.1 Move sequence number logic to WireMock:
+ - It seems that StubMappings is the guy to modify for a lot of our work:
+ -- Move SortedConcurrentMappingSetDecorator to a subclass of InMemoryStubMappings
+ -- Hack this custom InMemoryStubMappings into the WireMockApp
+ -- Customize public ServeEvent serveFor(Request request)
+ -- When the correlation header is present, retrieve the next correlation state for the incoming request
+ -- For the threadContextId and request uri, find the next invocation count
+ -- Find the StubMapping that matches that count, threadContextId and correlation path and serve it
+ -- Remove state propagation logic from interceptors
 
 1. Move the RecordingSpecification logic to the server side
 

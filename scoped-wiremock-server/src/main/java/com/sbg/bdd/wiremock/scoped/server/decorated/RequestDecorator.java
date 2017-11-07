@@ -1,4 +1,4 @@
-package com.sbg.bdd.wiremock.scoped.server;
+package com.sbg.bdd.wiremock.scoped.server.decorated;
 
 import com.github.tomakehurst.wiremock.http.*;
 
@@ -6,14 +6,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ScopedRequest implements Request {
+public class RequestDecorator implements Request {
     private HttpHeaders headers;
     Request delegate;
 
-    public ScopedRequest(Request delegate) {
+    public RequestDecorator(Request delegate) {
         this.delegate = delegate;
         this.headers = delegate.getHeaders();
     }
+    //HACK: required to fix service categories in the header.
     public void putHeader(String key, List<String> values){
         headers=headers.plus(new HttpHeader(key,values));
     }
