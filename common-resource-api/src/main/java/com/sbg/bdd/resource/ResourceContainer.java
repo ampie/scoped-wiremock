@@ -1,5 +1,5 @@
 package com.sbg.bdd.resource;
-
+//TODO migrate and align to WireMock's FileSource
 public interface ResourceContainer extends Resource{
     Resource[] list();
     Resource[] list(ResourceFilter filter);

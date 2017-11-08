@@ -38,6 +38,7 @@ public class ServiceInvocationCount implements Comparable<ServiceInvocationCount
         this.endpointIdentifier = split[1];
         this.count = Integer.parseInt(split[2]);
     }
+
     @JsonIgnore
     public String getKey() {
         return keyOf(threadContextId, endpointIdentifier);
@@ -59,10 +60,6 @@ public class ServiceInvocationCount implements Comparable<ServiceInvocationCount
         return count;
     }
 
-    public int next() {
-        return ++count;
-    }
-
     public String toString() {
         return threadContextId + "|" + endpointIdentifier + "|" + count;
     }
@@ -77,5 +74,9 @@ public class ServiceInvocationCount implements Comparable<ServiceInvocationCount
 
     public void setCount(int count) {
         this.count = count;
+    }
+
+    public void increment() {
+        count++;
     }
 }

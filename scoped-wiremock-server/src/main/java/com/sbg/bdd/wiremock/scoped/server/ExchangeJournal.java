@@ -100,7 +100,6 @@ public class ExchangeJournal {
                     result.add(new RecordedExchange(recording));
                 }
             }
-
         }
         return result;
     }
@@ -166,7 +165,6 @@ public class ExchangeJournal {
             }
         }
         return result;
-
     }
 
     public void responseReceived(RecordedExchange exchange, Response response) {

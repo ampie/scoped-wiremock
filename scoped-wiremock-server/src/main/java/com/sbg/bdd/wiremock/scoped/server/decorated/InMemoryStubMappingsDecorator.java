@@ -4,15 +4,18 @@ import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.matching.MultiValuePattern;
-import com.github.tomakehurst.wiremock.stubbing.*;
+import com.github.tomakehurst.wiremock.matching.RequestMatcherExtension;
+import com.github.tomakehurst.wiremock.stubbing.InMemoryStubMappings;
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
+import com.github.tomakehurst.wiremock.stubbing.SortedConcurrentMappingSet;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.google.common.base.Optional;
 import com.sbg.bdd.wiremock.scoped.admin.BadMappingException;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
+import com.sbg.bdd.wiremock.scoped.server.CorrelatedScopeAdmin;
+import com.sbg.bdd.wiremock.scoped.server.SequenceNumberMatcher;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static com.sbg.bdd.wiremock.scoped.common.Reflection.getValue;
 import static com.sbg.bdd.wiremock.scoped.server.ScopePathMatcher.matches;
@@ -20,15 +23,23 @@ import static com.sbg.bdd.wiremock.scoped.server.ScopePathMatcher.matches;
 public class InMemoryStubMappingsDecorator extends InMemoryStubMappings {
     private InMemoryStubMappings delegate;
     private SortedConcurrentMappingSet mappings;
+    private CorrelatedScopeAdmin scopeAdmin;
 
-    public InMemoryStubMappingsDecorator(InMemoryStubMappings delegate) {
+    public InMemoryStubMappingsDecorator(InMemoryStubMappings delegate, CorrelatedScopeAdmin scopeAdmin) {
         this.delegate = delegate;
-        this.mappings = getValue(delegate,"mappings");
+        this.mappings = getValue(delegate, "mappings");
+        Map<String, RequestMatcherExtension> customMatchers = getValue(delegate, "customMatchers");
+        SequenceNumberMatcher sequenceNumberMatcher = (SequenceNumberMatcher) customMatchers.get(SequenceNumberMatcher.NAME);
+        this.scopeAdmin = scopeAdmin;
+        if(sequenceNumberMatcher !=null){
+            sequenceNumberMatcher.setAdmin(this.scopeAdmin);
+        }
     }
 
     @Override
     public ServeEvent serveFor(Request request) {
         RequestDecorator requestDecorator = rectifyRequestHeaders(request);
+        //TODO could optimize by grouping StubMappings by correlationPath
         return delegate.serveFor(requestDecorator);
     }
 
@@ -38,6 +49,7 @@ public class InMemoryStubMappingsDecorator extends InMemoryStubMappings {
         listifyIncorrectlyConcatenatedHeaders(requestDecorator, HeaderName.ofTheServiceInvocationCount());
         return requestDecorator;
     }
+
     private static void listifyIncorrectlyConcatenatedHeaders(RequestDecorator request, String key) {
         HttpHeaders headers = request.getHeaders();
         HttpHeader header = headers.getHeader(key);
@@ -128,4 +140,5 @@ public class InMemoryStubMappingsDecorator extends InMemoryStubMappings {
     public Optional<StubMapping> get(UUID id) {
         return delegate.get(id);
     }
+
 }

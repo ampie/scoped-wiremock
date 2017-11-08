@@ -4,10 +4,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(
@@ -86,8 +83,7 @@ public class CorrelationState {
      * Can be updated from multiple concurrent threads. Updates need to be sequential for consistency
      * Alternatives:
      * map of lists by threadContextId's
-     * map by keys
-     *
+     * map by keys - this would be the best
      *
      * @param serviceInvocationCounts
      */
@@ -100,6 +96,14 @@ public class CorrelationState {
                 found.setCount(serviceInvocationCount.getCount());
             }
         }
+    }
+    public ServiceInvocationCount findOrCreateServiceInvocationCount(int threadContextId, String endpointIdentifier) {
+        ServiceInvocationCount invocationCount = getServiceInvocationCount(ServiceInvocationCount.keyOf(threadContextId, endpointIdentifier));
+        if(invocationCount==null){
+            invocationCount=new ServiceInvocationCount(threadContextId, endpointIdentifier, -1);
+            putServiceInvocationCounts(Arrays.asList(invocationCount));
+        }
+        return invocationCount;
     }
 
     public ServiceInvocationCount getServiceInvocationCount(String keyToFind) {

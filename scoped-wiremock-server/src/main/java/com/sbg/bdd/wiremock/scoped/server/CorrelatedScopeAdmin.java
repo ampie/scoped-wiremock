@@ -230,7 +230,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
 
     private void decorateStubMappings(WireMockApp wireMockApp) {
         InMemoryStubMappings stubMappings = getValue(wireMockApp, "stubMappings");
-        this.stubMappings =  new InMemoryStubMappingsDecorator(stubMappings);
+        this.stubMappings =  new InMemoryStubMappingsDecorator(stubMappings,this);
         setValue(wireMockApp,"stubMappings",this.stubMappings);
     }
 
