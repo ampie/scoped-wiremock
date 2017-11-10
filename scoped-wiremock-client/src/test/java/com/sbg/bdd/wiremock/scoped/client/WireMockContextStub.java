@@ -65,7 +65,7 @@ public class WireMockContextStub implements WireMockContext {
         if (mapping.getResponseDefinitionBuilder() == null) {
             recordingMappingBuilders.add(mapping);
         } else {
-            List<StubMapping> list = new ExtendedStubMappingTranslator(mapping.build(), scope).createAllSupportingStubMappings();
+            List<StubMapping> list = new ExtendedStubMappingTranslator(mapping.build(), scope.getGlobalScope().getEndPointConfigRegistry(), scope).createAllSupportingStubMappings();
             for (StubMapping child : list) {
                 mappings.add(child);
             }

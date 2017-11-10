@@ -25,15 +25,17 @@ class OutboundCorrelationPathRestInterceptor implements ClientExecutionIntercept
             String key = URLHelper.identifier(originalUrl,ctx.getRequest().getHttpMethod());
             headers.add(HeaderName.ofTheCorrelationKey(), currentCorrelationState.getCorrelationPath());
             headers.add(HeaderName.ofTheOriginalUrl(), originalUrl.toExternalForm());
-            headers.add(HeaderName.ofTheThreadContextId(), currentCorrelationState.getCurrentThreadContextId());
-            //TODO move to CorrelatedScopeAdmin
-            String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(key).toString();
-            headers.add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
+            headers.add(HeaderName.ofTheThreadContextId(), String.valueOf(currentCorrelationState.getCurrentThreadContextId()));
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 headers.add(HeaderName.toProxyUnmappedEndpoints(), "true");
             }
-            for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
-                ctx.getRequest().header(HeaderName.ofTheServiceInvocationCount(), entry.toString());
+            if(RuntimeCorrelationState.ON) {
+                //TODO move to CorrelatedScopeAdmin
+                String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(key).toString();
+                headers.add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
+                for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
+                    ctx.getRequest().header(HeaderName.ofTheServiceInvocationCount(), entry.toString());
+                }
             }
         }
         ClientResponse response = ctx.proceed();

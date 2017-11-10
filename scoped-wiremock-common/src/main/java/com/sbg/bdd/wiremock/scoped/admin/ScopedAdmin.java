@@ -22,6 +22,9 @@ public interface ScopedAdmin {
 
     @Deprecated
     //TODO the use of a requestPattern and priority here is just wrong!
+    /**
+     * What is the thinking here?
+     */
     void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, ExtendedRequestPattern requestPattern, int priority);
 
     //Scope management

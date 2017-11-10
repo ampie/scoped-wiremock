@@ -4,18 +4,27 @@ import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.matching.MultiValuePattern;
-import com.github.tomakehurst.wiremock.matching.RequestMatcherExtension;
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
+import com.github.tomakehurst.wiremock.matching.ValueMatcher;
 import com.github.tomakehurst.wiremock.stubbing.InMemoryStubMappings;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.github.tomakehurst.wiremock.stubbing.SortedConcurrentMappingSet;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.google.common.base.Optional;
 import com.sbg.bdd.wiremock.scoped.admin.BadMappingException;
+import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
+import com.sbg.bdd.wiremock.scoped.integration.RuntimeCorrelationState;
+import com.sbg.bdd.wiremock.scoped.integration.URLHelper;
 import com.sbg.bdd.wiremock.scoped.server.CorrelatedScopeAdmin;
 import com.sbg.bdd.wiremock.scoped.server.SequenceNumberMatcher;
 
-import java.util.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
 
 import static com.sbg.bdd.wiremock.scoped.common.Reflection.getValue;
 import static com.sbg.bdd.wiremock.scoped.server.ScopePathMatcher.matches;
@@ -28,17 +37,20 @@ public class InMemoryStubMappingsDecorator extends InMemoryStubMappings {
     public InMemoryStubMappingsDecorator(InMemoryStubMappings delegate, CorrelatedScopeAdmin scopeAdmin) {
         this.delegate = delegate;
         this.mappings = getValue(delegate, "mappings");
-        Map<String, RequestMatcherExtension> customMatchers = getValue(delegate, "customMatchers");
-        SequenceNumberMatcher sequenceNumberMatcher = (SequenceNumberMatcher) customMatchers.get(SequenceNumberMatcher.NAME);
         this.scopeAdmin = scopeAdmin;
-        if(sequenceNumberMatcher !=null){
-            sequenceNumberMatcher.setAdmin(this.scopeAdmin);
-        }
     }
 
     @Override
     public ServeEvent serveFor(Request request) {
         RequestDecorator requestDecorator = rectifyRequestHeaders(request);
+        if (RuntimeCorrelationState.ON == false) {
+            HttpHeader correlationPath = requestDecorator.getHeaders().getHeader(HeaderName.ofTheCorrelationKey());
+            HttpHeader threadContextId = requestDecorator.getHeaders().getHeader(HeaderName.ofTheThreadContextId());
+            if (correlationPath.isPresent() && threadContextId.isPresent()) {
+                CorrelationState correlatedScope = scopeAdmin.getCorrelatedScope(correlationPath.firstValue());
+                correlatedScope.findOrCreateServiceInvocationCount(Integer.valueOf(threadContextId.firstValue()), serviceIdentifierOf(request)).increment();
+            }
+        }
         //TODO could optimize by grouping StubMappings by correlationPath
         return delegate.serveFor(requestDecorator);
     }
@@ -66,6 +78,7 @@ public class InMemoryStubMappingsDecorator extends InMemoryStubMappings {
     }
 
     private boolean hasCorrelationHeader(StubMapping mapping) {
+
         return mapping.getRequest().getHeaders() != null && (mapping.getRequest().getHeaders().containsKey(HeaderName.ofTheCorrelationKey()) || mapping.getRequest().getHeaders().containsKey(HeaderName.toProxyUnmappedEndpoints()));
     }
 
@@ -74,13 +87,25 @@ public class InMemoryStubMappingsDecorator extends InMemoryStubMappings {
         Iterator<StubMapping> iterator = mappings.iterator();
         while (iterator.hasNext()) {
             StubMapping mapping = iterator.next();
-            if (mapping.getRequest() != null && mapping.getRequest().getHeaders() != null) {
-                MultiValuePattern correlationPattern = mapping.getRequest().getHeaders().get(HeaderName.ofTheCorrelationKey());
-                if (correlationPattern != null && matches(scopePath, correlationPattern.getValuePattern())) {
-                    iterator.remove();
-                }
+            StringValuePattern stringValuePattern = extractCorrelationPathPattern(mapping);
+            if (stringValuePattern != null && matches(scopePath, stringValuePattern)) {
+                iterator.remove();
             }
         }
+    }
+
+    private StringValuePattern extractCorrelationPathPattern(StubMapping mapping) {
+        StringValuePattern stringValuePattern=null;
+        if (mapping.getRequest() != null && mapping.getRequest().getHeaders() != null) {
+            MultiValuePattern correlationPattern = mapping.getRequest().getHeaders().get(HeaderName.ofTheCorrelationKey());
+            stringValuePattern = correlationPattern==null?null:correlationPattern.getValuePattern();
+        }else if(mapping.getRequest().hasCustomMatcher()){
+            ValueMatcher<Request> customMatcher = getValue(mapping.getRequest(),"matcher");
+            if(customMatcher instanceof SequenceNumberMatcher){
+                stringValuePattern = ((SequenceNumberMatcher) customMatcher).getCorrelationPattern();
+            }
+        }
+        return stringValuePattern;
     }
 
     public List<StubMapping> findMappingsForScope(String scopePath) {
@@ -100,7 +125,7 @@ public class InMemoryStubMappingsDecorator extends InMemoryStubMappings {
 
     @Override
     public void addMapping(StubMapping mapping) {
-        if (!hasCorrelationHeader(mapping)) {
+        if (!(mapping.getRequest().hasCustomMatcher() || hasCorrelationHeader(mapping))) {
             throw new BadMappingException("Mappings in Correlated WireMock servers must either have a CorrelationPath header or a Proxy header");
         } else if (mapping.getPriority() == null) {
             throw new BadMappingException("Mappings in Correlated WireMock servers must have a priority, ideally calculated from the scope it was created");
@@ -140,5 +165,11 @@ public class InMemoryStubMappingsDecorator extends InMemoryStubMappings {
     public Optional<StubMapping> get(UUID id) {
         return delegate.get(id);
     }
-
+    public static String serviceIdentifierOf(Request request) {
+        try {
+            return URLHelper.identifier(new URL(request.getAbsoluteUrl()), request.getMethod().getName());
+        } catch (MalformedURLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

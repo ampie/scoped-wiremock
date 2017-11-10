@@ -4,6 +4,7 @@ import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
 import com.sbg.bdd.wiremock.scoped.integration.BaseRuntimeCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
+import com.sbg.bdd.wiremock.scoped.integration.RuntimeCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.ServiceInvocationCount
 import spock.lang.Specification
 
@@ -40,13 +41,16 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
 
         then:
         headers[HeaderName.ofTheCorrelationKey()][0] == 'localhost/8080/myscope'
-        headers[HeaderName.ofTheSequenceNumber()][0] == '5'
         headers[HeaderName.ofTheOriginalUrl()][0] == 'http://endpoint.com/context/service/operation'
-        headers[HeaderName.ofTheServiceInvocationCount()][0] == '1|http://endpoint.com/context/service/operation|5'
-        headers[HeaderName.ofTheServiceInvocationCount()][1] == "1|${endpoint1}|8"
-        headers[HeaderName.ofTheServiceInvocationCount()][2] == "1|${endpoint2}|12"
         headers[HeaderName.toProxyUnmappedEndpoints()][0] == 'true'
         headers[HeaderName.ofTheEndpointCategory()][0] == 'category1'
+        headers[HeaderName.ofTheThreadContextId()][0] == '1'
+        if(RuntimeCorrelationState.ON) {
+            headers[HeaderName.ofTheSequenceNumber()][0] == '5'
+            headers[HeaderName.ofTheServiceInvocationCount()][0] == '1|http://endpoint.com/context/service/operation|5'
+            headers[HeaderName.ofTheServiceInvocationCount()][1] == "1|${endpoint1}|8"
+            headers[HeaderName.ofTheServiceInvocationCount()][2] == "1|${endpoint2}|12"
+        }
     }
 
     def 'the service invocation counts header of the incoming response should be reflected in the current correlation state'() {

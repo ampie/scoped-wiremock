@@ -29,7 +29,7 @@ public class StubResponseRendererDecorator implements ResponseRenderer {
             String stepName = determineStep(scopePath);
             //NB! the normal RequestListener or ResponseTransformer won't work because we want to support recursive requests
             //to build a stack of exchanges
-            RecordedExchange exchange = exchangeJournal.requestReceived(scopePath, stepName, rectifyRequestHeaders(request));
+            RecordedExchange exchange = exchangeJournal.requestReceived(scopedAdmin.getCorrelatedScope(scopePath), stepName, rectifyRequestHeaders(request));
             try {
                 Response response = delegate.render(responseDefinition);
                 exchangeJournal.responseReceived(exchange, response);

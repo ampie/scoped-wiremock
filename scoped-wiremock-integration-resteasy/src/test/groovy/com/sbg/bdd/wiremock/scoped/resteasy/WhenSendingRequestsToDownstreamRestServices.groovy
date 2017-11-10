@@ -4,6 +4,7 @@ import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor
 import com.sbg.bdd.wiremock.scoped.integration.BaseRuntimeCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
+import com.sbg.bdd.wiremock.scoped.integration.RuntimeCorrelationState
 import com.sbg.bdd.wiremock.scoped.integration.ServiceInvocationCount
 import org.jboss.resteasy.client.ClientRequest
 import org.jboss.resteasy.client.ClientResponse
@@ -39,11 +40,14 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         then:
         headers.get(HeaderName.ofTheCorrelationKey())[0] == 'localhost/8080/somepath'
         headers.get(HeaderName.ofTheOriginalUrl())[0] == 'http://somewhere.com/base'
-        headers.get(HeaderName.ofTheSequenceNumber())[0] == '1'
         headers.get(HeaderName.toProxyUnmappedEndpoints())[0] == 'true'
-        headers.get(HeaderName.ofTheServiceInvocationCount())[0] == '1|endpoint1|6'
-        headers.get(HeaderName.ofTheServiceInvocationCount())[1] == '1|endpoint2|8'
-        headers.get(HeaderName.ofTheServiceInvocationCount())[2] == '1|http:null://somewhere.com/base|1'//null because we can't fake a method with sending a request
+        headers.get(HeaderName.ofTheThreadContextId())[0] == '1'
+        if(RuntimeCorrelationState.ON) {
+            headers.get(HeaderName.ofTheSequenceNumber())[0] == '1'
+            headers.get(HeaderName.ofTheServiceInvocationCount())[0] == '1|endpoint1|6'
+            headers.get(HeaderName.ofTheServiceInvocationCount())[1] == '1|endpoint2|8'
+            headers.get(HeaderName.ofTheServiceInvocationCount())[2] == '1|http:null://somewhere.com/base|1'//null because we can't fake a method with sending a request
+        }
     }
     def 'it should extract all the correct incoming headers'(){
         given:

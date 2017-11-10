@@ -17,10 +17,11 @@ abstract class WhenPlayingBackResponsesCommon extends ScopedWireMockCommonTest {
 
         DirectoryResourceRoot root = getDirectoryResourceRoot();
         def someRecordingDir = (ResourceContainer) root.resolveExisting("some_recording_dir")
-        def stubMapping =  WireMock.put("/context/service/operation").withHeader(HeaderName.ofTheCorrelationKey(), equalTo("my-correlation-key")).build()
         def requestPattern = new ExtendedRequestPattern(nestedScope.correlationPath, WireMock.put("/context/service/operation").withHeader(HeaderName.ofTheCorrelationKey(), equalTo("my-correlation-key")).build().request)
+
         when: 'I instruct WireMock to serve the record mappings using a template stubMapping'
         wireMock.serveRecordedMappingsAt(someRecordingDir, requestPattern, 4)
+
         then: 'exactly two stubMappings should be created'
         wireMock.allStubMappings().mappings.size() == 2
 

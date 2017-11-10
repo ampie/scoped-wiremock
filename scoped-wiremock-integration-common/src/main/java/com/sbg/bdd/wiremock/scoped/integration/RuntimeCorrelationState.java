@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface RuntimeCorrelationState {
+    boolean ON=false;
     void set(String correlationPath, int threadContextId, boolean proxyUnmappedEndpoints);
 
     void clear();

@@ -17,10 +17,7 @@ import com.sbg.bdd.wiremock.scoped.server.decorated.InMemoryStubMappingsDecorato
 import com.sbg.bdd.wiremock.scoped.server.decorated.StubResponseRendererDecorator;
 import com.sbg.bdd.wiremock.scoped.server.recording.ExchangeRecorder;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -129,12 +126,12 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     //Recording Management
     @Override
     public void saveRecordingsForRequestPattern(ExtendedRequestPattern pattern, ResourceContainer recordingDirectory) {
-        new ExchangeRecorder(this).saveRecordingsForRequestPattern(pattern, recordingDirectory);
+        this.exchangeRecorder.saveRecordingsForRequestPattern(pattern, recordingDirectory);
     }
 
     @Override
     public void serveRecordedMappingsAt(ResourceContainer directoryRecordedTo, ExtendedRequestPattern requestPattern, int priority) {
-        new ExchangeRecorder(this).serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
+        this.exchangeRecorder.serveRecordedMappingsAt(directoryRecordedTo, requestPattern, priority);
     }
 
     //Step management
@@ -159,8 +156,9 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     @Override
     public void register(ExtendedStubMapping extendedStubMapping) {
         AbstractCorrelatedScope scope = getAbstractCorrelatedScope(extendedStubMapping.getRequest().getCorrelationPath());
+        GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(extendedStubMapping.getRequest().getCorrelationPath()));
         if (extendedStubMapping.getExtendedResponse() != null) {
-            ExtendedStubMappingTranslator creator = new ExtendedStubMappingTranslator(extendedStubMapping, scope);
+            ExtendedStubMappingTranslator creator = new ExtendedStubMappingTranslator(extendedStubMapping, globalScope.getEndPointConfigRegistry(), scope);
             for (StubMapping mapping : creator.createAllSupportingStubMappings()) {
                 addStubMapping(mapping);
             }
@@ -180,7 +178,10 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
     }
 
     private List<RequestPattern> supportingRequestPatterns(ExtendedRequestPattern pattern) {
-        ExtendedStubMappingTranslator creator = new ExtendedStubMappingTranslator(new ExtendedStubMapping(pattern, null), getAbstractCorrelatedScope(pattern.getCorrelationPath()));
+        AbstractCorrelatedScope scope = getAbstractCorrelatedScope(pattern.getCorrelationPath());
+        GlobalScope globalScope = globalScopes.get(CorrelatedScope.globalScopeKey(pattern.getCorrelationPath()));
+        ExtendedStubMapping extendedStubMapping = new ExtendedStubMapping(pattern, null);
+        ExtendedStubMappingTranslator creator = new ExtendedStubMappingTranslator(extendedStubMapping,globalScope.getEndPointConfigRegistry(), scope);
         return creator.createAllSupportingRequestPatterns();
     }
 
@@ -230,7 +231,7 @@ public class CorrelatedScopeAdmin implements ScopedAdmin {
 
     private void decorateStubMappings(WireMockApp wireMockApp) {
         InMemoryStubMappings stubMappings = getValue(wireMockApp, "stubMappings");
-        this.stubMappings =  new InMemoryStubMappingsDecorator(stubMappings,this);
+        this.stubMappings =  new InMemoryStubMappingsDecorator(stubMappings, this);
         setValue(wireMockApp,"stubMappings",this.stubMappings);
     }
 

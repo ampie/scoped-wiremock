@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.client.BasicCredentials;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.Json;
+import com.github.tomakehurst.wiremock.extension.Parameters;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.matching.MultiValuePattern;
@@ -20,6 +21,7 @@ import com.sbg.bdd.resource.file.ReadableFileResource;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.*;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
+import com.sbg.bdd.wiremock.scoped.integration.RuntimeCorrelationState;
 import com.sbg.bdd.wiremock.scoped.server.*;
 import org.apache.commons.codec.binary.Base64;
 
@@ -53,9 +55,13 @@ public class ExchangeRecorder {
 
     public void saveRecordings(CorrelatedScope scope) {
         for (RecordingMappingForUser m : scope.getActiveRecordingOrPlaybackMappings(JournalMode.RECORD)) {
-            ExtendedRequestPattern requestPattern = new ExtendedRequestPattern(scope.getCorrelationPath() + "/:" + m.getUserInScopeId(), m.getRequest());
-            requestPattern.getHeaders().put(HeaderName.ofTheCorrelationKey(), m.deriveCorrelationPath(scope));
-            this.saveRecordingsForRequestPattern(requestPattern, calculateRecordingDirectory(scope, m));
+            UserScope userScope = scope.getUserScope(m.getUserInScopeId());
+            if (userScope != null) {
+                //if after completion of the scope the userScope was not created, we should not have any recordings
+                ExtendedRequestPattern requestPattern = new ExtendedRequestPattern(userScope.getCorrelationPath(), m.getRequest());
+                requestPattern.getHeaders().put(HeaderName.ofTheCorrelationKey(), m.deriveCorrelationPath(scope));
+                this.saveRecordingsForRequestPattern(requestPattern, calculateRecordingDirectory(scope, m));
+            }
         }
     }
 
@@ -63,9 +69,10 @@ public class ExchangeRecorder {
         for (RecordingMappingForUser m : scope.getActiveRecordingOrPlaybackMappings(JournalMode.PLAYBACK)) {
             ResourceContainer recordingDirectory = calculateRecordingDirectory(scope, m);
             if (recordingDirectory != null) {
-                ExtendedRequestPattern requestPattern = new ExtendedRequestPattern(scope.getCorrelationPath() + "/:" + m.getUserInScopeId(), m.getRequest());
-                requestPattern.getHeaders().put(HeaderName.ofTheCorrelationKey(), m.deriveCorrelationPath(scope));
+                //if there is a recordingDirectory at this scope, we should create a UserScope
                 UserScope forcedCreatedUserScope = scope.findOrCreateUserScope(m.getUserScope().getName());
+                ExtendedRequestPattern requestPattern = new ExtendedRequestPattern(forcedCreatedUserScope.getCorrelationPath(), m.getRequest());
+                requestPattern.getHeaders().put(HeaderName.ofTheCorrelationKey(), m.deriveCorrelationPath(scope));
                 this.serveRecordedMappingsAt(recordingDirectory, requestPattern, ExtendedStubMappingTranslator.calculatePriority(m.priority(), forcedCreatedUserScope));
             }
         }
@@ -81,7 +88,6 @@ public class ExchangeRecorder {
         }
         return result;
     }
-
 
     public void saveRecordingsForRequestPattern(ExtendedRequestPattern pattern, ResourceContainer recordingDirectory) {
         List<RecordedExchange> recordedExchanges = scopedAdmin.findMatchingExchanges(pattern);
@@ -255,9 +261,20 @@ public class ExchangeRecorder {
         Matcher s = compile.matcher(entry.getKey());
         if (s.find()) {
             UrlPathPattern urlPattern = calculateRequestUrl(templateRequestPattern, headers);
-            MappingBuilder mappingBuilder = WireMock.request(s.group(1), urlPattern);
-            mappingBuilder.withHeader(HeaderName.ofTheThreadContextId(), WireMock.equalTo(s.group(3)));
-            mappingBuilder.withHeader(HeaderName.ofTheSequenceNumber(), WireMock.equalTo(s.group(4)));
+            MappingBuilder mappingBuilder;
+            if (RuntimeCorrelationState.ON) {
+                mappingBuilder = WireMock.request(s.group(1), urlPattern);
+                mappingBuilder.withHeader(HeaderName.ofTheThreadContextId(), WireMock.equalTo(s.group(3)));
+                mappingBuilder.withHeader(HeaderName.ofTheSequenceNumber(), WireMock.equalTo(s.group(4)));
+            } else {
+                SequenceNumberMatcher sequenceNumberMatcher = new SequenceNumberMatcher();
+                sequenceNumberMatcher.setAdmin(scopedAdmin);
+                sequenceNumberMatcher.setUrlPattern(urlPattern);
+                sequenceNumberMatcher.setThreadContextId(Integer.valueOf(s.group(3)));
+                sequenceNumberMatcher.setSequenceNumber(Integer.valueOf(s.group(4)));
+                sequenceNumberMatcher.setCorrelationPattern(templateRequestPattern.getHeaders().get(HeaderName.ofTheCorrelationKey()).getValuePattern());
+                mappingBuilder = WireMock.requestMatching(sequenceNumberMatcher);
+            }
             copyTemplateRequestPatternInto(templateRequestPattern, mappingBuilder);
             return mappingBuilder.willReturn(WireMock.aResponse().withHeaders(headers).withBody(body).withStatus(calculateResponseCode(headers)));
         } else {

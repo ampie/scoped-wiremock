@@ -51,23 +51,25 @@ public class OutboundCorrelationPathSOAPHandler implements SOAPHandler {
         if (headers.get(HeaderName.ofTheCorrelationKey()) == null) {
             URL originalUrl= (URL) context.get(HeaderName.ofTheOriginalUrl());
             String endpointIdentifier = URLHelper.identifier(originalUrl);
-            String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(endpointIdentifier).toString();
 
             headers.put(HeaderName.ofTheCorrelationKey(), Arrays.asList(currentCorrelationState.getCorrelationPath()));
             headers.put(HeaderName.ofTheOriginalUrl(), Arrays.asList(originalUrl.toExternalForm()));
-            headers.put(HeaderName.ofTheSequenceNumber(), Arrays.asList(sequenceNumber));
             headers.put(HeaderName.ofTheThreadContextId(), Arrays.asList(currentCorrelationState.getCurrentThreadContextId() + ""));
+            if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
+                headers.put(HeaderName.toProxyUnmappedEndpoints(), Arrays.asList("true"));
+            }
             List<String> categories= (List<String>) context.get(HeaderName.ofTheEndpointCategory());
             if(categories!=null){
                 headers.put(HeaderName.ofTheEndpointCategory(),categories);
             }
-            List<String> sequenceNumbers = new ArrayList<>();
-            for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
-                sequenceNumbers.add(entry.toString());
-            }
-            headers.put(HeaderName.ofTheServiceInvocationCount(), sequenceNumbers);
-            if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
-                headers.put(HeaderName.toProxyUnmappedEndpoints(), Arrays.asList("true"));
+            if(RuntimeCorrelationState.ON) {
+                String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(endpointIdentifier).toString();
+                headers.put(HeaderName.ofTheSequenceNumber(), Arrays.asList(sequenceNumber));
+                List<String> sequenceNumbers = new ArrayList<>();
+                for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
+                    sequenceNumbers.add(entry.toString());
+                }
+                headers.put(HeaderName.ofTheServiceInvocationCount(), sequenceNumbers);
             }
         }
     }

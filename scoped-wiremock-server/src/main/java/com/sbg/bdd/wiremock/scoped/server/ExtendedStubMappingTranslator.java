@@ -30,15 +30,20 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 public class ExtendedStubMappingTranslator {
     private static final Logger LOGGER=Logger.getLogger(ExtendedStubMappingTranslator.class.getName());
     private ExtendedStubMapping stubMapping;
-    private AbstractCorrelatedScope scope;
+    private final RemoteEndpointConfigRegistry endpointConfigRegistry;
+    private final AbstractCorrelatedScope scope;
 
-    public ExtendedStubMappingTranslator(ExtendedStubMapping extendedStubMapping, AbstractCorrelatedScope scope) {
+    public ExtendedStubMappingTranslator(ExtendedStubMapping extendedStubMapping, RemoteEndpointConfigRegistry endpointConfigRegistry, AbstractCorrelatedScope scope) {
         this.stubMapping = extendedStubMapping;
+        this.endpointConfigRegistry = endpointConfigRegistry;
         this.scope = scope;
+        if(this.scope==null){
+            Thread.dumpStack();
+        }
     }
 
     private RemoteEndpointConfigRegistry getEndPointConfigRegistry() {
-        return scope.getGlobalScope().getEndPointConfigRegistry();
+        return endpointConfigRegistry;
     }
 
     private RequestPattern buildRequestPattern(UrlPathPattern urlPattern, ExtendedRequestPattern request) {
@@ -113,7 +118,7 @@ public class ExtendedStubMappingTranslator {
         childStubMapping.setId(UUID.randomUUID());
         childStubMapping.setName(stubMapping.getName());
         childStubMapping.setPersistent(stubMapping.isPersistent());
-        if(stubMapping.getLocalPriority()!=null) {
+        if(stubMapping.getLocalPriority()!=null && this.scope !=null) {
             //HACK  Could be build requestPatterns only
             childStubMapping.setPriority(calculatePriority(stubMapping.getLocalPriority(), this.scope));
         }

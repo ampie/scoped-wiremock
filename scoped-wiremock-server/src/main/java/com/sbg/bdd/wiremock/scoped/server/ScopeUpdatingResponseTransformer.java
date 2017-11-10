@@ -11,6 +11,7 @@ import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
 import com.sbg.bdd.wiremock.scoped.admin.model.ServiceInvocationCount;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
+import com.sbg.bdd.wiremock.scoped.integration.RuntimeCorrelationState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,16 +20,18 @@ import java.util.List;
 public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
     @Override
     public Response transform(Request request, Response response, FileSource files, Parameters parameters) {
-        ScopedAdmin admin = ScopeExtensions.getCurrentAdmin();
-        CorrelationStateSynchronizer synchronizer = new CorrelationStateSynchronizer(admin, response.getHeaders());
-        if (synchronizer.canProcess()) {
-            synchronizer.synchronize();
-            response=synchronizer.synchronize(response);//just to fix possible incorrectly concatenated headers
-        } else {
-            synchronizer = new CorrelationStateSynchronizer(admin, request.getHeaders());
-            if(synchronizer.canProcess()){
+        if (RuntimeCorrelationState.ON) {
+            ScopedAdmin admin = ScopeExtensions.getCurrentAdmin();
+            CorrelationStateSynchronizer synchronizer = new CorrelationStateSynchronizer(admin, response.getHeaders());
+            if (synchronizer.canProcess()) {
                 synchronizer.synchronize();
-                response=synchronizer.synchronize(response);
+                response = synchronizer.synchronize(response);//just to fix possible incorrectly concatenated headers
+            } else {
+                synchronizer = new CorrelationStateSynchronizer(admin, request.getHeaders());
+                if (synchronizer.canProcess()) {
+                    synchronizer.synchronize();
+                    response = synchronizer.synchronize(response);
+                }
             }
         }
         return response;
@@ -70,7 +73,7 @@ public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
 
         public void synchronize() {
             List<String> invocationCountValues = extractAndFlattenInvocationCounts();
-            List<ServiceInvocationCount> serviceInvocationCounts=new ArrayList<>();
+            List<ServiceInvocationCount> serviceInvocationCounts = new ArrayList<>();
             for (String s : invocationCountValues) {
                 serviceInvocationCounts.add(new ServiceInvocationCount(s));
             }
@@ -80,20 +83,20 @@ public class ScopeUpdatingResponseTransformer extends ResponseTransformer {
         public Response synchronize(Response response) {
             List<String> invocationCountValues = extractAndFlattenInvocationCounts();
             HttpHeaders headers = response.getHeaders();
-            if(!headers.getHeader(HeaderName.ofTheCorrelationKey()).isPresent()){
+            if (!headers.getHeader(HeaderName.ofTheCorrelationKey()).isPresent()) {
                 headers = headers.plus(correlationKey);
             }
-            headers = headers.plus(new HttpHeader(HeaderName.ofTheServiceInvocationCount(),invocationCountValues));
+            headers = headers.plus(new HttpHeader(HeaderName.ofTheServiceInvocationCount(), invocationCountValues));
             return Response.Builder.like(response).headers(headers).build();
         }
 
         public List<String> extractAndFlattenInvocationCounts() {
             List<String> invocationCountValues;
-            if(invocationCounts.values().size()==1 && invocationCounts.values().get(0).indexOf(',')>0){
+            if (invocationCounts.values().size() == 1 && invocationCounts.values().get(0).indexOf(',') > 0) {
                 //may have been flattened like it seems Apache CXF likes doing
-                invocationCountValues= Arrays.asList(invocationCounts.values().get(0).split("\\,"));
-            }else{
-                invocationCountValues= invocationCounts.values();
+                invocationCountValues = Arrays.asList(invocationCounts.values().get(0).split("\\,"));
+            } else {
+                invocationCountValues = invocationCounts.values();
             }
             return invocationCountValues;
         }

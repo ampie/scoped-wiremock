@@ -29,16 +29,18 @@ public class OutboundCorrelationKeyInterceptor implements ClientHttpRequestInter
             }
             URL originalUrl = URLHelper.calculateOriginalUrl(ctx.getURI().toURL(),originalHost);
             String key = URLHelper.identifier(originalUrl,ctx.getMethod().name());
-            String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(key).toString();
             ctx.getHeaders().add(HeaderName.ofTheOriginalUrl(), originalUrl.toExternalForm());
-            ctx.getHeaders().add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
             ctx.getHeaders().add(HeaderName.ofTheThreadContextId(), currentCorrelationState.getCurrentThreadContextId() + "");
             ctx.getHeaders().add(HeaderName.ofTheCorrelationKey(), currentCorrelationState.getCorrelationPath());
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 ctx.getHeaders().add(HeaderName.toProxyUnmappedEndpoints(), "true");
             }
-            for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
-                ctx.getHeaders().add(HeaderName.ofTheServiceInvocationCount(), entry.toString());
+            if(RuntimeCorrelationState.ON) {
+                String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(key).toString();
+                ctx.getHeaders().add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
+                for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
+                    ctx.getHeaders().add(HeaderName.ofTheServiceInvocationCount(), entry.toString());
+                }
             }
         }
         //TODO experiment and see if we can change the URL here to point to WireMock. THen we can include the original URL in the header

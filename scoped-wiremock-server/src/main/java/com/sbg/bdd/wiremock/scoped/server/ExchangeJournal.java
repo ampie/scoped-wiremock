@@ -10,6 +10,7 @@ import com.github.tomakehurst.wiremock.matching.RequestPattern;
 import com.sbg.bdd.wiremock.scoped.admin.model.*;
 import com.sbg.bdd.wiremock.scoped.common.ParentPath;
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
+import com.sbg.bdd.wiremock.scoped.integration.RuntimeCorrelationState;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 
 import static com.sbg.bdd.wiremock.scoped.server.ScopePathMatcher.matches;
+import static com.sbg.bdd.wiremock.scoped.server.decorated.InMemoryStubMappingsDecorator.serviceIdentifierOf;
 
 // WAS necessary because the normal InMemoryRequestJournal only stored the request with the responseDefinition, not the actual response
 //TODO merge with InMemoryRequestJournalDecorator. Would have to make RecordedExchange extend ServeEvent
@@ -24,18 +26,26 @@ public class ExchangeJournal {
     private ConcurrentLinkedQueue<RecordedExchange> recordings = new ConcurrentLinkedQueue<>();
     private Map<String, Collection<RecordedExchange>> exchangesByStep = new ConcurrentHashMap<>();
 
-    public RecordedExchange requestReceived(String scopePath, String step, Request request) {
+    public RecordedExchange requestReceived(CorrelationState scope, String step, Request request) {
         try {
-            RecordedExchange exchange = new RecordedExchange(buildRecordedRequest(request), scopePath, step);
-            String sequenceNumber = request.getHeader(HeaderName.ofTheSequenceNumber());
-            if (sequenceNumber != null) {
-                exchange.setSequenceNumber(Integer.parseInt(sequenceNumber));
+            RecordedExchange exchange = new RecordedExchange(buildRecordedRequest(request), scope.getCorrelationPath(), step);
+            String threadContextIdString = request.getHeader(HeaderName.ofTheThreadContextId());
+            int threadContextId=0;
+            if (threadContextIdString != null) {
+                threadContextId = Integer.parseInt(threadContextIdString);
+                exchange.setThreadContextId(threadContextId);
             }
-            String threadContextId = request.getHeader(HeaderName.ofTheThreadContextId());
-            if (threadContextId != null) {
-                exchange.setThreadContextId(Integer.parseInt(threadContextId));
+            if (RuntimeCorrelationState.ON) {
+                String sequenceNumber = request.getHeader(HeaderName.ofTheSequenceNumber());
+                if (sequenceNumber != null) {
+                    exchange.setSequenceNumber(Integer.parseInt(sequenceNumber));
+                }
+            } else {
+                ServiceInvocationCount sic = scope.findOrCreateServiceInvocationCount(threadContextId, serviceIdentifierOf(request));
+                exchange.setSequenceNumber(sic.getCount());
             }
-            Collection<RecordedExchange> exchangesInStep = findActiveExchangesInStep(scopePath, step);
+
+            Collection<RecordedExchange> exchangesInStep = findActiveExchangesInStep(scope.getCorrelationPath(), step);
             if (exchangesInStep.isEmpty()) {
                 exchange.setRootExchange(true);
             } else {

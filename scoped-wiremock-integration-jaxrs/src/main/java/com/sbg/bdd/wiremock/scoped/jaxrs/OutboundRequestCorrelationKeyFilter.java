@@ -24,14 +24,16 @@ public class OutboundRequestCorrelationKeyFilter implements ClientRequestFilter 
             String key = URLHelper.identifier(originalUrl,ctx.getMethod());
 
             headers.add(HeaderName.ofTheOriginalUrl(), originalUrl.toExternalForm());
-            headers.add(HeaderName.ofTheSequenceNumber(), currentCorrelationState.getNextSequenceNumberFor(key).toString());
             headers.add(HeaderName.ofTheThreadContextId(), currentCorrelationState.getCurrentThreadContextId());
             headers.add(HeaderName.ofTheCorrelationKey(), currentCorrelationState.getCorrelationPath());
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 headers.add(HeaderName.toProxyUnmappedEndpoints(), "true");
             }
-            for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
-                headers.add(HeaderName.ofTheServiceInvocationCount(), entry.toString());
+            if(RuntimeCorrelationState.ON) {
+                headers.add(HeaderName.ofTheSequenceNumber(), currentCorrelationState.getNextSequenceNumberFor(key).toString());
+                for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
+                    headers.add(HeaderName.ofTheServiceInvocationCount(), entry.toString());
+                }
             }
         }
     }

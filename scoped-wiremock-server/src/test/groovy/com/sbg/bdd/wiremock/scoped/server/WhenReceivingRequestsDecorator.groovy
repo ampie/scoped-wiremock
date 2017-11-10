@@ -10,6 +10,7 @@ import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState
 import com.sbg.bdd.wiremock.scoped.admin.model.GlobalCorrelationState
 import com.sbg.bdd.wiremock.scoped.admin.model.ServiceInvocationCount
 import com.sbg.bdd.wiremock.scoped.integration.HeaderName
+import com.sbg.bdd.wiremock.scoped.integration.RuntimeCorrelationState
 import com.sbg.bdd.wiremock.scoped.server.junit.WireMockRuleConfiguration
 import spock.lang.Specification
 
@@ -43,8 +44,10 @@ class WhenReceivingRequestsDecorator extends Specification {
         new ScopeUpdatingResponseTransformer().transform(Mock(Request.class), response, Mock(FileSource.class), new Parameters())
 
         then:'the CorrelationState within which the initial request was made must reflect the serviceInvocationCount received'
-        Integer actualCount = server.getCorrelatedScope(correlationState.getCorrelationPath()).getServiceInvocationCount(ServiceInvocationCount.keyOf(1,"http://test.com:8080/this?queryPartm=123")).count
-        actualCount == 7
+        if(RuntimeCorrelationState.ON) {
+            Integer actualCount = server.getCorrelatedScope(correlationState.getCorrelationPath()).getServiceInvocationCount(ServiceInvocationCount.keyOf(1, "http://test.com:8080/this?queryPartm=123")).count
+            actualCount == 7
+        }
     }
 
     def 'update the serviceInvocationCount on the current CorrelationState from an upstream request only if none was received from the response'() {
@@ -68,8 +71,10 @@ class WhenReceivingRequestsDecorator extends Specification {
         new ScopeUpdatingResponseTransformer().transform(request, response, Mock(FileSource.class), new Parameters())
 
         then:
-        Integer actualCount = server.getCorrelatedScope(correlationState.getCorrelationPath()).getServiceInvocationCount(ServiceInvocationCount.keyOf(1,"http://test.com:8080/this?queryPartm=123")).count
-        actualCount == 6
+        if(RuntimeCorrelationState.ON) {
+            Integer actualCount = server.getCorrelatedScope(correlationState.getCorrelationPath()).getServiceInvocationCount(ServiceInvocationCount.keyOf(1, "http://test.com:8080/this?queryPartm=123")).count
+            actualCount == 6
+        }
     }
 
 }
