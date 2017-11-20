@@ -30,7 +30,7 @@ public class ResourceSupport {
                 ResourceContainer previousDir = (ResourceContainer) previous;
                 previous = previousDir.getChild(segment);
                 if (previous == null && failWhenNotFound) {
-                    throw new IllegalArgumentException("Could not find the resource " + previous.getRoot().getRootName() +":/" + previous.getPath()+ "/" +join(segments) + ". The offending segment is '" + segment + "'");
+                    throw new IllegalArgumentException("Could not find the resource " + previousDir.getRoot().getRootName() +":/" + previousDir.getPath()+ "/" +join(segments) + ". The offending segment is '" + segment + "'");
                 }
             }
         }

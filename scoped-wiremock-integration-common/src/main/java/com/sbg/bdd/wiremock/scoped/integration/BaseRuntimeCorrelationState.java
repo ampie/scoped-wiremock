@@ -14,6 +14,8 @@ public class BaseRuntimeCorrelationState implements RuntimeCorrelationState {
     //TODO reevaluate if this is still necessary
     private static String wireMockInternalHostName;//the hostname this process uses to talk to WireMock (e.g. Android: 10.0.2.2)
     private Map<InvocationKey, ThreadCorrelationContext> contextsByInvocationKey = new ConcurrentHashMap<>();
+    //TODO temp hack for Android. Remove when we support multithreaded correlationContext in our superclass of Android AsyncTask
+    private ThreadCorrelationContext rootThreadCorrelationContext;
     private ThreadLocal<ThreadCorrelationContext> currentThreadCorrelationContext = new ThreadLocal<>();
     private String correlationPath;
     private boolean proxyUnmappedEndpoints = false;
@@ -32,6 +34,7 @@ public class BaseRuntimeCorrelationState implements RuntimeCorrelationState {
         this.proxyUnmappedEndpoints = proxyUnmappedEndpoints;
         this.wireMockHost = split[0];
         currentThreadCorrelationContext.set(new ThreadCorrelationContext(threadContext));
+        rootThreadCorrelationContext=currentThreadCorrelationContext.get();
     }
 
     public String getCorrelationPath() {
@@ -108,6 +111,10 @@ public class BaseRuntimeCorrelationState implements RuntimeCorrelationState {
 
     @Override
     public int getCurrentThreadContextId() {
+        if(currentThreadCorrelationContext.get()==null){
+            //TODO temp hack for Android.
+            return rootThreadCorrelationContext.getContextId();
+        }
         return currentThreadCorrelationContext.get().getContextId();
     }
 

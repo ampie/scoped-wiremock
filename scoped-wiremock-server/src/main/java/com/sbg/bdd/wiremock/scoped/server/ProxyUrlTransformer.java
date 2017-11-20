@@ -5,6 +5,8 @@ import com.github.tomakehurst.wiremock.extension.Parameters;
 import com.github.tomakehurst.wiremock.extension.ResponseDefinitionTransformer;
 import com.github.tomakehurst.wiremock.http.Request;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
+import com.github.tomakehurst.wiremock.servlet.WireMockHttpServletRequestAdapter;
+import com.sbg.bdd.wiremock.scoped.server.decorated.RequestDecorator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -30,7 +32,7 @@ public class ProxyUrlTransformer extends ResponseDefinitionTransformer {
     public ResponseDefinition transform(Request request, ResponseDefinition responseDefinition, FileSource fileSource, Parameters parameters) {
         if (responseDefinition.isProxyResponse()) {
             String proxyUrl = calculateRelativeUrl(responseDefinition.getProxyBaseUrl(), request.getUrl(), parameters);
-            return copyOf(responseDefinition, proxyUrl, request);
+            return copyOf(responseDefinition, proxyUrl, request);//
         } else {
             return responseDefinition;
         }
@@ -41,7 +43,7 @@ public class ProxyUrlTransformer extends ResponseDefinitionTransformer {
     private static int getNumberOfSegments(Parameters parameters) {
         if (parameters.containsKey("numberOfSegments")) {
             return parameters.getInt("numberOfSegments");
-        }  else {
+        } else {
             return 2;
         }
     }
@@ -114,7 +116,6 @@ public class ProxyUrlTransformer extends ResponseDefinitionTransformer {
     }
 
 
-
     private static Boolean ignoreLeadingSegments(Parameters parameters) {
         return "ignore".equals(parameters.getString("action")) && "leading".equals(parameters.getString("which"));
     }
@@ -133,12 +134,20 @@ public class ProxyUrlTransformer extends ResponseDefinitionTransformer {
 
     private ResponseDefinition copyOf(ResponseDefinition original, final String relativeUrl, Request request) {
         ResponseDefinition result = ResponseDefinition.copyOf(original);
-        HttpServletRequest httpServletRequest = getValue(request, "request");
+        if (request instanceof RequestDecorator) {
+            request = ((RequestDecorator) request).getDelegate();
+        }
+        //NB!!!! Assumption here is that we are working with WireMockHttpServletRequestAdapter
+        //We are tied to the implementation here!!!!
+        //TODO migrate this logic to RequestDecorator and
+        WireMockHttpServletRequestAdapter requestAdapter = (WireMockHttpServletRequestAdapter) request;
+        HttpServletRequest httpServletRequest = getValue(requestAdapter, "request");
         setValue(request, "request", new HttpServletRequestWrapper(httpServletRequest) {
             @Override
             public String getRequestURI() {
                 //HACK!!!!! Only when being called from the ProxyResponseRenderer do we return the modified value.
                 // For other purposes such as logging and journals we return the old value
+                //Used in WireMockHttpServletRequestAdapter.getUrl()
                 if (calledFromProxyRenderer()) {
                     return relativeUrl;
                 } else {
@@ -157,6 +166,5 @@ public class ProxyUrlTransformer extends ResponseDefinitionTransformer {
         });
         return result;
     }
-
 
 }

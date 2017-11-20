@@ -14,6 +14,11 @@ public class RequestDecorator implements Request {
         this.delegate = delegate;
         this.headers = delegate.getHeaders();
     }
+
+    public Request getDelegate() {
+        return delegate;
+    }
+
     //HACK: required to fix service categories in the header.
     public void putHeader(String key, List<String> values){
         headers=headers.plus(new HttpHeader(key,values));
