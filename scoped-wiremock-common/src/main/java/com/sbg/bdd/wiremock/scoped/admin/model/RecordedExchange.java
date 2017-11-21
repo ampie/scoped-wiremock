@@ -126,6 +126,7 @@ public class RecordedExchange {
 
     public void recordResponse(RecordedResponse response) {
         this.response=response;
+        setDuration(response.getDate().getTime() - request.getDate().getTime());
     }
 
     public int getSequenceNumber() {
