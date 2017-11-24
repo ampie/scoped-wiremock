@@ -13,7 +13,6 @@ class WhenRecordingResponsesInScopeClientSide extends WhenRecordingResponsesInSc
         client.registerResourceRoot('root',server.getResourceRoot('root'))
         client.registerResourceRoot(ScopedAdmin.OUTPUT_RESOURCE_ROOT,server.getResourceRoot(ScopedAdmin.OUTPUT_RESOURCE_ROOT))
         client.registerResourceRoot(ScopedAdmin.JOURNAL_RESOURCE_ROOT,server.getResourceRoot(ScopedAdmin.JOURNAL_RESOURCE_ROOT))
-
         return clientRule
     }
 }

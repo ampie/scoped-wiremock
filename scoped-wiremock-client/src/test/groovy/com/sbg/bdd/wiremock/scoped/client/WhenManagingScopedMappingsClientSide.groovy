@@ -6,6 +6,6 @@ import org.junit.rules.TestRule
 class WhenManagingScopedMappingsClientSide extends WhenManagingScopedMappingsCommon {
     @Override
     protected TestRule createWireMockRule() {
-        return new ScopedWireMockClientRule(WireMockServerFactory.createAndReturnPort(),false);
+        return new ScopedWireMockClientRule(WireMockServerFactory.createAndReturnServer());
     }
 }

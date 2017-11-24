@@ -9,5 +9,6 @@ dependencies {
     testCompile('cglib:cglib-nodep:2.2')
     testCompile(project(':scoped-wiremock-server'))
     testCompile files(this.project(':scoped-wiremock-common').sourceSets.test.output)
+    testCompile 'org.objenesis:objenesis:2.2'
 
 }

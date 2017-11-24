@@ -4,10 +4,14 @@ package com.sbg.bdd.wiremock.scoped.server.junit;
 import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.Options;
+import com.github.tomakehurst.wiremock.http.RequestListener;
 import com.github.tomakehurst.wiremock.verification.NearMiss;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.ScopedWireMock;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
+import com.sbg.bdd.wiremock.scoped.admin.model.GlobalCorrelationState;
+import com.sbg.bdd.wiremock.scoped.admin.model.InitialScopeState;
+import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor;
 import com.sbg.bdd.wiremock.scoped.server.ScopedWireMockServer;
 import org.junit.rules.MethodRule;
 import org.junit.rules.TestRule;
@@ -15,23 +19,30 @@ import org.junit.runner.Description;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
 import static com.sbg.bdd.wiremock.scoped.common.ExceptionSafe.theCauseOf;
 import static com.sbg.bdd.wiremock.scoped.common.Reflection.getStaticValue;
-
+//Not a very useful class. Stops the server after every test
 public class ScopedWireMockServerRule extends ScopedWireMock implements TestRule, MethodRule {
     private final boolean failOnUnmatchedStubs;
-    private ScopedWireMock client;
-
+    protected ScopedWireMockServer server;
     public ScopedWireMockServerRule(WireMockRuleConfiguration options) {
         super(buildAndStartServer(options));
+        server= (ScopedWireMockServer) super.admin;
         failOnUnmatchedStubs = options.shouldFailOnUnmatchedStubs();
     }
 
     private static ScopedAdmin buildAndStartServer(WireMockRuleConfiguration options) {
         ScopedWireMockServer server = new ScopedWireMockServer(options);
         server.start();
+        try {
+            server.startNewGlobalScope(new GlobalCorrelationState("unit-tests",new URL(server.baseUrl()),null,"unit"));
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
         return server;
     }
 
@@ -43,7 +54,9 @@ public class ScopedWireMockServerRule extends ScopedWireMock implements TestRule
     public ScopedWireMockServerRule() {
         this(WireMockRuleConfiguration.wireMockConfig().port(Options.DYNAMIC_PORT));
     }
-
+    public void addMockServiceRequestListener(RequestListener listener){
+        server.addMockServiceRequestListener(listener);
+    }
 
     @Override
     public Statement apply(final Statement base, Description description) {
@@ -59,7 +72,6 @@ public class ScopedWireMockServerRule extends ScopedWireMock implements TestRule
                 defaultInstance.set(ScopedWireMockServerRule.this);
                 try {
                     before();
-                    setCurrentCorrelationState(target, base, method);
                     base.evaluate();
                     checkForUnmatchedRequests();
                 } catch (Throwable e) {
@@ -73,22 +85,6 @@ public class ScopedWireMockServerRule extends ScopedWireMock implements TestRule
         };
     }
 
-    private void setCurrentCorrelationState(Object target, Statement base, FrameworkMethod method) {
-//        Object actualTarget = target;
-//        String scopePath = "localhost/" + port() + "/";
-//        if(actualTarget == null){
-//            try{
-//                actualTarget=getValue(base,"target");
-//            }catch(IllegalArgumentException e){}
-//        }
-//        scopePath += actualTarget.getClass().getSimpleName();
-//        if(method!=null){
-//            scopePath =scopePath +"/" + method.getName();
-//        }
-//        RuntimeCorrelationState state = new RuntimeCorrelationState();
-//        state.set(scopePath,false);//false because we don't want to have to processRecordingSpec all the freakin mappings for unit tests.
-//        RuntimeCorrelationState.setCurrentWireMockCorrelationState(state);
-    }
 
     private void checkForUnmatchedRequests() {
         if (failOnUnmatchedStubs) {

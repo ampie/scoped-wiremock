@@ -5,6 +5,6 @@ import org.junit.rules.TestRule
 
 class WhenRetrievingExchangesClientSide extends WhenRetrievingExchangesCommon{
     protected TestRule createWireMockRule() {
-        return new ScopedWireMockClientRule(WireMockServerFactory.createAndReturnPort(),false);
+        return new ScopedWireMockClientRule(WireMockServerFactory.createAndReturnServer());
     }
 }

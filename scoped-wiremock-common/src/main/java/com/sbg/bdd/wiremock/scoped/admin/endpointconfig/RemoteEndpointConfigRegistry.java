@@ -17,8 +17,8 @@ import java.util.logging.Logger;
 
 public class RemoteEndpointConfigRegistry {
     private static final Logger LOGGER = Logger.getLogger(RemoteEndpointConfigRegistry.class.getName());
-    private final String baseUrl;
-    private final String integrationScope;
+    private String baseUrl;
+    private String integrationScope;
     private Set<EndpointConfig> endpointConfigs;
     private Map<String, EndpointConfig> endpointConfigsByPropertyName;
     private Map<String, List<EndpointConfig>> endpointConfigsByCategory;
@@ -27,6 +27,11 @@ public class RemoteEndpointConfigRegistry {
         this.baseUrl = baseUrl;
         this.integrationScope = integrationScope;
     }
+
+    public RemoteEndpointConfigRegistry() {
+
+    }
+
     public EndpointConfig endpointConfigFor(String propertyName) {
         allKnownExternalEndpoints();
         return endpointConfigsByPropertyName.get(propertyName);

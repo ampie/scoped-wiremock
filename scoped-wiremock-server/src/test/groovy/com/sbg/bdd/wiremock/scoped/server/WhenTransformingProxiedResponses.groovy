@@ -3,7 +3,6 @@ package com.sbg.bdd.wiremock.scoped.server
 import com.github.tomakehurst.wiremock.extension.Parameters
 import com.github.tomakehurst.wiremock.http.ResponseDefinition
 import com.github.tomakehurst.wiremock.servlet.WireMockHttpServletRequestAdapter
-import org.mockito.Mockito
 import spock.lang.Specification
 
 import javax.servlet.http.HttpServletRequest
@@ -12,7 +11,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.is
 import static org.hamcrest.MatcherAssert.assertThat
-import static org.mockito.Mockito.when
+
 //TODO may want to refactor the WireMockApp to override the ProxyResponseRenderer
 class WhenTransformingProxiedResponses extends Specification{
     //Dummy class that meets the conditions for the ProxyUrlTransformer to think it is being called from the WireMock ProxyResponseRenderer
@@ -31,8 +30,9 @@ class WhenTransformingProxiedResponses extends Specification{
     def 'shouldOnlyUseLast3Segments'(){
         given:
         ProxyUrlTransformer proxyUrlTransformer = new ProxyUrlTransformer();
-        HttpServletRequest mock = Mockito.mock(HttpServletRequest.class);
-        when(mock.getRequestURI()).thenReturn("/ignore/ignore/here/test/uri");
+        HttpServletRequest mock = Mock(HttpServletRequest){
+            getRequestURI() >> "/ignore/ignore/here/test/uri"
+        }
         final WireMockHttpServletRequestAdapter request = new WireMockHttpServletRequestAdapter(mock);
         Parameters parameters = new Parameters();
         parameters.put("numberOfSegments", 3);
@@ -50,8 +50,9 @@ class WhenTransformingProxiedResponses extends Specification{
     def 'shouldOnlyUseFirst2Segments'(){
         given:
         ProxyUrlTransformer proxyUrlTransformer = new ProxyUrlTransformer();
-        HttpServletRequest mock = Mockito.mock(HttpServletRequest.class);
-        when(mock.getRequestURI()).thenReturn("/test/uri/ignore/ignore/ignore");
+        HttpServletRequest mock = Mock(HttpServletRequest){
+            getRequestURI() >> "/test/uri/ignore/ignore/ignore"
+        }
         final WireMockHttpServletRequestAdapter request = new WireMockHttpServletRequestAdapter(mock);
         Parameters parameters = new Parameters();
         parameters.put("action", "use");
@@ -67,8 +68,9 @@ class WhenTransformingProxiedResponses extends Specification{
     def 'shouldIgnoreLast3Segments'(){
         given:
         ProxyUrlTransformer proxyUrlTransformer = new ProxyUrlTransformer();
-        HttpServletRequest mock = Mockito.mock(HttpServletRequest.class);
-        when(mock.getRequestURI()).thenReturn("/here/test/uri/ignore/ignore/ignore");
+        HttpServletRequest mock = Mock(HttpServletRequest){
+            getRequestURI() >> "/here/test/uri/ignore/ignore/ignore"
+        }
         final WireMockHttpServletRequestAdapter request = new WireMockHttpServletRequestAdapter(mock);
         Parameters parameters = new Parameters();
         parameters.put("numberOfSegments", 3);
@@ -86,8 +88,9 @@ class WhenTransformingProxiedResponses extends Specification{
     def 'shouldIgnoreFirst2Segments'(){
         given:
         ProxyUrlTransformer proxyUrlTransformer = new ProxyUrlTransformer();
-        HttpServletRequest mock = Mockito.mock(HttpServletRequest.class);
-        when(mock.getRequestURI()).thenReturn("/ignore/ignore/test/uri");
+        HttpServletRequest mock = Mock(HttpServletRequest){
+            getRequestURI() >> "/ignore/ignore/test/uri"
+        }
         final WireMockHttpServletRequestAdapter request = new WireMockHttpServletRequestAdapter(mock);
         Parameters parameters = new Parameters();
         parameters.put("action", "ignore");

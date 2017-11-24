@@ -5,65 +5,63 @@ import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.verification.NearMiss;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
+import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
+import com.sbg.bdd.wiremock.scoped.admin.model.GlobalCorrelationState;
+import com.sbg.bdd.wiremock.scoped.admin.model.InitialScopeState;
+import com.sbg.bdd.wiremock.scoped.client.junit.ScopedAdminHolder;
 import com.sbg.bdd.wiremock.scoped.common.Reflection;
+import com.sbg.bdd.wiremock.scoped.integration.BaseDependencyInjectorAdaptor;
 import org.junit.rules.MethodRule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
+import java.util.Collections;
 import java.util.List;
-@Deprecated
-//TODO check if this is ued anywhere. From JUnit unit tests, we are more likely to use the ScopedWireMockServerRule
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class ScopedWireMockClientRule extends ScopedWireMockClient implements TestRule, MethodRule {
+    private static Logger LOGGER=Logger.getLogger(ScopedWireMockClientRule.class.getName());
     private boolean failOnUnmatchedStubs = false;
+
     public ScopedWireMockClientRule(ScopedAdmin admin) {
         super(admin);
+        ScopedAdminHolder.setScopedAdmin(admin);
     }
-    public ScopedWireMockClientRule(int port, boolean failOnUnmatchedStubs) {
-        super(port);
-        this.failOnUnmatchedStubs = failOnUnmatchedStubs;
-    }
-
-    public ScopedWireMockClientRule(String host, int port, boolean failOnUnmatchedStubs) {
-        super(host, port);
-        this.failOnUnmatchedStubs = failOnUnmatchedStubs;
-    }
-
-    public ScopedWireMockClientRule(String host, int port, String urlPathPrefix, boolean failOnUnmatchedStubs) {
-        super(host, port, urlPathPrefix);
-        this.failOnUnmatchedStubs = failOnUnmatchedStubs;
-    }
-
-    public ScopedWireMockClientRule(String scheme, String host, int port, boolean failOnUnmatchedStubs) {
-        super(scheme, host, port);
-        this.failOnUnmatchedStubs = failOnUnmatchedStubs;
-    }
-
-    public ScopedWireMockClientRule(String scheme, String host, int port, String urlPathPrefix, boolean failOnUnmatchedStubs) {
-        super(scheme, host, port, urlPathPrefix);
-        this.failOnUnmatchedStubs = failOnUnmatchedStubs;
-    }
-
     @Override
     public Statement apply(final Statement base, Description description) {
-        return apply(base, null, null);
+        return apply(base, description.toString());
     }
 
     @Override
-    public Statement apply(final Statement base, FrameworkMethod method, Object target) {
+    public Statement apply(final Statement base, final FrameworkMethod method, Object target) {
+        final String name = method.getDeclaringClass().getSimpleName() + "_" + method.getMethod();
+        return apply(base, name);
+    }
+
+    private Statement apply(final Statement base, final String name)  {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
                 ThreadLocal<WireMock> defaultInstance = Reflection.getStaticValue(WireMock.class, "defaultInstance");
                 defaultInstance.set(ScopedWireMockClientRule.this);
+                CorrelationState nestedScope=null;
                 try {
+                    String parentPath = ScopedAdminHolder.getGlobalCorrelationState().getCorrelationPath();
+                    nestedScope = admin.startNestedScope(new InitialScopeState(parentPath, name, Collections.<String, Object>emptyMap()));
+                    BaseDependencyInjectorAdaptor.CURRENT_CORRELATION_STATE.set(nestedScope.getCorrelationPath(),1,false);
                     before();
                     base.evaluate();
                     checkForUnmatchedRequests();
                 } finally {
                     after();
-                    resetAll();
+                    try {
+                        admin.stopNestedScope(nestedScope);
+                    } catch (Exception e) {
+                        LOGGER.log(Level.WARNING,"Could not stop nested scope",e);
+                    }
                 }
             }
 

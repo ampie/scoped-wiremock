@@ -5,6 +5,7 @@ import com.sbg.bdd.wiremock.scoped.admin.model.GlobalCorrelationState;
 import com.sbg.bdd.wiremock.scoped.admin.model.JournalMode;
 import com.sbg.bdd.wiremock.scoped.common.ParentPath;
 import com.sbg.bdd.wiremock.scoped.integration.EndpointConfig;
+import com.sbg.bdd.wiremock.scoped.server.junit.InMemoryEndpointConfigRegistry;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.SortedSet;
@@ -17,7 +18,9 @@ public class GlobalScope extends CorrelatedScope {
         super(null, state.getRunName(), state);
         this.allPersonaIds = allPersonaIds;
         state.setCorrelationPath(toKey(state));
-        if (state.getUrlOfServiceUnderTest() != null) {
+        if (state.getUrlOfServiceUnderTest() == null) {
+            this.endPointConfigRegistry= new InMemoryEndpointConfigRegistry();
+        }else{
             String integrationScope = StringUtils.isEmpty(state.getIntegrationScope()) ? EndpointConfig.LOCAL_INTEGRATION_SCOPE : state.getIntegrationScope();
             this.endPointConfigRegistry = new RemoteEndpointConfigRegistry(state.getUrlOfServiceUnderTest().toExternalForm(), integrationScope);
         }
@@ -105,4 +108,5 @@ public class GlobalScope extends CorrelatedScope {
     public SortedSet<String> allPersonaIds() {
         return allPersonaIds;
     }
+
 }
