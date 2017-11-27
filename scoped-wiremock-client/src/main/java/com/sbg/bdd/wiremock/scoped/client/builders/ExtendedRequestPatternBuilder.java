@@ -72,7 +72,7 @@ public class ExtendedRequestPatternBuilder<T extends ExtendedRequestPatternBuild
     }
 
     @Override
-    public T withRequestBody(StringValuePattern valuePattern) {
+    public T withRequestBody(ContentPattern valuePattern) {
         return (T) super.withRequestBody(valuePattern);
     }
 

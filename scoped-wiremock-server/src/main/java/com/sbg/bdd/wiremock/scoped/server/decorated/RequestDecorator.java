@@ -1,6 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.server.decorated;
 
 import com.github.tomakehurst.wiremock.http.*;
+import com.google.common.base.Optional;
 
 import java.util.List;
 import java.util.Map;
@@ -107,5 +108,10 @@ public class RequestDecorator implements Request {
     @Override
     public boolean isBrowserProxyRequest() {
         return delegate.isBrowserProxyRequest();
+    }
+
+    @Override
+    public Optional<Request> getOriginalRequest() {
+        return delegate.getOriginalRequest();
     }
 }

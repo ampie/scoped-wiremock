@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.BasicCredentials;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.ScenarioMappingBuilder;
+import com.github.tomakehurst.wiremock.matching.ContentPattern;
 import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import com.sbg.bdd.wiremock.scoped.admin.model.*;
 import com.sbg.bdd.wiremock.scoped.client.WireMockContext;
@@ -37,7 +38,7 @@ public class ExtendedMappingBuilder<T extends ExtendedMappingBuilder> implements
     }
 
 
-    public T withRequestBody(StringValuePattern bodyPattern) {
+    public T withRequestBody(ContentPattern bodyPattern) {
         this.requestPatternBuilder.withRequestBody(bodyPattern);
         return (T) this;
     }

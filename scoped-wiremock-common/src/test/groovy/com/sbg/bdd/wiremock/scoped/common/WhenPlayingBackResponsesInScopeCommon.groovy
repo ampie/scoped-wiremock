@@ -56,8 +56,8 @@ abstract class WhenPlayingBackResponsesInScopeCommon extends ScopedWireMockCommo
         response0 == 'hello 0'
         response1 == 'hello 1'
         and: 'no responses for requests at the lower level because the playback needs to be accurate'
-        response2.contains('HTTP ERROR: 404')
-        response3.contains('HTTP ERROR: 404')
+        response2.contains('Request was not matched')
+        response3.contains('Request was not matched')
     }
 
     def 'Should play back the example_recordings directory as specified by a playback mapping in the global scope'() {

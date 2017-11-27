@@ -3,6 +3,7 @@ package com.sbg.bdd.wiremock.scoped.client;
 
 import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import com.github.tomakehurst.wiremock.verification.NearMiss;
 import com.sbg.bdd.wiremock.scoped.admin.ScopedAdmin;
 import com.sbg.bdd.wiremock.scoped.admin.model.CorrelationState;
@@ -17,6 +18,7 @@ import org.junit.runner.Description;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -72,7 +74,12 @@ public class ScopedWireMockClientRule extends ScopedWireMockClient implements Te
         if (failOnUnmatchedStubs) {
             List<NearMiss> nearMisses = findNearMissesForAllUnmatchedRequests();
             if (!nearMisses.isEmpty()) {
-                throw VerificationException.forUnmatchedRequests(nearMisses);
+
+                List<LoggedRequest> logRequests=new ArrayList<>();
+                for (NearMiss nearMiss : nearMisses) {
+                    logRequests.add(nearMiss.getRequest());
+                }
+                throw VerificationException.forUnmatchedRequests(logRequests);
             }
         }
     }

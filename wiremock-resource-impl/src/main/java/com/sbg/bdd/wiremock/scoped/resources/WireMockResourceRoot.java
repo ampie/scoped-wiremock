@@ -2,6 +2,7 @@ package com.sbg.bdd.wiremock.scoped.resources;
 
 import com.github.tomakehurst.wiremock.admin.AdminRoutes;
 import com.github.tomakehurst.wiremock.extension.AdminApiExtension;
+import com.github.tomakehurst.wiremock.verification.notmatched.PlainTextStubNotMatchedRenderer;
 import com.sbg.bdd.resource.ResourceRoot;
 import com.sbg.bdd.wiremock.scoped.admin.ScopeAdminTask;
 import com.sbg.bdd.wiremock.scoped.admin.ScopeExtensionsOnClient;
@@ -18,7 +19,7 @@ public class WireMockResourceRoot extends WireMockResourceContainer implements R
         super(null, name);
         this.baseUrl = baseUrl;
         rootName=name;
-        this.scopedAdminRoutes = AdminRoutes.defaultsPlus(Arrays.<AdminApiExtension>asList(new ScopeExtensionsOnClient()));
+        this.scopedAdminRoutes = AdminRoutes.defaultsPlus(Arrays.<AdminApiExtension>asList(new ScopeExtensionsOnClient()), new PlainTextStubNotMatchedRenderer());
 
     }
 

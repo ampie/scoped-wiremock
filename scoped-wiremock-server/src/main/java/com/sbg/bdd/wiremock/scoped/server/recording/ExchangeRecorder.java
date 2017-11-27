@@ -9,9 +9,8 @@ import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.extension.Parameters;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
-import com.github.tomakehurst.wiremock.matching.MultiValuePattern;
-import com.github.tomakehurst.wiremock.matching.StringValuePattern;
-import com.github.tomakehurst.wiremock.matching.UrlPathPattern;
+import com.github.tomakehurst.wiremock.matching.*;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.sbg.bdd.resource.ReadableResource;
 import com.sbg.bdd.resource.Resource;
 import com.sbg.bdd.resource.ResourceContainer;
@@ -24,6 +23,7 @@ import com.sbg.bdd.wiremock.scoped.integration.HeaderName;
 import com.sbg.bdd.wiremock.scoped.integration.RuntimeCorrelationState;
 import com.sbg.bdd.wiremock.scoped.server.*;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.impl.conn.Wire;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +32,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.sbg.bdd.wiremock.scoped.common.MimeTypeHelper.calculateExtension;
+import static com.sbg.bdd.wiremock.scoped.common.Reflection.getValue;
+import static com.sbg.bdd.wiremock.scoped.common.Reflection.setValue;
 
 //TODO needs some TLC. Became a dustbin for recording logic
 public class ExchangeRecorder {
@@ -104,7 +106,12 @@ public class ExchangeRecorder {
             MappingBuilder currentMapping = buildMappingIfPossible(directoryRecordedTo, requestPattern, mappingFile);
             if (currentMapping != null) {
                 currentMapping.atPriority(priority);
-                scopedAdmin.addStubMapping(currentMapping.build());
+                StubMapping stubMapping = currentMapping.build();
+                if(stubMapping.getRequest().getUrlMatcher()==null){
+                    //ag tog
+                    setValue( stubMapping.getRequest(),"url", WireMock.anyUrl());
+                }
+                scopedAdmin.addStubMapping(stubMapping);
                 mappingBuilders.add(currentMapping);
             }
         }
@@ -274,6 +281,7 @@ public class ExchangeRecorder {
                 sequenceNumberMatcher.setSequenceNumber(Integer.valueOf(s.group(4)));
                 sequenceNumberMatcher.setCorrelationPattern(templateRequestPattern.getHeaders().get(HeaderName.ofTheCorrelationKey()).getValuePattern());
                 mappingBuilder = WireMock.requestMatching(sequenceNumberMatcher);
+
             }
             copyTemplateRequestPatternInto(templateRequestPattern, mappingBuilder);
             return mappingBuilder.willReturn(WireMock.aResponse().withHeaders(headers).withBody(body).withStatus(calculateResponseCode(headers)));
@@ -294,7 +302,7 @@ public class ExchangeRecorder {
 
     private void copyTemplateRequestPatternInto(ExtendedRequestPattern templateRequestPattern, MappingBuilder mappingBuilder) {
         if (templateRequestPattern.getBodyPatterns() != null) {
-            for (StringValuePattern pattern : templateRequestPattern.getBodyPatterns()) {
+            for (ContentPattern<?> pattern : templateRequestPattern.getBodyPatterns()) {
                 mappingBuilder.withRequestBody(pattern);
             }
         }

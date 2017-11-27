@@ -3,6 +3,7 @@ package com.sbg.bdd.wiremock.scoped.admin.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.tomakehurst.wiremock.common.Urls;
 import com.github.tomakehurst.wiremock.http.*;
+import com.google.common.base.Optional;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -132,6 +133,12 @@ public class RecordedRequest extends RecordedMessage implements Request {
     @Override
     public boolean isBrowserProxyRequest() {
         return false;
+    }
+
+    @Override
+    @JsonIgnore
+    public Optional<Request> getOriginalRequest() {
+        return Optional.absent();
     }
 
     public void setMethod(RequestMethod method) {

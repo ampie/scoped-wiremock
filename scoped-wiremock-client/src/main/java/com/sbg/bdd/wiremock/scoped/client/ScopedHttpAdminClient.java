@@ -6,6 +6,7 @@ import com.github.tomakehurst.wiremock.admin.model.PathParams;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.extension.AdminApiExtension;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import com.github.tomakehurst.wiremock.verification.notmatched.PlainTextStubNotMatchedRenderer;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.admin.*;
 import com.sbg.bdd.wiremock.scoped.admin.model.*;
@@ -47,7 +48,7 @@ public class ScopedHttpAdminClient extends OkHttpAdminClient implements ScopedAd
         this.port = port;
         this.urlPathPrefix = urlPathPrefix;
         this.hostHeader = hostHeader;
-        this.scopedAdminRoutes = AdminRoutes.defaultsPlus(Arrays.<AdminApiExtension>asList(new ScopeExtensionsOnClient()));
+        this.scopedAdminRoutes = AdminRoutes.defaultsPlus(Arrays.<AdminApiExtension>asList(new ScopeExtensionsOnClient()),new PlainTextStubNotMatchedRenderer());
     }
 
     public ScopedHttpAdminClient(String host, int port) {

@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.Options;
 import com.github.tomakehurst.wiremock.http.RequestListener;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import com.github.tomakehurst.wiremock.verification.NearMiss;
 import com.sbg.bdd.resource.ResourceContainer;
 import com.sbg.bdd.wiremock.scoped.ScopedWireMock;
@@ -21,6 +22,7 @@ import org.junit.runners.model.Statement;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.sbg.bdd.wiremock.scoped.common.ExceptionSafe.theCauseOf;
@@ -90,7 +92,12 @@ public class ScopedWireMockServerRule extends ScopedWireMock implements TestRule
         if (failOnUnmatchedStubs) {
             List<NearMiss> nearMisses = findNearMissesForAllUnmatchedRequests();
             if (!nearMisses.isEmpty()) {
-                throw VerificationException.forUnmatchedRequests(nearMisses);
+
+                List<LoggedRequest> logRequests=new ArrayList<>();
+                for (NearMiss nearMiss : nearMisses) {
+                    logRequests.add(nearMiss.getRequest());
+                }
+                throw VerificationException.forUnmatchedRequests(logRequests);
             }
         }
     }

@@ -2,17 +2,21 @@ package com.sbg.bdd.wiremock.scoped.client;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.admin.AdminRoutes;
-import com.github.tomakehurst.wiremock.admin.AdminTask;
-import com.github.tomakehurst.wiremock.admin.RequestSpec;
+import com.github.tomakehurst.wiremock.admin.*;
 import com.github.tomakehurst.wiremock.admin.model.*;
 import com.github.tomakehurst.wiremock.admin.tasks.*;
 import com.github.tomakehurst.wiremock.client.VerificationException;
 import com.github.tomakehurst.wiremock.common.AdminException;
 import com.github.tomakehurst.wiremock.common.Json;
 import com.github.tomakehurst.wiremock.core.Admin;
+import com.github.tomakehurst.wiremock.core.Options;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.global.GlobalSettings;
 import com.github.tomakehurst.wiremock.matching.RequestPattern;
+import com.github.tomakehurst.wiremock.recording.RecordSpec;
+import com.github.tomakehurst.wiremock.recording.RecordSpecBuilder;
+import com.github.tomakehurst.wiremock.recording.RecordingStatusResult;
+import com.github.tomakehurst.wiremock.recording.SnapshotRecordResult;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.github.tomakehurst.wiremock.verification.FindNearMissesResult;
 import com.github.tomakehurst.wiremock.verification.FindRequestsResult;
@@ -248,6 +252,75 @@ public class OkHttpAdminClient implements Admin {
     @Override
     public void shutdownServer() {
         postJsonAssertOkAndReturnBody(urlFor(ShutdownServerTask.class), null, HTTP_OK);
+    }
+
+    @Override
+    public GetScenariosResult getAllScenarios() {
+        return executeRequest(
+                adminRoutes.requestSpecForTask(GetAllScenariosTask.class),
+                GetScenariosResult.class
+        );
+    }
+
+    @Override
+    public SnapshotRecordResult snapshotRecord(RecordSpecBuilder spec) {
+        return snapshotRecord(spec.build());
+    }
+
+    @Override
+    public SnapshotRecordResult snapshotRecord(RecordSpec spec) {
+        String body = postJsonAssertOkAndReturnBody(
+                urlFor(SnapshotTask.class),
+                Json.write(spec));
+
+        return Json.read(body, SnapshotRecordResult.class);
+    }
+
+    @Override
+    public void startRecording(String targetBaseUrl) {
+        startRecording(RecordSpec.forBaseUrl(targetBaseUrl));
+    }
+
+    @Override
+    public void startRecording(RecordSpec recordSpec) {
+        postJsonAssertOkAndReturnBody(
+                urlFor(StartRecordingTask.class),
+                Json.write(recordSpec));
+    }
+
+    private String postJsonAssertOkAndReturnBody(String s, String write) {
+        return postJsonAssertOkAndReturnBody(s, write, 200);
+    }
+
+    @Override
+    public void startRecording(RecordSpecBuilder recordSpec) {
+        startRecording(recordSpec.build());
+    }
+
+    @Override
+    public SnapshotRecordResult stopRecording() {
+        String body = postJsonAssertOkAndReturnBody(
+                urlFor(StopRecordingTask.class),
+                "");
+
+        return Json.read(body, SnapshotRecordResult.class);
+    }
+
+    @Override
+    public RecordingStatusResult getRecordingStatus() {
+        return executeRequest(adminRoutes.requestSpecForTask(GetRecordingStatusTask.class), RecordingStatusResult.class);
+    }
+    @Override
+    public SnapshotRecordResult snapshotRecord() {
+        String body = postJsonAssertOkAndReturnBody(
+                urlFor(SnapshotTask.class),
+                "");
+
+        return Json.read(body, SnapshotRecordResult.class);
+    }
+    @Override
+    public Options getOptions() {
+        return new WireMockConfiguration().port(port).bindAddress(host);
     }
 
     public int port() {

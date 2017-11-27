@@ -30,7 +30,7 @@ public class ExtendedRequestPattern extends RequestPattern {
                                   @JsonProperty("queryParameters") Map<String, MultiValuePattern> queryParams,
                                   @JsonProperty("cookies") Map<String, StringValuePattern> cookies,
                                   @JsonProperty("basicAuth") BasicCredentials basicAuthCredentials,
-                                  @JsonProperty("bodyPatterns") List<StringValuePattern> bodyPatterns,
+                                  @JsonProperty("bodyPatterns") List<ContentPattern<?>> bodyPatterns,
                                   @JsonProperty("customMatcher") CustomMatcherDefinition customMatcherDefinition,
                                   @JsonProperty("urlInfo") String urlInfo,
                                   @JsonProperty("pathSuffix") String pathSuffix,
