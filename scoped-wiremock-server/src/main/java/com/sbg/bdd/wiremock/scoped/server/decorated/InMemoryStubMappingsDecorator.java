@@ -43,13 +43,11 @@ public class InMemoryStubMappingsDecorator extends InMemoryStubMappings {
     @Override
     public ServeEvent serveFor(Request request) {
         RequestDecorator requestDecorator = rectifyRequestHeaders(request);
-        if (RuntimeCorrelationState.ON == false) {
-            HttpHeader correlationPath = requestDecorator.getHeaders().getHeader(HeaderName.ofTheCorrelationKey());
-            HttpHeader threadContextId = requestDecorator.getHeaders().getHeader(HeaderName.ofTheThreadContextId());
-            if (correlationPath.isPresent() && threadContextId.isPresent()) {
-                CorrelationState correlatedScope = scopeAdmin.getCorrelatedScope(correlationPath.firstValue());
-                correlatedScope.findOrCreateServiceInvocationCount(Integer.valueOf(threadContextId.firstValue()), serviceIdentifierOf(request)).increment();
-            }
+        HttpHeader correlationPath = requestDecorator.getHeaders().getHeader(HeaderName.ofTheCorrelationKey());
+        HttpHeader threadContextId = requestDecorator.getHeaders().getHeader(HeaderName.ofTheThreadContextId());
+        if (correlationPath.isPresent() && threadContextId.isPresent()) {
+            CorrelationState correlatedScope = scopeAdmin.getCorrelatedScope(correlationPath.firstValue());
+            correlatedScope.findOrCreateServiceInvocationCount(Integer.valueOf(threadContextId.firstValue()), serviceIdentifierOf(request)).increment();
         }
         //TODO could optimize by grouping StubMappings by correlationPath
         return delegate.serveFor(requestDecorator);
@@ -95,13 +93,13 @@ public class InMemoryStubMappingsDecorator extends InMemoryStubMappings {
     }
 
     private StringValuePattern extractCorrelationPathPattern(StubMapping mapping) {
-        StringValuePattern stringValuePattern=null;
+        StringValuePattern stringValuePattern = null;
         if (mapping.getRequest() != null && mapping.getRequest().getHeaders() != null) {
             MultiValuePattern correlationPattern = mapping.getRequest().getHeaders().get(HeaderName.ofTheCorrelationKey());
-            stringValuePattern = correlationPattern==null?null:correlationPattern.getValuePattern();
-        }else if(mapping.getRequest().hasCustomMatcher()){
-            ValueMatcher<Request> customMatcher = getValue(mapping.getRequest(),"matcher");
-            if(customMatcher instanceof SequenceNumberMatcher){
+            stringValuePattern = correlationPattern == null ? null : correlationPattern.getValuePattern();
+        } else if (mapping.getRequest().hasCustomMatcher()) {
+            ValueMatcher<Request> customMatcher = getValue(mapping.getRequest(), "matcher");
+            if (customMatcher instanceof SequenceNumberMatcher) {
                 stringValuePattern = ((SequenceNumberMatcher) customMatcher).getCorrelationPattern();
             }
         }
@@ -165,6 +163,7 @@ public class InMemoryStubMappingsDecorator extends InMemoryStubMappings {
     public Optional<StubMapping> get(UUID id) {
         return delegate.get(id);
     }
+
     public static String serviceIdentifierOf(Request request) {
         try {
             return URLHelper.identifier(new URL(request.getAbsoluteUrl()), request.getMethod().getName());

@@ -128,8 +128,7 @@ public class ScopedWireMockServerRunner {
     private String buildExtensionsString() {
         String extensions = ProxyUrlTransformer.class.getName() + "," +
                 ScopeExtensions.class.getName() + "," +
-                InvalidHeadersLoggingTransformer.class.getName() + "," +
-                ScopeUpdatingResponseTransformer.class.getName();
+                InvalidHeadersLoggingTransformer.class.getName();
         try {
             Class<?> cls = Class.forName("com.sbg.bdd.wiremock.scoped.integration.cucumber.CucumberFormattingScopeListener");
             extensions = extensions + "," + cls.getName();

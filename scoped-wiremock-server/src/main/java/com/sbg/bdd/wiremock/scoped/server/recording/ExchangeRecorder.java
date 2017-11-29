@@ -107,9 +107,9 @@ public class ExchangeRecorder {
             if (currentMapping != null) {
                 currentMapping.atPriority(priority);
                 StubMapping stubMapping = currentMapping.build();
-                if(stubMapping.getRequest().getUrlMatcher()==null){
+                if (stubMapping.getRequest().getUrlMatcher() == null) {
                     //ag tog
-                    setValue( stubMapping.getRequest(),"url", WireMock.anyUrl());
+                    setValue(stubMapping.getRequest(), "url", WireMock.anyUrl());
                 }
                 scopedAdmin.addStubMapping(stubMapping);
                 mappingBuilders.add(currentMapping);
@@ -269,20 +269,13 @@ public class ExchangeRecorder {
         if (s.find()) {
             UrlPathPattern urlPattern = calculateRequestUrl(templateRequestPattern, headers);
             MappingBuilder mappingBuilder;
-            if (RuntimeCorrelationState.ON) {
-                mappingBuilder = WireMock.request(s.group(1), urlPattern);
-                mappingBuilder.withHeader(HeaderName.ofTheThreadContextId(), WireMock.equalTo(s.group(3)));
-                mappingBuilder.withHeader(HeaderName.ofTheSequenceNumber(), WireMock.equalTo(s.group(4)));
-            } else {
-                SequenceNumberMatcher sequenceNumberMatcher = new SequenceNumberMatcher();
-                sequenceNumberMatcher.setAdmin(scopedAdmin);
-                sequenceNumberMatcher.setUrlPattern(urlPattern);
-                sequenceNumberMatcher.setThreadContextId(Integer.valueOf(s.group(3)));
-                sequenceNumberMatcher.setSequenceNumber(Integer.valueOf(s.group(4)));
-                sequenceNumberMatcher.setCorrelationPattern(templateRequestPattern.getHeaders().get(HeaderName.ofTheCorrelationKey()).getValuePattern());
-                mappingBuilder = WireMock.requestMatching(sequenceNumberMatcher);
-
-            }
+            SequenceNumberMatcher sequenceNumberMatcher = new SequenceNumberMatcher();
+            sequenceNumberMatcher.setAdmin(scopedAdmin);
+            sequenceNumberMatcher.setUrlPattern(urlPattern);
+            sequenceNumberMatcher.setThreadContextId(Integer.valueOf(s.group(3)));
+            sequenceNumberMatcher.setSequenceNumber(Integer.valueOf(s.group(4)));
+            sequenceNumberMatcher.setCorrelationPattern(templateRequestPattern.getHeaders().get(HeaderName.ofTheCorrelationKey()).getValuePattern());
+            mappingBuilder = WireMock.requestMatching(sequenceNumberMatcher);
             copyTemplateRequestPatternInto(templateRequestPattern, mappingBuilder);
             return mappingBuilder.willReturn(WireMock.aResponse().withHeaders(headers).withBody(body).withStatus(calculateResponseCode(headers)));
         } else {

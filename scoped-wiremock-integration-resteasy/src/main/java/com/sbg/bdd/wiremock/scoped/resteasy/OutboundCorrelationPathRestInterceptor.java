@@ -29,14 +29,6 @@ class OutboundCorrelationPathRestInterceptor implements ClientExecutionIntercept
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 headers.add(HeaderName.toProxyUnmappedEndpoints(), "true");
             }
-            if(RuntimeCorrelationState.ON) {
-                //TODO move to CorrelatedScopeAdmin
-                String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(key).toString();
-                headers.add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
-                for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
-                    ctx.getRequest().header(HeaderName.ofTheServiceInvocationCount(), entry.toString());
-                }
-            }
         }
         ClientResponse response = ctx.proceed();
         try {

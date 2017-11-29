@@ -63,9 +63,6 @@ public class CorrelationState {
         this.correlationPath = correlationPath;
     }
 
-    public List<ServiceInvocationCount> getServiceInvocationCounts() {
-        return serviceInvocationCounts;
-    }
 
     public String getCurrentStep() {
         return currentStep;
@@ -84,14 +81,28 @@ public class CorrelationState {
      * Alternatives:
      * map of lists by threadContextId's
      * map by keys - this would be the best
+     */
+
+    public synchronized  List<ServiceInvocationCount> getServiceInvocationCounts() {
+        synchronized (this.serviceInvocationCounts) {
+            return new ArrayList<>(serviceInvocationCounts);
+        }
+    }
+    /**
+     * Can be updated from multiple concurrent threads. Updates need to be sequential for consistency
+     * Alternatives:
+     * map of lists by threadContextId's
+     * map by keys - this would be the best
      *
      * @param serviceInvocationCounts
      */
-    public synchronized void putServiceInvocationCounts(List<ServiceInvocationCount> serviceInvocationCounts) {
+    public void putServiceInvocationCounts(List<ServiceInvocationCount> serviceInvocationCounts) {
         for (ServiceInvocationCount serviceInvocationCount : serviceInvocationCounts) {
             ServiceInvocationCount found = getServiceInvocationCount(serviceInvocationCount.getKey());
             if (found == null) {
-                this.serviceInvocationCounts.add(serviceInvocationCount);
+                synchronized (this.serviceInvocationCounts) {
+                    this.serviceInvocationCounts.add(serviceInvocationCount);
+                }
             } else {
                 found.setCount(serviceInvocationCount.getCount());
             }
@@ -107,7 +118,7 @@ public class CorrelationState {
     }
 
     public ServiceInvocationCount getServiceInvocationCount(String keyToFind) {
-        for (ServiceInvocationCount existing : this.serviceInvocationCounts) {
+        for (ServiceInvocationCount existing : getServiceInvocationCounts()) {
             if (existing.getKey().equals(keyToFind)) {
                 return existing;
             }

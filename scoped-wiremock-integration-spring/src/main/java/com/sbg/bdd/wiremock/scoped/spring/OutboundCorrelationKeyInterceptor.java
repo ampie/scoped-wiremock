@@ -35,13 +35,6 @@ public class OutboundCorrelationKeyInterceptor implements ClientHttpRequestInter
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 ctx.getHeaders().add(HeaderName.toProxyUnmappedEndpoints(), "true");
             }
-            if(RuntimeCorrelationState.ON) {
-                String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(key).toString();
-                ctx.getHeaders().add(HeaderName.ofTheSequenceNumber(), sequenceNumber);
-                for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
-                    ctx.getHeaders().add(HeaderName.ofTheServiceInvocationCount(), entry.toString());
-                }
-            }
         }
         //TODO experiment and see if we can change the URL here to point to WireMock. THen we can include the original URL in the header
         ClientHttpResponse response = clientHttpRequestExecution.execute(ctx, bytes);

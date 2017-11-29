@@ -181,7 +181,6 @@ public class ScopedWireMockServer extends WireMockServer implements ScopedAdmin,
             ((WireMockConfiguration) options).extensions(ProxyUrlTransformer.class);
             ((WireMockConfiguration) options).extensions(ScopeExtensions.class);
             ((WireMockConfiguration) options).extensions(InvalidHeadersLoggingTransformer.class);
-            ((WireMockConfiguration) options).extensions(ScopeUpdatingResponseTransformer.class);
         } else {
             //TODO Clone it into a WireMockConfiguration
 

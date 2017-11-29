@@ -30,28 +30,22 @@ public class ExchangeJournal {
         try {
             RecordedExchange exchange = new RecordedExchange(buildRecordedRequest(request), scope.getCorrelationPath(), step);
             String threadContextIdString = request.getHeader(HeaderName.ofTheThreadContextId());
-            int threadContextId=0;
+            int threadContextId = 0;
             if (threadContextIdString != null) {
                 threadContextId = Integer.parseInt(threadContextIdString);
                 exchange.setThreadContextId(threadContextId);
             }
-            if (RuntimeCorrelationState.ON) {
-                String sequenceNumber = request.getHeader(HeaderName.ofTheSequenceNumber());
-                if (sequenceNumber != null) {
-                    exchange.setSequenceNumber(Integer.parseInt(sequenceNumber));
-                }
-            } else {
-                ServiceInvocationCount sic = scope.findOrCreateServiceInvocationCount(threadContextId, serviceIdentifierOf(request));
-                exchange.setSequenceNumber(sic.getCount());
-            }
-
+            ServiceInvocationCount sic = scope.findOrCreateServiceInvocationCount(threadContextId, serviceIdentifierOf(request));
+            exchange.setSequenceNumber(sic.getCount());
             Collection<RecordedExchange> exchangesInStep = findActiveExchangesInStep(scope.getCorrelationPath(), step);
-            if (exchangesInStep.isEmpty()) {
-                exchange.setRootExchange(true);
-            } else {
-                addToMostRecentParentExchange(exchange, exchangesInStep);
+            synchronized (exchangesInStep) {
+                if (exchangesInStep.isEmpty()) {
+                    exchange.setRootExchange(true);
+                } else {
+                    addToMostRecentParentExchange(exchange, exchangesInStep);
+                }
+                exchangesInStep.add(exchange);
             }
-            exchangesInStep.add(exchange);
             this.recordings.add(exchange);
             return exchange;
         } catch (RuntimeException e) {

@@ -59,8 +59,7 @@ abstract class WhenWorkingWithScopesCommon extends ScopedWireMockCommonTest {
 
         when: 'I update the service invocation counts for service1 to 2 and service2 to 1'
         def nestedScope = new CorrelationState(globalCorrelationPath + '/my_nested_scope')
-        nestedScope.serviceInvocationCounts[0] =new ServiceInvocationCount('1|service1|2')
-        nestedScope.serviceInvocationCounts[1] =new ServiceInvocationCount('1|service2|1')
+        nestedScope.putServiceInvocationCounts([new ServiceInvocationCount('1|service1|2'),new ServiceInvocationCount('1|service2|1')])
         wireMock.syncCorrelatedScope(nestedScope)
 
         then: 'these new values should reflect'

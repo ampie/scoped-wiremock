@@ -29,12 +29,6 @@ public class OutboundRequestCorrelationKeyFilter implements ClientRequestFilter 
             if (currentCorrelationState.shouldProxyUnmappedEndpoints()) {
                 headers.add(HeaderName.toProxyUnmappedEndpoints(), "true");
             }
-            if(RuntimeCorrelationState.ON) {
-                headers.add(HeaderName.ofTheSequenceNumber(), currentCorrelationState.getNextSequenceNumberFor(key).toString());
-                for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
-                    headers.add(HeaderName.ofTheServiceInvocationCount(), entry.toString());
-                }
-            }
         }
     }
 }

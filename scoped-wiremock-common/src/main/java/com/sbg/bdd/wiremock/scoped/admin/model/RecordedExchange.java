@@ -120,7 +120,7 @@ public class RecordedExchange {
         this.duration = duration;
     }
 
-    public void recordNestedExchange(RecordedExchange exchange) {
+    public synchronized void recordNestedExchange(RecordedExchange exchange) {
         nestedExchanges.add(exchange);
     }
 
@@ -145,8 +145,8 @@ public class RecordedExchange {
         this.threadContextId = threadContextId;
     }
 
-    public List<RecordedExchange> getNestedExchanges() {
-        return nestedExchanges;
+    public synchronized  List<RecordedExchange> getNestedExchanges() {
+        return new ArrayList<>(nestedExchanges);
     }
 
     public boolean isRootExchange() {

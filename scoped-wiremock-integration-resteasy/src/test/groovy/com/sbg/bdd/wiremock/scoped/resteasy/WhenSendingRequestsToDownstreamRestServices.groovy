@@ -42,12 +42,6 @@ class WhenSendingRequestsToDownstreamRestServices extends Specification{
         headers.get(HeaderName.ofTheOriginalUrl())[0] == 'http://somewhere.com/base'
         headers.get(HeaderName.toProxyUnmappedEndpoints())[0] == 'true'
         headers.get(HeaderName.ofTheThreadContextId())[0] == '1'
-        if(RuntimeCorrelationState.ON) {
-            headers.get(HeaderName.ofTheSequenceNumber())[0] == '1'
-            headers.get(HeaderName.ofTheServiceInvocationCount())[0] == '1|endpoint1|6'
-            headers.get(HeaderName.ofTheServiceInvocationCount())[1] == '1|endpoint2|8'
-            headers.get(HeaderName.ofTheServiceInvocationCount())[2] == '1|http:null://somewhere.com/base|1'//null because we can't fake a method with sending a request
-        }
     }
     def 'it should extract all the correct incoming headers'(){
         given:

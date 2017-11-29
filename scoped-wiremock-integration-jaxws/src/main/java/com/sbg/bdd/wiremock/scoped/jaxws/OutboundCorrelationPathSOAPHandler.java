@@ -62,15 +62,6 @@ public class OutboundCorrelationPathSOAPHandler implements SOAPHandler {
             if(categories!=null){
                 headers.put(HeaderName.ofTheEndpointCategory(),categories);
             }
-            if(RuntimeCorrelationState.ON) {
-                String sequenceNumber = currentCorrelationState.getNextSequenceNumberFor(endpointIdentifier).toString();
-                headers.put(HeaderName.ofTheSequenceNumber(), Arrays.asList(sequenceNumber));
-                List<String> sequenceNumbers = new ArrayList<>();
-                for (ServiceInvocationCount entry : currentCorrelationState.getServiceInvocationCounts()) {
-                    sequenceNumbers.add(entry.toString());
-                }
-                headers.put(HeaderName.ofTheServiceInvocationCount(), sequenceNumbers);
-            }
         }
     }
 

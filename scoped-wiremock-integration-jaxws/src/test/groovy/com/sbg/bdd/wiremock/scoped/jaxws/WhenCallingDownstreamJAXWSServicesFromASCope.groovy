@@ -45,12 +45,6 @@ class WhenCallingDownstreamJAXWSServicesFromASCope extends Specification {
         headers[HeaderName.toProxyUnmappedEndpoints()][0] == 'true'
         headers[HeaderName.ofTheEndpointCategory()][0] == 'category1'
         headers[HeaderName.ofTheThreadContextId()][0] == '1'
-        if(RuntimeCorrelationState.ON) {
-            headers[HeaderName.ofTheSequenceNumber()][0] == '5'
-            headers[HeaderName.ofTheServiceInvocationCount()][0] == '1|http://endpoint.com/context/service/operation|5'
-            headers[HeaderName.ofTheServiceInvocationCount()][1] == "1|${endpoint1}|8"
-            headers[HeaderName.ofTheServiceInvocationCount()][2] == "1|${endpoint2}|12"
-        }
     }
 
     def 'the service invocation counts header of the incoming response should be reflected in the current correlation state'() {
