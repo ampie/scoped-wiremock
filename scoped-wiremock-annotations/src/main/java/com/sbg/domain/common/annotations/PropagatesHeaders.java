@@ -1,4 +1,4 @@
-package com.sbg.bdd.wiremock.scoped.cdi.annotations;
+package com.sbg.domain.common.annotations;
 
 import javax.interceptor.InterceptorBinding;
 import java.lang.annotation.Inherited;

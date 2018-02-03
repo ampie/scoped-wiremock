@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.resteasy;
 
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
+import com.sbg.domain.common.annotations.EndpointInfo;
 import com.sbg.bdd.wiremock.scoped.integration.*;
 import org.jboss.resteasy.client.ClientExecutor;
 import org.jboss.resteasy.client.ClientRequest;

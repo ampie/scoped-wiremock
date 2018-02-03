@@ -1,6 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.PropagatesHeaders;
+import com.sbg.domain.common.annotations.PropagatesHeaders;
 import com.sbg.bdd.wiremock.scoped.integration.DependencyInjectionAdaptorFactory;
 import com.sbg.bdd.wiremock.scoped.integration.RuntimeCorrelationState;
 

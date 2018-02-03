@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.resteasy;
 
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
+import com.sbg.domain.common.annotations.EndpointInfo;
 import com.sbg.bdd.wiremock.scoped.cdi.internal.EndpointInfoLiteral;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;

@@ -1,7 +1,7 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
+import com.sbg.domain.common.annotations.EndpointInfo;
 
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.InjectionPoint;

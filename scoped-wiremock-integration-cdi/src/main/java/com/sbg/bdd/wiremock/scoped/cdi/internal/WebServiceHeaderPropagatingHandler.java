@@ -1,6 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.cdi.internal;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
+import com.sbg.domain.common.annotations.EndpointInfo;
 import com.sbg.bdd.wiremock.scoped.integration.*;
 import com.sbg.bdd.wiremock.scoped.jaxws.OutboundCorrelationPathSOAPHandler;
 

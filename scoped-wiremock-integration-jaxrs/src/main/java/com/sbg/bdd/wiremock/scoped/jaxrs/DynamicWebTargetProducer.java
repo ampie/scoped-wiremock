@@ -1,6 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.jaxrs;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
+import com.sbg.domain.common.annotations.EndpointInfo;
 
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;

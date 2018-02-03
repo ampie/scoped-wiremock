@@ -1,6 +1,6 @@
 package com.sbg.bdd.wiremock.scoped.cdi;
 
-import com.sbg.bdd.wiremock.scoped.cdi.annotations.EndpointInfo;
+import com.sbg.domain.common.annotations.EndpointInfo;
 
 import javax.inject.Inject;
 import javax.xml.ws.WebServiceRef;
